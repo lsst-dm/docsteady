@@ -55,12 +55,16 @@ def print_test(test, formatters):
 test_formatters = [
     ["key", lambda field, content: print_pd_md(f"# {content}")],
     ["name", lambda field, content: print_pd_md(f"# {content}")],
-    ["lastTestResultStatus", lambda field, content: print_pd_md(f"## Status: {content}")],
-    ["issueLinks", RequirementsFormatter],
+    ["objective", DmObjectiveFormatter],
+    ["Predecessors", Format2],
+    ["Required Software", Format2],
     ["precondition", Format2],
+    ["Postcondition", Format2],
     ["testScript", TestScriptFormatter],
-    ["objective", DmObjectiveFormatter]
 ]
+
+# ["lastTestResultStatus", lambda field, content: print_pd_md(f"## Status: {content}")],
+# ["issueLinks", RequirementsFormatter],
 
 query = f'folder = "{folder}"'
 resp = requests.get(config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=config.AUTH)

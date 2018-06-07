@@ -57,9 +57,11 @@ class TestScriptFormatter(Formatter):
         print_pd_md("## Test Script:")
         steps = test_script['steps']
         for index, step in enumerate(steps):
-            print_pd_md(f"### Step {index}")
+            step_idx = index + 1
+            print_pd_md(f"**Step {step_idx}**")
             print_pd_md(step["description"])
-            print_pd(step["testData"])
+            if 'testData' in step:
+                print_pd(step["testData"])
 
 
 class Format2(Formatter):
@@ -81,6 +83,7 @@ class Format3(Formatter):
 
 class DmObjectiveFormatter(Formatter):
     def format(self, field, content, object=None):
+        print_pd_md("### Objective: ")
         print_pd(content)
 
 
