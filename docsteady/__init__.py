@@ -22,7 +22,8 @@ import os
 import sys
 from getpass import getpass
 
-from . import config
+import click
+from .config import Config
 from .formatters import *
 
 
@@ -43,21 +44,16 @@ def print_test(test, formatters):
             print(f"Error with field: {field}", file=sys.stderr)
 
 
-def main():
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} [FOLDER]")
-        sys.exit(1)
-
-    folder = sys.argv[1]
-
-    if "JIRA_USER" in os.environ and "JIRA_PASSWORD" in os.environ:
-        username = os.environ["JIRA_USER"]
-        password = os.environ["JIRA_PASSWORD"]
-    else:
-        username = input("Jira user name: ")
-        password = getpass("Password: ")
-
-    config.AUTH = (username, password)
+@click.command()
+@click.option('--output', default='latex', help='pandoc output format')
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
+@click.option('--password', prompt="Jira Password", hide_input=True,
+              envvar="JIRA_PASSWORD")
+@click.argument('folder')
+def main(output, username, password, folder):
+    Config.PANDOC_TYPE = output
+    Config.AUTH = (username, password)
+    print(locals())
 
     test_formatters = [
         [None,
@@ -73,7 +69,7 @@ def main():
     ]
 
     query = f'folder = "{folder}"'
-    resp = requests.get(config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=config.AUTH)
+    resp = requests.get(Config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=Config.AUTH)
 
     if resp.status_code != 200:
         print("Unable to download")

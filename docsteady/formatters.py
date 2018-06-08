@@ -21,7 +21,7 @@ import pandoc
 import re
 import requests
 from collections import OrderedDict
-from .config import PANDOC_TYPE, ISSUE_URL, AUTH, REQID_FIELD
+from .config import Config
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
@@ -29,7 +29,8 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 DOC = pandoc.Document()
 
 
-def format_pd(content, from_="html", to=PANDOC_TYPE):
+def format_pd(content, from_="html", to=None):
+    to = to or Config.PANDOC_TYPE
     setattr(DOC, from_, content.encode("utf-8"))
     return getattr(DOC, to).decode("utf-8")
 
@@ -40,7 +41,7 @@ def print_pd(html):
 
 def print_pd_md(md):
     DOC.markdown = md.encode("utf-8")
-    print(getattr(DOC, PANDOC_TYPE).decode("utf-8"))
+    print(getattr(DOC, Config.PANDOC_TYPE).decode("utf-8"))
 
 
 def pandoc_table_html(rows, with_header=True):
@@ -118,8 +119,9 @@ class RequirementsFormatter(Formatter):
         issue_links = content
         requirements = []
         for issue in issue_links:
-            issue_json = requests.get(ISSUE_URL.format(issue=issue), auth=AUTH).json()
-            reqid_field = issue_json['fields'][REQID_FIELD]
+            issue_json = requests.get(Config.ISSUE_URL.format(issue=issue),
+                                      auth=Config.AUTH).json()
+            reqid_field = issue_json['fields'][Config.REQID_FIELD]
             if reqid_field:
                 requirements.append(reqid_field)
         print_pd_md("## Requirements:")

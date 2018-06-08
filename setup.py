@@ -4,7 +4,8 @@ requires = [
     'requests',
     'pyandoc',
     'arrow',
-    'jinja2'
+    'jinja2',
+    'click'
 ]
 
 setup(
