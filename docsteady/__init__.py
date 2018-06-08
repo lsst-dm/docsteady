@@ -45,14 +45,16 @@ def print_test(test, formatters):
 
 
 @click.command()
-@click.option('--output', default='latex', help='pandoc output format')
+@click.option('--output', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
 @click.option('--password', prompt="Jira Password", hide_input=True,
-              envvar="JIRA_PASSWORD")
+              envvar="JIRA_PASSWORD", help="Output file")
 @click.argument('folder')
-def main(output, username, password, folder):
-    """"Docsteady takes in Adaptavist Test Folders and outputs
-    test specifications
+@click.argument('file', required=False, type=click.File('w'))
+def main(output, username, password, folder, file):
+    """Read in tests from Adaptavist Test management where FOLDER
+    is the ATM Test Case Folder. If specified, FILE is the resulting
+    output.
     """
     Config.PANDOC_TYPE = "html"
     Config.AUTH = (username, password)
@@ -101,7 +103,8 @@ def main(output, username, password, folder):
     text = Config.output.read()
     doc = pandoc.Document()
     doc.html = text.encode("utf-8")
-    print(getattr(doc, output).decode("utf-8"))
+    out_text = getattr(doc, output).decode("utf-8")
+    print(out_text, file=file or sys.stdout)
 
 
 if __name__ == '__main__':
