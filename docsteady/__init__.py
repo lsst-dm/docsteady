@@ -53,7 +53,6 @@ def print_test(test, formatters):
 def main(output, username, password, folder):
     Config.PANDOC_TYPE = output
     Config.AUTH = (username, password)
-    print(locals())
 
     test_formatters = [
         [None,
