@@ -21,7 +21,6 @@ import pandoc
 import re
 import requests
 from collections import OrderedDict
-from tempfile import TemporaryFile
 from .config import Config
 
 # Hack because pandoc doesn't have gfm yet
@@ -40,14 +39,17 @@ def print_pd(text, from_="html", to=None):
     print(format_pd(text, from_=from_, to=to), file=Config.output)
 
 
-def pandoc_table_html(rows, with_header=True):
+def pandoc_table_html(rows, with_header=True, cell_from=None):
+    convert = lambda x: str(x)
+    if cell_from:
+        convert = lambda x: format_pd(str(x), cell_from, "html")
     table = "<table>"
     if with_header:
         header_row = [str(i).replace("_", " ").title() for i in rows[0]]
         rows = rows[1:]
         table += "<tr><th>" + "</th><th>".join(header_row) + "</th></tr>"
     for row in rows:
-        formatted_row = [str(i) for i in row]
+        formatted_row = [convert(i) for i in row]
         table += "<tr><td>" + "</td><td>".join(formatted_row) + "</td></tr>"
     table += "</table>"
     return table
@@ -61,7 +63,7 @@ class Formatter:
 class TestScriptFormatter(Formatter):
     def format(self, field, content, object=None):
         test_script = content
-        print_pd("### Test Script:", from_="markdown")
+        print_pd("### Test Script", from_="markdown")
         steps = test_script['steps']
         for index, step in enumerate(steps):
             step_idx = index + 1
@@ -106,9 +108,16 @@ class Format3(Formatter):
 
 class DmObjectiveFormatter(Formatter):
     def format(self, field, content, object=None):
-        as_markdown = content.replace("<strong>Test items</strong>", "<h2>Test items</h2>")
-        as_markdown = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h2>\g<1></h2>", as_markdown)
+        as_markdown = content.replace("<strong>Test items</strong>", "<h3>Test items</h3>")
+        as_markdown = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h3>\g<1></h3>", as_markdown)
         print_pd(as_markdown)
+
+
+class DmRequirementFormatter(Formatter):
+    def format(self, field, content, object=None):
+        print_pd("### Requirements", from_="markdown")
+        for req in content:
+            print_pd("* " + " - ".join([req["key"], req["summary"]]), from_="markdown")
 
 
 class RequirementsFormatter(Formatter):
@@ -121,7 +130,7 @@ class RequirementsFormatter(Formatter):
             reqid_field = issue_json['fields'][Config.REQID_FIELD]
             if reqid_field:
                 requirements.append(reqid_field)
-        print_pd("### Requirements:", from_="markdown")
+        print_pd("### Requirements", from_="markdown")
         print("*{requirements}*".format(requirements=", ".join(requirements)))
 
 
@@ -149,3 +158,14 @@ def as_anchor(text):
     text = text.replace(" ", "-")
     text = text.lower()
     return text
+
+
+# class TableFormatter(Formatter):
+#     def __init__(self, with_header=True, cell_from="markdown"):
+#         self.with_header = with_header
+#         self.cell_from = cell_from
+#
+#     def format(self, field, content, object=None):
+#         rows = content
+#         pandoc_table_html(rows, self.with_header, self.cell_from)
+#

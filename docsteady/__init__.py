@@ -24,6 +24,7 @@ import click
 from .config import Config
 from .formatters import *
 import pandoc
+from tempfile import TemporaryFile
 
 
 def print_test(test, formatters):
@@ -50,6 +51,9 @@ def print_test(test, formatters):
               envvar="JIRA_PASSWORD")
 @click.argument('folder')
 def main(output, username, password, folder):
+    """"Docsteady takes in Adaptavist Test Folders and outputs
+    test specifications
+    """
     Config.PANDOC_TYPE = "html"
     Config.AUTH = (username, password)
 
@@ -59,6 +63,7 @@ def main(output, username, password, folder):
              print_pd(f"## {testcase['key']} - {testcase['name']}", from_="markdown")],
         [None, StatusTableFormatter],
         ["objective", DmObjectiveFormatter],
+        ["requirements", DmRequirementFormatter],
         ["Predecessors", Format3],
         ["Required Software", Format3],
         ["precondition", Format3],
@@ -75,8 +80,17 @@ def main(output, username, password, folder):
         sys.exit(1)
 
     Config.output = TemporaryFile(mode="r+")
+
+    # Build model
     testcases = resp.json()
     testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+    for testcase in testcases:
+        testcase.setdefault("requirements", [])
+        if "issueLinks" in testcase:
+            for issue in testcase["issueLinks"]:
+                resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH).json()
+                summary = resp["fields"]["summary"]
+                testcase["requirements"].append(dict(key=issue, summary=summary))
 
     print_pd("# Test Case Summary", from_="markdown")
     print_tests_preamble(testcases)
