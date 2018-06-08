@@ -21,6 +21,7 @@ import pandoc
 import re
 import requests
 from collections import OrderedDict
+from tempfile import TemporaryFile
 from .config import Config
 
 # Hack because pandoc doesn't have gfm yet
@@ -35,13 +36,8 @@ def format_pd(content, from_="html", to=None):
     return getattr(DOC, to).decode("utf-8")
 
 
-def print_pd(html):
-    print(format_pd(html))
-
-
-def print_pd_md(md):
-    DOC.markdown = md.encode("utf-8")
-    print(getattr(DOC, Config.PANDOC_TYPE).decode("utf-8"))
+def print_pd(text, from_="html", to=None):
+    print(format_pd(text, from_=from_, to=to), file=Config.output)
 
 
 def pandoc_table_html(rows, with_header=True):
@@ -51,7 +47,8 @@ def pandoc_table_html(rows, with_header=True):
         rows = rows[1:]
         table += "<tr><th>" + "</th><th>".join(header_row) + "</th></tr>"
     for row in rows:
-        table += "<tr><td>" + "</td><td>".join([str(i) for i in row]) + "</td></tr>"
+        formatted_row = [str(i) for i in row]
+        table += "<tr><td>" + "</td><td>".join(formatted_row) + "</td></tr>"
     table += "</table>"
     return table
 
@@ -64,12 +61,12 @@ class Formatter:
 class TestScriptFormatter(Formatter):
     def format(self, field, content, object=None):
         test_script = content
-        print_pd_md("## Test Script:")
+        print_pd("### Test Script:", from_="markdown")
         steps = test_script['steps']
         for index, step in enumerate(steps):
             step_idx = index + 1
-            print_pd_md(f"**Step {step_idx}**")
-            print_pd_md(step["description"])
+            print_pd(f"**Step {step_idx}**", from_="markdown")
+            print_pd(step["description"], from_="markdown")
             if 'testData' in step:
                 print_pd(step["testData"])
 
@@ -96,14 +93,14 @@ class Format2(Formatter):
 
     def format(self, field, content, object=None):
         name = self.override or field.title()
-        print_pd_md("## {name}: ".format(name=name))
+        print_pd("## {name}: ".format(name=name), from_="markdown")
         print_pd(content)
 
 
 class Format3(Formatter):
     def format(self, field, content, object=None):
         name = field.title()
-        print_pd_md("### {name}: ".format(name=name))
+        print_pd("### {name}: ".format(name=name), from_="markdown")
         print_pd(content)
 
 
@@ -124,14 +121,18 @@ class RequirementsFormatter(Formatter):
             reqid_field = issue_json['fields'][Config.REQID_FIELD]
             if reqid_field:
                 requirements.append(reqid_field)
-        print_pd_md("## Requirements:")
+        print_pd("### Requirements:", from_="markdown")
         print("*{requirements}*".format(requirements=", ".join(requirements)))
 
 
 def print_tests_preamble(testcases):
     rows = [["Jira ID", "Test Name"]]
     for testcase in testcases:
-        rows.append([testcase["key"], testcase["name"]])
+        full_name = f"{testcase['key']} - {testcase['name']}"
+        anchor = as_anchor(full_name)
+        jira_id = f"[{testcase['key']}](#{anchor})"
+        jira_id = format_pd(jira_id, from_="markdown")
+        rows.append([jira_id, testcase["name"]])
     print_pd(pandoc_table_html(rows, with_header=True))
 
 
@@ -141,3 +142,10 @@ def print_test(test, formatters):
             formatter(field, test[field])
         elif field in test['customFields']:
             formatter(field, test['customFields'][field])
+
+
+def as_anchor(text):
+    text = re.sub('[^0-9a-zA-Z -]+', '', text)
+    text = text.replace(" ", "-")
+    text = text.lower()
+    return text

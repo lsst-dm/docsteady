@@ -18,13 +18,12 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
-import os
 import sys
-from getpass import getpass
 
 import click
 from .config import Config
 from .formatters import *
+import pandoc
 
 
 def print_test(test, formatters):
@@ -51,19 +50,19 @@ def print_test(test, formatters):
               envvar="JIRA_PASSWORD")
 @click.argument('folder')
 def main(output, username, password, folder):
-    Config.PANDOC_TYPE = output
+    Config.PANDOC_TYPE = "html"
     Config.AUTH = (username, password)
 
     test_formatters = [
         [None,
-         lambda field, content, testcase: print_pd_md(
-             f"# {testcase['key']} - {testcase['name']}")],
+         lambda field, content, testcase:
+             print_pd(f"## {testcase['key']} - {testcase['name']}", from_="markdown")],
         [None, StatusTableFormatter],
         ["objective", DmObjectiveFormatter],
-        ["Predecessors", Format2],
-        ["Required Software", Format2],
-        ["precondition", Format2],
-        ["Postcondition", Format2],
+        ["Predecessors", Format3],
+        ["Required Software", Format3],
+        ["precondition", Format3],
+        ["Postcondition", Format3],
         ["testScript", TestScriptFormatter],
     ]
 
@@ -75,13 +74,20 @@ def main(output, username, password, folder):
         print(resp.text)
         sys.exit(1)
 
+    Config.output = TemporaryFile(mode="r+")
     testcases = resp.json()
     testcases.sort(key=lambda tc: tc["name"].split(":")[0])
 
+    print_pd("# Test Case Summary", from_="markdown")
     print_tests_preamble(testcases)
-
+    print_pd("# Test Cases", from_="markdown")
     for testcase in testcases:
         print_test(testcase, test_formatters)
+    Config.output.seek(0)
+    text = Config.output.read()
+    doc = pandoc.Document()
+    doc.html = text.encode("utf-8")
+    print(getattr(doc, output).decode("utf-8"))
 
 
 if __name__ == '__main__':
