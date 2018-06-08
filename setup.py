@@ -3,7 +3,8 @@ from setuptools import setup
 requires = [
     'requests',
     'pyandoc',
-    'arrow'
+    'arrow',
+    'jinja2'
 ]
 
 setup(
@@ -16,4 +17,10 @@ setup(
     author_email='bvan@slac.stanford.edu',
     description='Docsteady Document Printer',
     install_requires=requires,
+    entry_points={
+        'console_scripts': [
+            'docsteady = docsteady:main',
+        ],
+    }
+
 )

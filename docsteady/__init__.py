@@ -25,21 +25,6 @@ from getpass import getpass
 from . import config
 from .formatters import *
 
-if "JIRA_USER" in os.environ and "JIRA_PASSWORD" in os.environ:
-    username = os.environ["JIRA_USER"]
-    password = os.environ["JIRA_PASSWORD"]
-else:
-    username = input("Jira user name: ")
-    password = getpass("Password: ")
-
-config.AUTH = (username, password)
-
-if len(sys.argv) != 2:
-    print(f"Usage: python -m docsteady [FOLDER]")
-    sys.exit(1)
-
-folder = sys.argv[1]
-
 
 def print_test(test, formatters):
     for field, fmt in formatters:
@@ -58,31 +43,51 @@ def print_test(test, formatters):
             print(f"Error with field: {field}", file=sys.stderr)
 
 
-test_formatters = [
-    [None,
-     lambda field, content, testcase: print_pd_md(f"# {testcase['key']} - {testcase['name']}")],
-    [None, StatusTableFormatter],
-    ["objective", DmObjectiveFormatter],
-    ["Predecessors", Format2],
-    ["Required Software", Format2],
-    ["precondition", Format2],
-    ["Postcondition", Format2],
-    ["testScript", TestScriptFormatter],
-]
+def main():
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} [FOLDER]")
+        sys.exit(1)
 
-query = f'folder = "{folder}"'
-resp = requests.get(config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=config.AUTH)
+    folder = sys.argv[1]
 
-if resp.status_code != 200:
-    print("Unable to download")
-    print(resp.text)
-    sys.exit(1)
+    if "JIRA_USER" in os.environ and "JIRA_PASSWORD" in os.environ:
+        username = os.environ["JIRA_USER"]
+        password = os.environ["JIRA_PASSWORD"]
+    else:
+        username = input("Jira user name: ")
+        password = getpass("Password: ")
 
-testcases = resp.json()
-testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+    config.AUTH = (username, password)
+
+    test_formatters = [
+        [None,
+         lambda field, content, testcase: print_pd_md(
+             f"# {testcase['key']} - {testcase['name']}")],
+        [None, StatusTableFormatter],
+        ["objective", DmObjectiveFormatter],
+        ["Predecessors", Format2],
+        ["Required Software", Format2],
+        ["precondition", Format2],
+        ["Postcondition", Format2],
+        ["testScript", TestScriptFormatter],
+    ]
+
+    query = f'folder = "{folder}"'
+    resp = requests.get(config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=config.AUTH)
+
+    if resp.status_code != 200:
+        print("Unable to download")
+        print(resp.text)
+        sys.exit(1)
+
+    testcases = resp.json()
+    testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+
+    print_tests_preamble(testcases)
+
+    for testcase in testcases:
+        print_test(testcase, test_formatters)
 
 
-print_tests_preamble(testcases)
-
-for testcase in testcases:
-    print_test(testcase, test_formatters)
+if __name__ == '__main__':
+    main()
