@@ -23,6 +23,6 @@ ISSUE_URL = "https://jira.lsstcorp.org/rest/api/latest/issue/{issue}"
 TESTCASE_SEARCH_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testcase/search"
 TESTRUN_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testrun/{testrun}"
 TESTRESULTS_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testrun/{testrun}/testresults"
-PANDOC_TYPE = "markdown"
+PANDOC_TYPE = "gfm"
 AUTH = None
 REQID_FIELD = "customfield_12001"

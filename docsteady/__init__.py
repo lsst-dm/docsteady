@@ -34,7 +34,11 @@ else:
 
 config.AUTH = (username, password)
 
-folder = sys.argv[1] if len(sys.argv) > 1 else "/Data Management/LSP"
+if len(sys.argv) != 2:
+    print(f"Usage: python -m docsteady [FOLDER]")
+    sys.exit(1)
+
+folder = sys.argv[1]
 
 
 def print_test(test, formatters):
@@ -43,18 +47,21 @@ def print_test(test, formatters):
             fmt = fmt()
         if isinstance(fmt, Formatter):
             oldfmt = fmt
-            fmt = lambda field, content, object=None: oldfmt.format(field, content, object)
+            fmt = lambda field, target, object=None: oldfmt.format(field, target, object)
         if field in test:
-            fmt(field, test[field])
+            fmt(field, test[field], test)
         elif field in test['customFields']:
-            fmt(field, test['customFields'][field])
+            fmt(field, test['customFields'][field], test)
+        elif field is None:
+            fmt(None, test, test)
         else:
             print(f"Error with field: {field}", file=sys.stderr)
 
 
 test_formatters = [
-    ["key", lambda field, content: print_pd_md(f"# {content}")],
-    ["name", lambda field, content: print_pd_md(f"# {content}")],
+    [None,
+     lambda field, content, testcase: print_pd_md(f"# {testcase['key']} - {testcase['name']}")],
+    [None, StatusTableFormatter],
     ["objective", DmObjectiveFormatter],
     ["Predecessors", Format2],
     ["Required Software", Format2],
@@ -62,9 +69,6 @@ test_formatters = [
     ["Postcondition", Format2],
     ["testScript", TestScriptFormatter],
 ]
-
-# ["lastTestResultStatus", lambda field, content: print_pd_md(f"## Status: {content}")],
-# ["issueLinks", RequirementsFormatter],
 
 query = f'folder = "{folder}"'
 resp = requests.get(config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=config.AUTH)
@@ -76,5 +80,9 @@ if resp.status_code != 200:
 
 testcases = resp.json()
 testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+
+
+print_tests_preamble(testcases)
+
 for testcase in testcases:
     print_test(testcase, test_formatters)

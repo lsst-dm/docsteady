@@ -18,15 +18,24 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 import pandoc
+import re
 import requests
+from collections import OrderedDict
 from .config import PANDOC_TYPE, ISSUE_URL, AUTH, REQID_FIELD
+
+# Hack because pandoc doesn't have gfm yet
+pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
 
 DOC = pandoc.Document()
 
 
+def format_pd(content, from_="html", to=PANDOC_TYPE):
+    setattr(DOC, from_, content.encode("utf-8"))
+    return getattr(DOC, to).decode("utf-8")
+
+
 def print_pd(html):
-    DOC.html = html.encode("utf-8")
-    print(getattr(DOC, PANDOC_TYPE).decode("utf-8"))
+    print(format_pd(html))
 
 
 def print_pd_md(md):
@@ -37,11 +46,11 @@ def print_pd_md(md):
 def pandoc_table_html(rows, with_header=True):
     table = "<table>"
     if with_header:
-        header_row = rows[0]
+        header_row = [str(i).replace("_", " ").title() for i in rows[0]]
         rows = rows[1:]
         table += "<tr><th>" + "</th><th>".join(header_row) + "</th></tr>"
     for row in rows:
-        table += "<tr><th>" + "</td><td>".join(row) + "</td></tr>"
+        table += "<tr><td>" + "</td><td>".join([str(i) for i in row]) + "</td></tr>"
     table += "</table>"
     return table
 
@@ -64,6 +73,22 @@ class TestScriptFormatter(Formatter):
                 print_pd(step["testData"])
 
 
+class StatusTableFormatter(Formatter):
+    def format(self, field, content, object=None):
+        testcase = object
+        rows = []
+        testcase_summary = OrderedDict(
+            version=testcase['majorVersion'],
+            status=testcase['status'],
+            priority=testcase['priority'],
+            verification_type=testcase["customFields"]["Verification Type"],
+            critical_event=testcase["customFields"]["Critical Event?"],
+            owner=testcase['owner'])
+        rows.append(testcase_summary.keys())
+        rows.append(testcase_summary.values())
+        print_pd(pandoc_table_html(rows, with_header=True))
+
+
 class Format2(Formatter):
     def __init__(self, override=None):
         self.override = override
@@ -83,8 +108,9 @@ class Format3(Formatter):
 
 class DmObjectiveFormatter(Formatter):
     def format(self, field, content, object=None):
-        print_pd_md("### Objective: ")
-        print_pd(content)
+        as_markdown = content.replace("<strong>Test items</strong>", "<h2>Test items</h2>")
+        as_markdown = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h2>\g<1></h2>", as_markdown)
+        print_pd(as_markdown)
 
 
 class RequirementsFormatter(Formatter):
@@ -98,6 +124,13 @@ class RequirementsFormatter(Formatter):
                 requirements.append(reqid_field)
         print_pd_md("## Requirements:")
         print("*{requirements}*".format(requirements=", ".join(requirements)))
+
+
+def print_tests_preamble(testcases):
+    rows = [["Jira ID", "Test Name"]]
+    for testcase in testcases:
+        rows.append([testcase["key"], testcase["name"]])
+    print_pd(pandoc_table_html(rows, with_header=True))
 
 
 def print_test(test, formatters):
