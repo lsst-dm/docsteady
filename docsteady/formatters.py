@@ -35,7 +35,7 @@ def format_pd(content, from_="gfm", to=None):
     return getattr(DOC, to).decode("utf-8")
 
 
-def print_pd(text, from_="html", to=None):
+def write_pd(text, from_="html", to=None):
     print(format_pd(text, from_=from_, to=to), file=Config.output)
 
 
@@ -63,14 +63,14 @@ class Formatter:
 class TestScriptFormatter(Formatter):
     def format(self, field, content, object=None):
         test_script = content
-        print_pd("<h3>Test Script</h3>")
+        write_pd("<h3>Test Script</h3>")
         steps = test_script['steps']
         for index, step in enumerate(steps):
             step_idx = index + 1
-            print_pd(f"<h4>Step {step_idx}</h4>")
-            print_pd(step["description"])
+            write_pd(f"<h4>Step {step_idx}</h4>")
+            write_pd(step["description"])
             if 'testData' in step:
-                print_pd(step["testData"])
+                write_pd(step["testData"])
 
 
 class StatusTableFormatter(Formatter):
@@ -86,56 +86,36 @@ class StatusTableFormatter(Formatter):
             owner=testcase['owner'])
         rows.append(testcase_summary.keys())
         rows.append(testcase_summary.values())
-        print_pd(pandoc_table_html(rows, with_header=True))
+        write_pd(pandoc_table_html(rows, with_header=True))
 
 
 class Format2(Formatter):
-    def __init__(self, override=None):
-        self.override = override
-
     def format(self, field, content, object=None):
-        name = self.override or field.title()
-        print_pd("<h2>{name}</h2>".format(name=name))
-        print_pd(content)
+        if not content:
+            return
+        name = field.replace("_", " ").title()
+        write_pd("<h2>{name}</h2>".format(name=name))
+        write_pd(content)
 
 
 class Format3(Formatter):
-    def format(self, field, content, object=None):
-        name = field.title()
-        print_pd(f"<h3>{name}</h3>")
-        print_pd(content)
-
-
-class DmObjectiveFormatter(Formatter):
-    def format(self, field, content, object=None):
-        pull_up = content.replace("<strong>Test items</strong>", "<h3>Test items</h3>")
-        pull_up = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h3>\g<1></h3>", pull_up)
-        print_pd(pull_up)
+    def format(self, field, content, object=None, from_camel=False):
+        if not content:
+            return
+        name = field.replace("_", " ").title()
+        write_pd(f"<h3>{name}</h3>")
+        write_pd(content)
 
 
 class DmRequirementFormatter(Formatter):
     def format(self, field, content, object=None):
-        print_pd("<h3>Requirements</h3>")
-        print_pd("<ul>")
+        if not content:
+            return
+        write_pd("<h3>Requirements</h3>")
+        write_pd("<ul>")
         for item in content:
-            jira_url = Config.ISSUE_UI_URL.format(issue=item["key"])
-            anchor = f'<a href="{jira_url}">{item["key"]}</a>'
-            print_pd(f"<li>{anchor} - {item['summary']}</li>")
-        print_pd("</ul>")
-
-
-class RequirementsFormatter(Formatter):
-    def format(self, field, content, object=None):
-        issue_links = content
-        requirements = []
-        for issue in issue_links:
-            issue_json = requests.get(Config.ISSUE_URL.format(issue=issue),
-                                      auth=Config.AUTH).json()
-            reqid_field = issue_json['fields'][Config.REQID_FIELD]
-            if reqid_field:
-                requirements.append(reqid_field)
-        print_pd("<h3>Requirements</h3>")
-        print("*{requirements}*".format(requirements=", ".join(requirements)))
+            write_pd(f"<li>{anchor} - {item['summary']}</li>")
+        write_pd("</ul>")
 
 
 def print_tests_preamble(testcases):
@@ -145,7 +125,7 @@ def print_tests_preamble(testcases):
         href = as_anchor(full_name)
         anchor = f'<a href="#{href}">{testcase["key"]}</a>'
         rows.append([anchor, testcase["name"]])
-    print_pd(pandoc_table_html(rows, with_header=True))
+    write_pd(pandoc_table_html(rows, with_header=True))
 
 
 def print_test(test, formatters):
@@ -163,6 +143,19 @@ def as_anchor(text):
     return text
 
 
+# class RequirementsFormatter(Formatter):
+#     def format(self, field, content, object=None):
+#         issue_links = content
+#         requirements = []
+#         for issue in issue_links:
+#             issue_json = requests.get(Config.ISSUE_URL.format(issue=issue),
+#                                       auth=Config.AUTH).json()
+#             reqid_field = issue_json['fields'][Config.REQID_FIELD]
+#             if reqid_field:
+#                 requirements.append(reqid_field)
+#         write_pd("<h3>Requirements</h3>")
+#         print("*{requirements}*".format(requirements=", ".join(requirements)))
+#
 # class TableFormatter(Formatter):
 #     def __init__(self, with_header=True, cell_from="markdown"):
 #         self.with_header = with_header
