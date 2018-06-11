@@ -94,9 +94,9 @@ def main(output, username, password, folder, file):
                 summary = resp["fields"]["summary"]
                 testcase["requirements"].append(dict(key=issue, summary=summary))
 
-    print_pd("# Test Case Summary", from_="markdown")
+    print_pd("<h1>Test Case Summary</h1>")
     print_tests_preamble(testcases)
-    print_pd("# Test Cases", from_="markdown")
+    print_pd("<h1>Test Cases</h1>")
     for testcase in testcases:
         print_test(testcase, test_formatters)
     Config.output.seek(0)

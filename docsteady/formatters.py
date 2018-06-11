@@ -29,7 +29,7 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 DOC = pandoc.Document()
 
 
-def format_pd(content, from_="html", to=None):
+def format_pd(content, from_="gfm", to=None):
     to = to or Config.PANDOC_TYPE
     setattr(DOC, from_, content.encode("utf-8"))
     return getattr(DOC, to).decode("utf-8")
@@ -63,12 +63,12 @@ class Formatter:
 class TestScriptFormatter(Formatter):
     def format(self, field, content, object=None):
         test_script = content
-        print_pd("### Test Script", from_="markdown")
+        print_pd("<h3>Test Script</h3>")
         steps = test_script['steps']
         for index, step in enumerate(steps):
             step_idx = index + 1
-            print_pd(f"**Step {step_idx}**", from_="markdown")
-            print_pd(step["description"], from_="markdown")
+            print_pd(f"<h4>Step {step_idx}</h4>")
+            print_pd(step["description"])
             if 'testData' in step:
                 print_pd(step["testData"])
 
@@ -95,29 +95,33 @@ class Format2(Formatter):
 
     def format(self, field, content, object=None):
         name = self.override or field.title()
-        print_pd("## {name}: ".format(name=name), from_="markdown")
+        print_pd("<h2>{name}</h2>".format(name=name))
         print_pd(content)
 
 
 class Format3(Formatter):
     def format(self, field, content, object=None):
         name = field.title()
-        print_pd("### {name}: ".format(name=name), from_="markdown")
+        print_pd(f"<h3>{name}</h3>")
         print_pd(content)
 
 
 class DmObjectiveFormatter(Formatter):
     def format(self, field, content, object=None):
-        as_markdown = content.replace("<strong>Test items</strong>", "<h3>Test items</h3>")
-        as_markdown = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h3>\g<1></h3>", as_markdown)
-        print_pd(as_markdown)
+        pull_up = content.replace("<strong>Test items</strong>", "<h3>Test items</h3>")
+        pull_up = re.sub(r"<strong>.*(Requirements.*)</strong>", "<h3>\g<1></h3>", pull_up)
+        print_pd(pull_up)
 
 
 class DmRequirementFormatter(Formatter):
     def format(self, field, content, object=None):
-        print_pd("### Requirements", from_="markdown")
-        for req in content:
-            print_pd("* " + " - ".join([req["key"], req["summary"]]), from_="markdown")
+        print_pd("<h3>Requirements</h3>")
+        print_pd("<ul>")
+        for item in content:
+            jira_url = Config.ISSUE_UI_URL.format(issue=item["key"])
+            anchor = f'<a href="{jira_url}">{item["key"]}</a>'
+            print_pd(f"<li>{anchor} - {item['summary']}</li>")
+        print_pd("</ul>")
 
 
 class RequirementsFormatter(Formatter):
@@ -130,7 +134,7 @@ class RequirementsFormatter(Formatter):
             reqid_field = issue_json['fields'][Config.REQID_FIELD]
             if reqid_field:
                 requirements.append(reqid_field)
-        print_pd("### Requirements", from_="markdown")
+        print_pd("<h3>Requirements</h3>")
         print("*{requirements}*".format(requirements=", ".join(requirements)))
 
 
@@ -138,10 +142,9 @@ def print_tests_preamble(testcases):
     rows = [["Jira ID", "Test Name"]]
     for testcase in testcases:
         full_name = f"{testcase['key']} - {testcase['name']}"
-        anchor = as_anchor(full_name)
-        jira_id = f"[{testcase['key']}](#{anchor})"
-        jira_id = format_pd(jira_id, from_="markdown")
-        rows.append([jira_id, testcase["name"]])
+        href = as_anchor(full_name)
+        anchor = f'<a href="#{href}">{testcase["key"]}</a>'
+        rows.append([anchor, testcase["name"]])
     print_pd(pandoc_table_html(rows, with_header=True))
 
 
