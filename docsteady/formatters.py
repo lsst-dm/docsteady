@@ -29,111 +29,62 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 DOC = pandoc.Document()
 
 
-def format_pd(content, from_="gfm", to=None):
-    to = to or Config.PANDOC_TYPE
-    setattr(DOC, from_, content.encode("utf-8"))
-    return getattr(DOC, to).decode("utf-8")
-
-
-def write_pd(text, from_="html", to=None):
-    print(format_pd(text, from_=from_, to=to), file=Config.output)
-
-
-def pandoc_table_html(rows, with_header=True, cell_from=None):
-    convert = lambda x: str(x)
-    if cell_from:
-        convert = lambda x: format_pd(str(x), cell_from, "html")
+def pandoc_table_html(rows, with_header=True):
     table = "<table>"
     if with_header:
         header_row = [str(i).replace("_", " ").title() for i in rows[0]]
         rows = rows[1:]
         table += "<tr><th>" + "</th><th>".join(header_row) + "</th></tr>"
     for row in rows:
-        formatted_row = [convert(i) for i in row]
+        formatted_row = [str(i) for i in row]
         table += "<tr><td>" + "</td><td>".join(formatted_row) + "</td></tr>"
     table += "</table>"
     return table
 
 
-class Formatter:
-    def format(self, field, content, object=None):
-        pass
+def format_dm_testscript(test_script):
+    formatted = "<h3>Test Script</h3>"
+    steps = test_script['steps']
+    for index, step in enumerate(steps):
+        step_idx = index + 1
+        formatted += f"<h4>Step {step_idx}</h4>"
+        formatted += step["description"]
+        if 'testData' in step:
+            formatted += step["testData"]
+    return formatted
 
 
-class TestScriptFormatter(Formatter):
-    def format(self, field, content, object=None):
-        test_script = content
-        write_pd("<h3>Test Script</h3>")
-        steps = test_script['steps']
-        for index, step in enumerate(steps):
-            step_idx = index + 1
-            write_pd(f"<h4>Step {step_idx}</h4>")
-            write_pd(step["description"])
-            if 'testData' in step:
-                write_pd(step["testData"])
+def format_status_table(testcase):
+    rows = []
+    testcase_summary = OrderedDict(
+        version=testcase['majorVersion'],
+        status=testcase['status'],
+        priority=testcase['priority'],
+        verification_type=testcase["customFields"]["Verification Type"],
+        critical_event=testcase["customFields"]["Critical Event?"],
+        owner=testcase['owner'])
+    rows.append(testcase_summary.keys())
+    rows.append(testcase_summary.values())
+    return pandoc_table_html(rows, with_header=True)
 
 
-class StatusTableFormatter(Formatter):
-    def format(self, field, content, object=None):
-        testcase = object
-        rows = []
-        testcase_summary = OrderedDict(
-            version=testcase['majorVersion'],
-            status=testcase['status'],
-            priority=testcase['priority'],
-            verification_type=testcase["customFields"]["Verification Type"],
-            critical_event=testcase["customFields"]["Critical Event?"],
-            owner=testcase['owner'])
-        rows.append(testcase_summary.keys())
-        rows.append(testcase_summary.values())
-        write_pd(pandoc_table_html(rows, with_header=True))
+def format_dm_requirements(requirements):
+    text = "<h3>Requirements</h3>"
+    text += "<ul>"
+    for item in requirements:
+        text += f"<li>{anchor} - {item['summary']}</li>"
+    text += "</ul>"
+    return text
 
 
-class Format2(Formatter):
-    def format(self, field, content, object=None):
-        if not content:
-            return
-        name = field.replace("_", " ").title()
-        write_pd("<h2>{name}</h2>".format(name=name))
-        write_pd(content)
-
-
-class Format3(Formatter):
-    def format(self, field, content, object=None, from_camel=False):
-        if not content:
-            return
-        name = field.replace("_", " ").title()
-        write_pd(f"<h3>{name}</h3>")
-        write_pd(content)
-
-
-class DmRequirementFormatter(Formatter):
-    def format(self, field, content, object=None):
-        if not content:
-            return
-        write_pd("<h3>Requirements</h3>")
-        write_pd("<ul>")
-        for item in content:
-            write_pd(f"<li>{anchor} - {item['summary']}</li>")
-        write_pd("</ul>")
-
-
-def print_tests_preamble(testcases):
+def format_tests_preamble(testcases):
     rows = [["Jira ID", "Test Name"]]
     for testcase in testcases:
         full_name = f"{testcase['key']} - {testcase['name']}"
         href = as_anchor(full_name)
         anchor = f'<a href="#{href}">{testcase["key"]}</a>'
         rows.append([anchor, testcase["name"]])
-    write_pd(pandoc_table_html(rows, with_header=True))
-
-
-def print_test(test, formatters):
-    for field, formatter in formatters:
-        if field in test:
-            formatter(field, test[field])
-        elif field in test['customFields']:
-            formatter(field, test['customFields'][field])
+    return pandoc_table_html(rows, with_header=True)
 
 
 def as_anchor(text):

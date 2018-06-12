@@ -1,0 +1,48 @@
+<h1>Test Case Summary</h1>
+{{ format_tests_preamble(testcases) }}
+
+<h1>Test Cases</h1>
+{% for testcase in testcases %}
+<h2>{{ testcase["key"] }} - {{ testcase['name'] }}</h2>
+
+{{ format_status_table(testcase) }}
+
+<h3>Test Items</h3>
+{{ testcase["test_items"] }}
+
+{% if testcase["deprecated_requirements"] %}
+<h3>Requirements</h3>
+{{ testcase["deprecated_requirements"] }}
+{% endif %}
+
+{% if testcase["requirements"] %}
+<h3>Requirements</h3>
+{{ format_dm_requirements(testcase["requirements"]) }}
+{% endif %}
+
+{% if "Predecessors" in testcase %}
+<h3>Predecessors</h3>
+{{ testcase["Predecessors"] }}
+{% endif %}
+
+{% if "Required Software" in testcase %}
+<h3>Required Software</h3>
+{{ testcase["Required Software"] }}
+{% endif %}
+
+{% if "precondition" in testcase %}
+<h3>Precondition</h3>
+{{ testcase["precondition"] }}
+{% endif %}
+
+{% if "Postcondition" in testcase %}
+<h3>Precondition</h3>
+{{ testcase["Postcondition"] }}
+{% endif %}
+
+{% if "testScript" in testcase %}
+<h3>Precondition</h3>
+{{ format_dm_testscript(testcase["testScript"]) }}
+{% endif %}
+
+{% endfor %}

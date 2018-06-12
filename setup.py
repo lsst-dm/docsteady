@@ -5,7 +5,8 @@ requires = [
     'pyandoc',
     'arrow',
     'jinja2',
-    'click'
+    'click',
+    'BeautifulSoup4'
 ]
 
 setup(
@@ -18,10 +19,10 @@ setup(
     author_email='bvan@slac.stanford.edu',
     description='Docsteady Document Printer',
     install_requires=requires,
+    package_data={'docsteady': ['templates/*.j2']},
     entry_points={
         'console_scripts': [
-            'docsteady = docsteady:main',
+            'docsteady = docsteady:cli',
         ],
     }
-
 )

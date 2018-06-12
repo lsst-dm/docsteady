@@ -25,24 +25,8 @@ from .config import Config
 from .formatters import *
 import pandoc
 from bs4 import BeautifulSoup
+from jinja2 import Environment, PackageLoader, select_autoescape
 from tempfile import TemporaryFile
-
-
-def write_test(test, formatters):
-    for field, fmt in formatters:
-        if isinstance(fmt, type) and issubclass(fmt, Formatter):
-            fmt = fmt()
-        if isinstance(fmt, Formatter):
-            oldfmt = fmt
-            fmt = lambda field, target, object=None: oldfmt.format(field, target, object)
-        if field in test:
-            fmt(field, test[field], test)
-        elif field in test['customFields']:
-            fmt(field, test['customFields'][field], test)
-        elif field is None:
-            fmt(None, test, test)
-        else:
-            print(f"Error with field: {field}", file=sys.stderr)
 
 
 @click.command()
@@ -62,19 +46,19 @@ def cli(output, username, password, folder, file):
 
     Config.output = TemporaryFile(mode="r+")
 
-    jinja_formatters = {sc.__name__: sc() for sc in Formatter.__subclasses__()}
+    jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
+                            format_status_table=format_status_table,
+                            format_dm_requirements=format_dm_requirements,
+                            format_dm_testscript=format_dm_testscript)
 
     # Build model
     testcases = build_dm_model(folder)
-    test_formatters = get_dm_formatters()
+    env = Environment(loader=PackageLoader('docsteady', 'templates'),
+                      autoescape=None)
+    env.globals.update(**jinja_formatters)
 
-    write_pd("<h1>Test Case Summary</h1>")
-    print_tests_preamble(testcases)
-    write_pd("<h1>Test Cases</h1>")
-    for testcase in testcases:
-        write_test(testcase, test_formatters)
-    Config.output.seek(0)
-    text = Config.output.read()
+    template = env.get_template("dm-testcases.j2")
+    text = template.render(testcases=testcases)
     doc = pandoc.Document()
     doc.html = text.encode("utf-8")
     out_text = getattr(doc, output).decode("utf-8")
@@ -123,29 +107,14 @@ def extract_strong(content):
             if element_name:
                 headers[element_name] = element_neighbor_text
             element_name = elem.text.lower().replace(" ", "_")
+            # translate requirements to "deprecated requirements"
+            if "requirements" in element_name:
+                element_name = "deprecated_requirements"
             element_neighbor_text = ""
             continue
         element_neighbor_text += str(elem) + "\n"
     headers[element_name] = element_neighbor_text
     return headers
-
-
-def get_dm_formatters():
-    test_formatters = [
-        [None,
-         lambda field, content, testcase:
-             write_pd(f"<h2>{testcase['key']} - {testcase['name']}</h2>")],
-        [None, StatusTableFormatter],
-        ["test_items", Format3],
-        ["deprecated_requirements", Format3],
-        ["requirements", DmRequirementFormatter],
-        ["Predecessors", Format3],
-        ["Required Software", Format3],
-        ["precondition", Format3],
-        ["Postcondition", Format3],
-        ["testScript", TestScriptFormatter],
-    ]
-    return test_formatters
 
 
 if __name__ == '__main__':
