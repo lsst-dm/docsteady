@@ -134,7 +134,7 @@ def get_dm_formatters():
     test_formatters = [
         [None,
          lambda field, content, testcase:
-             write_pd(f"## {testcase['key']} - {testcase['name']}", from_="markdown")],
+             write_pd(f"<h2>{testcase['key']} - {testcase['name']}</h2>")],
         [None, StatusTableFormatter],
         ["test_items", Format3],
         ["deprecated_requirements", Format3],
