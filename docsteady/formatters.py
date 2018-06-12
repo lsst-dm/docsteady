@@ -17,16 +17,8 @@
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
-import pandoc
 import re
-import requests
 from collections import OrderedDict
-from .config import Config
-
-# Hack because pandoc doesn't have gfm yet
-pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
-
-DOC = pandoc.Document()
 
 
 def pandoc_table_html(rows, with_header=True):
@@ -92,27 +84,3 @@ def as_anchor(text):
     text = text.replace(" ", "-")
     text = text.lower()
     return text
-
-
-# class RequirementsFormatter(Formatter):
-#     def format(self, field, content, object=None):
-#         issue_links = content
-#         requirements = []
-#         for issue in issue_links:
-#             issue_json = requests.get(Config.ISSUE_URL.format(issue=issue),
-#                                       auth=Config.AUTH).json()
-#             reqid_field = issue_json['fields'][Config.REQID_FIELD]
-#             if reqid_field:
-#                 requirements.append(reqid_field)
-#         write_pd("<h3>Requirements</h3>")
-#         print("*{requirements}*".format(requirements=", ".join(requirements)))
-#
-# class TableFormatter(Formatter):
-#     def __init__(self, with_header=True, cell_from="markdown"):
-#         self.with_header = with_header
-#         self.cell_from = cell_from
-#
-#     def format(self, field, content, object=None):
-#         rows = content
-#         pandoc_table_html(rows, self.with_header, self.cell_from)
-#

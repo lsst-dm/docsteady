@@ -19,14 +19,19 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
 import sys
+from tempfile import TemporaryFile
 
 import click
+import pandoc
+import requests
+from bs4 import BeautifulSoup
+from jinja2 import Environment, PackageLoader
+
 from .config import Config
 from .formatters import *
-import pandoc
-from bs4 import BeautifulSoup
-from jinja2 import Environment, PackageLoader, select_autoescape
-from tempfile import TemporaryFile
+
+# Hack because pandoc doesn't have gfm yet
+pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
 
 
 @click.command()
