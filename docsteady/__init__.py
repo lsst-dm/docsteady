@@ -157,9 +157,5 @@ def extract_strong(content):
     return headers
 
 
-def as_jira_test_anchor(testcase):
-    return Config.TESTCASE_UI_URL.format(testcase=testcase)
-
-
 #if __name__ == '__main__':
 cli()

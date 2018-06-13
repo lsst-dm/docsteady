@@ -19,6 +19,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 import re
 from collections import OrderedDict
+from .config import Config
 
 
 def pandoc_table_html(rows, with_header=True):
@@ -73,9 +74,11 @@ def format_tests_preamble(testcases):
     rows = [["Jira ID", "Test Name"]]
     for testcase in testcases:
         full_name = f"{testcase['key']} - {testcase['name']}"
-        href = as_anchor(full_name)
-        anchor = f'<a href="#{href}">{testcase["key"]}</a>'
-        rows.append([anchor, testcase["name"]])
+        doc_href = as_anchor(full_name)
+        jira_href = as_jira_test_anchor(testcase['key'])
+        jira_id_link = f'<a href="#{doc_href}">{testcase["key"]}</a>'
+        testname_link = f'<a href="{jira_href}">{testcase["name"]}</a>'
+        rows.append([jira_id_link, testname_link])
     return pandoc_table_html(rows, with_header=True)
 
 
@@ -84,3 +87,7 @@ def as_anchor(text):
     text = text.replace(" ", "-")
     text = text.lower()
     return text
+
+
+def as_jira_test_anchor(testcase):
+    return Config.TESTCASE_UI_URL.format(testcase=testcase)
