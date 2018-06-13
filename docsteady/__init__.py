@@ -54,7 +54,8 @@ def cli(output, username, password, folder, file):
     jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
                             format_status_table=format_status_table,
                             format_dm_requirements=format_dm_requirements,
-                            format_dm_testscript=format_dm_testscript)
+                            format_dm_testscript=format_dm_testscript,
+                            as_jira_test_anchor=as_jira_test_anchor)
 
     # Build model
     testcases = build_dm_model(folder)
@@ -83,8 +84,17 @@ def build_dm_model(folder):
     testcases.sort(key=lambda tc: tc["name"].split(":")[0])
     cached_testcases = {}
     for testcase in testcases:
-        testcase.setdefault("requirements", [])
+        # build simple summary
+        testcase['summary'] = OrderedDict(
+            version=testcase['majorVersion'],
+            status=testcase['status'],
+            priority=testcase['priority'],
+            verification_type=testcase["customFields"]["Verification Type"],
+            critical_event=testcase["customFields"]["Critical Event?"],
+            owner=testcase['owner'])
 
+        testcase.setdefault("requirements", [])
+        # Build list of requirements
         if "issueLinks" in testcase:
             for issue in testcase["issueLinks"]:
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH).json()
@@ -93,10 +103,12 @@ def build_dm_model(folder):
                 anchor = f'<a href="{jira_url}">{issue}</a>'
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
 
+        # Extract bolded items from objective
         if "objective" in testcase:
             more_info = extract_strong(testcase["objective"])
             testcase.update(more_info)
 
+        # order and dereference steps (non-recursive)
         if 'steps' in testcase.get("testScript"):
             steps = testcase['testScript']['steps']
             dereferenced_steps = []
@@ -145,5 +157,9 @@ def extract_strong(content):
     return headers
 
 
-if __name__ == '__main__':
-    cli()
+def as_jira_test_anchor(testcase):
+    return Config.TESTCASE_UI_URL.format(testcase=testcase)
+
+
+#if __name__ == '__main__':
+cli()
