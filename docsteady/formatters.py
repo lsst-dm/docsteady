@@ -64,7 +64,7 @@ def format_dm_requirements(requirements):
     text = "<h3>Requirements</h3>"
     text += "<ul>"
     for item in requirements:
-        text += f"<li>{anchor} - {item['summary']}</li>"
+        text += f"<li>{item['anchor']} - {item['summary']}</li>"
     text += "</ul>"
     return text
 

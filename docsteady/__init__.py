@@ -88,7 +88,7 @@ def build_dm_model(folder):
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH).json()
                 summary = resp["fields"]["summary"]
                 jira_url = Config.ISSUE_UI_URL.format(issue=issue)
-                anchor = f'<a href="{jira_url}">{item["key"]}</a>'
+                anchor = f'<a href="{jira_url}">{issue}</a>'
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
         if "objective" in testcase:
             more_info = extract_strong(testcase["objective"])
