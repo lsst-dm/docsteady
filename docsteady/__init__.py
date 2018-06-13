@@ -81,8 +81,10 @@ def build_dm_model(folder):
 
     testcases = resp.json()
     testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+    cached_testcases = {}
     for testcase in testcases:
         testcase.setdefault("requirements", [])
+
         if "issueLinks" in testcase:
             for issue in testcase["issueLinks"]:
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH).json()
@@ -90,9 +92,30 @@ def build_dm_model(folder):
                 jira_url = Config.ISSUE_UI_URL.format(issue=issue)
                 anchor = f'<a href="{jira_url}">{issue}</a>'
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
+
         if "objective" in testcase:
             more_info = extract_strong(testcase["objective"])
             testcase.update(more_info)
+
+        if 'steps' in testcase.get("testScript"):
+            steps = testcase['testScript']['steps']
+            dereferenced_steps = []
+            sorted_steps = sorted(steps, key=lambda i: i['index'])
+            for step in sorted_steps:
+                if 'testCaseKey' in step:
+                    step_key = step['testCaseKey']
+                    step_testcase = cached_testcases.get(step_key)
+                    if not step_testcase:
+                        step_testcase = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
+                                                     auth=Config.AUTH).json()
+                        more_sorted_steps = sorted(step_testcase['testScript']['steps'],
+                                                   key=lambda i: i['index'])
+                        step_testcase['steps'] = more_sorted_steps
+                        cached_testcases[step_key] = step_testcase
+                    dereferenced_steps.extend(step_testcase['testScript']['steps'])
+                else:
+                    dereferenced_steps.append(step)
+            testcase['testScript']['steps'] = dereferenced_steps
     return testcases
 
 
@@ -122,5 +145,5 @@ def extract_strong(content):
     return headers
 
 
-if __name__ == '__main__':
-    cli()
+#if __name__ == '__main__':
+cli()
