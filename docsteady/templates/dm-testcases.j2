@@ -24,22 +24,36 @@
 <h1>Test Cases</h1>
 {% for testcase in testcases %}
     <h2>
-        <a href="{{ as_jira_test_anchor(testcase["key"])}}">
-            {{ testcase["key"] }}</a> - {{testcase['name'] }}</h2>
+        <a href="{{ as_jira_test_anchor(testcase["key"]) }}">
+            {{ testcase["key"] }}</a> - {{ testcase['name'] }}</h2>
 
     {{ as_table([testcase['summary'].values()], headers=testcase['summary'].keys()) }}
 
-    <h3>Test Items</h3>
-    {{ testcase["test_items"] }}
-
-    {% if testcase["deprecated_requirements"] and not testcase["requirements"] %}
-        <h3>Requirements</h3>
-        {{ testcase["deprecated_requirements"] }}
+    {% if testcase.test_items %}
+        <h3>Test Items</h3>
+        {{ testcase.test_items }}
     {% endif %}
 
-    {% if testcase["requirements"] %}
+    {% if testcase.more_objectives %}
+        <h3>Objectives</h3>
+        {% for title, objective in testcase.more_objectives %}
+            <strong>{{ title }}</strong>
+            {{ objective }}
+        {% endfor %}
+
+        {% if testcase.more_objectives.deprecated_requirements and not testcase.requirements %}
+            <h3>Requirements</h3>
+            {{ testcase.more_objectives.deprecated_requirements }}
+        {% endif %}
+    {% endif %}
+
+    {% if testcase.requirements %}
         <h3>Requirements</h3>
-        {{ format_dm_requirements(testcase["requirements"]) }}
+        <ul>
+            {% for item in testcase.requirements %}
+                <li>{{ item['anchor'] }} - {{ item['summary'] }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
     {% if "Predecessors" in testcase %}

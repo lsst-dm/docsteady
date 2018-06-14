@@ -19,14 +19,15 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
 import sys
+from collections import OrderedDict
 from tempfile import TemporaryFile
 
 import click
 import pandoc
 import requests
-from collections import OrderedDict
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
+
 from .config import Config
 from .formatters import *
 
@@ -95,9 +96,9 @@ def build_dm_model(folder):
         # build simple summary
         testcase['summary'] = build_summary(testcase)
 
-        testcase.setdefault("requirements", [])
         # Build list of requirements
         if "issueLinks" in testcase:
+            testcase.setdefault("requirements", [])
             for issue in testcase["issueLinks"]:
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
                 resp.raise_for_status()
@@ -110,8 +111,15 @@ def build_dm_model(folder):
 
         # Extract bolded items from objective
         if "objective" in testcase:
-            more_info = extract_strong(testcase["objective"])
-            testcase.update(more_info)
+            more_info = extract_strong(testcase["objective"], "test_items")
+            if "test_items" in more_info:
+                split_text = more_info["test_items"].splitlines()
+                # omit first "test items" line
+                if "test items" in split_text[0].lower():
+                    split_text = split_text[1:]
+                testcase["test_items"] = "\n".join(split_text)
+                del more_info["test_items"]
+            testcase["more_objectives"] = more_info
 
         # order and dereference steps (non-recursive)
         if 'steps' in testcase.get("testScript"):
@@ -137,7 +145,7 @@ def build_dm_model(folder):
     return testcases
 
 
-def extract_strong(content):
+def extract_strong(content, first_text_name=None):
     """
     Extract "strong" elements and attach their siblings up to the
     next "strong" element.
@@ -145,8 +153,8 @@ def extract_strong(content):
     :return: A dict of those elements with the sibling HTML as the values
     """
     soup = BeautifulSoup(content, "html.parser")
-    headers = {}
-    element_name = None
+    headers = OrderedDict()
+    element_name = first_text_name
     element_neighbor_text = ""
     for elem in soup.children:
         if "strong" == elem.name:
