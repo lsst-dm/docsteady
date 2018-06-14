@@ -24,9 +24,9 @@ from tempfile import TemporaryFile
 import click
 import pandoc
 import requests
+from collections import OrderedDict
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
-
 from .config import Config
 from .formatters import *
 
@@ -61,7 +61,13 @@ def cli(output, username, password, folder, file):
                             as_jira_test_anchor=as_jira_test_anchor)
 
     # Build model
-    testcases = build_dm_model(folder)
+    try:
+        testcases = build_dm_model(folder)
+    except Exception as e:
+        print("Error in building model")
+        print(e)
+        sys.exit(1)
+
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
     env.globals.update(**jinja_formatters)
@@ -94,6 +100,7 @@ def build_dm_model(folder):
         if "issueLinks" in testcase:
             for issue in testcase["issueLinks"]:
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
+                resp.raise_for_status()
                 requirement = resp.json()
                 CACHED_REQUIREMENTS[issue] = requirement
                 summary = requirement["fields"]["summary"]
@@ -116,8 +123,9 @@ def build_dm_model(folder):
                     step_key = step['testCaseKey']
                     step_testcase = CACHED_TESTCASES.get(step_key)
                     if not step_testcase:
-                        step_testcase = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
-                                                     auth=Config.AUTH).json()
+                        resp = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
+                                            auth=Config.AUTH)
+                        step_testcase = resp.json()
                         more_sorted_steps = sorted(step_testcase['testScript']['steps'],
                                                    key=lambda i: i['index'])
                         step_testcase['steps'] = more_sorted_steps
@@ -158,6 +166,7 @@ def extract_strong(content):
 def build_summary(testcase):
     if testcase['owner'] not in CACHED_USERS:
         resp = requests.get(Config.USER_URL.format(username=testcase["owner"]), auth=Config.AUTH)
+        resp.raise_for_status()
         user = resp.json()
         CACHED_USERS[testcase["owner"]] = user
     user = CACHED_USERS[testcase["owner"]]
