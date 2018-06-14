@@ -18,7 +18,6 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 import re
-from collections import OrderedDict
 from .config import Config
 
 
