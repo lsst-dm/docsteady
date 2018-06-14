@@ -67,7 +67,7 @@ def cli(output, username, password, folder, file):
     except Exception as e:
         print("Error in building model")
         print(e)
-        sys.exit(1)
+        raise e
 
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
@@ -91,7 +91,7 @@ def build_dm_model(folder):
         sys.exit(1)
 
     testcases = resp.json()
-    testcases.sort(key=lambda tc: tc["name"].split(":")[0])
+    testcases.sort(key=lambda tc: tc["key"])
     for testcase in testcases:
         # build simple summary
         testcase['summary'] = build_summary(testcase)
@@ -115,7 +115,7 @@ def build_dm_model(folder):
             if "test_items" in more_info:
                 split_text = more_info["test_items"].splitlines()
                 # omit first "test items" line
-                if "test items" in split_text[0].lower():
+                if split_text and re.match("test item", split_text[0].lower()):
                     split_text = split_text[1:]
                 testcase["test_items"] = "\n".join(split_text)
                 del more_info["test_items"]

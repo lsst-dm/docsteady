@@ -35,9 +35,8 @@
     {% endif %}
 
     {% if testcase.more_objectives %}
-        <h3>Objectives</h3>
-        {% for title, objective in testcase.more_objectives %}
-            <strong>{{ title }}</strong>
+        {% for title, objective in testcase.more_objectives.items() %}
+            <h3>{{ title }}</h3>
             {{ objective }}
         {% endfor %}
 
