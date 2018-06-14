@@ -22,6 +22,7 @@
 class Config:
     ISSUE_URL = "https://jira.lsstcorp.org/rest/api/latest/issue/{issue}"
     ISSUE_UI_URL = "https://jira.lsstcorp.org/browse/{issue}"
+    USER_URL = "https://jira.lsstcorp.org/rest/api/latest/user?username={username}"
     TESTCASE_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testcase/{testcase}"
     TESTCASE_UI_URL = "https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{testcase}"
     TESTCASE_SEARCH_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testcase/search"

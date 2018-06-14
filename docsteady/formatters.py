@@ -48,16 +48,8 @@ def format_dm_testscript(test_script):
 
 
 def format_status_table(testcase):
-    rows = []
-    testcase_summary = OrderedDict(
-        version=testcase['majorVersion'],
-        status=testcase['status'],
-        priority=testcase['priority'],
-        verification_type=testcase["customFields"]["Verification Type"],
-        critical_event=testcase["customFields"]["Critical Event?"],
-        owner=testcase['owner'])
-    rows.append(testcase_summary.keys())
-    rows.append(testcase_summary.values())
+    testcase_summary = testcase["summary"]
+    rows = [testcase_summary.keys(), testcase_summary.values()]
     return pandoc_table_html(rows, with_header=True)
 
 

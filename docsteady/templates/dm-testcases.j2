@@ -32,7 +32,7 @@
     <h3>Test Items</h3>
     {{ testcase["test_items"] }}
 
-    {% if testcase["deprecated_requirements"] %}
+    {% if testcase["deprecated_requirements"] and not testcase["requirements"] %}
         <h3>Requirements</h3>
         {{ testcase["deprecated_requirements"] }}
     {% endif %}

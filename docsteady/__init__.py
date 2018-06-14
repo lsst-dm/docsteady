@@ -33,6 +33,9 @@ from .formatters import *
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
 
+CACHED_TESTCASES = {}
+CACHED_USERS = {}
+
 
 @click.command()
 @click.option('--output', default='latex', help='Pandoc output format (see pandoc for options)')
@@ -82,16 +85,9 @@ def build_dm_model(folder):
 
     testcases = resp.json()
     testcases.sort(key=lambda tc: tc["name"].split(":")[0])
-    cached_testcases = {}
     for testcase in testcases:
         # build simple summary
-        testcase['summary'] = OrderedDict(
-            version=testcase['majorVersion'],
-            status=testcase['status'],
-            priority=testcase['priority'],
-            verification_type=testcase["customFields"]["Verification Type"],
-            critical_event=testcase["customFields"]["Critical Event?"],
-            owner=testcase['owner'])
+        testcase['summary'] = build_summary(testcase)
 
         testcase.setdefault("requirements", [])
         # Build list of requirements
@@ -116,14 +112,14 @@ def build_dm_model(folder):
             for step in sorted_steps:
                 if 'testCaseKey' in step:
                     step_key = step['testCaseKey']
-                    step_testcase = cached_testcases.get(step_key)
+                    step_testcase = CACHED_TESTCASES.get(step_key)
                     if not step_testcase:
                         step_testcase = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
                                                      auth=Config.AUTH).json()
                         more_sorted_steps = sorted(step_testcase['testScript']['steps'],
                                                    key=lambda i: i['index'])
                         step_testcase['steps'] = more_sorted_steps
-                        cached_testcases[step_key] = step_testcase
+                        CACHED_TESTCASES[step_key] = step_testcase
                     dereferenced_steps.extend(step_testcase['testScript']['steps'])
                 else:
                     dereferenced_steps.append(step)
@@ -157,5 +153,21 @@ def extract_strong(content):
     return headers
 
 
-#if __name__ == '__main__':
-cli()
+def build_summary(testcase):
+    if testcase['owner'] not in CACHED_USERS:
+        resp = requests.get(Config.USER_URL.format(username=testcase["owner"]), auth=Config.AUTH)
+        user = resp.json()
+        CACHED_USERS[testcase["owner"]] = user
+    user = CACHED_USERS[testcase["owner"]]
+    testcase_summary = OrderedDict(
+        version=testcase['majorVersion'],
+        status=testcase['status'],
+        priority=testcase['priority'],
+        verification_type=testcase["customFields"]["Verification Type"],
+        critical_event=testcase["customFields"]["Critical Event?"],
+        owner=user["displayName"])
+    return testcase_summary
+
+
+if __name__ == '__main__':
+    cli()
