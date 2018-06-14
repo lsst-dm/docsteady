@@ -47,12 +47,6 @@ def format_dm_testscript(test_script):
     return formatted
 
 
-def format_status_table(testcase):
-    testcase_summary = testcase["summary"]
-    rows = [testcase_summary.keys(), testcase_summary.values()]
-    return pandoc_table_html(rows, with_header=True)
-
-
 def format_dm_requirements(requirements):
     text = "<h3>Requirements</h3>"
     text += "<ul>"

@@ -55,7 +55,6 @@ def cli(output, username, password, folder, file):
     Config.output = TemporaryFile(mode="r+")
 
     jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
-                            format_status_table=format_status_table,
                             format_dm_requirements=format_dm_requirements,
                             format_dm_testscript=format_dm_testscript,
                             as_jira_test_anchor=as_jira_test_anchor)
