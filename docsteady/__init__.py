@@ -35,6 +35,7 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 
 CACHED_TESTCASES = {}
 CACHED_USERS = {}
+CACHED_REQUIREMENTS = {}
 
 
 @click.command()
@@ -92,8 +93,10 @@ def build_dm_model(folder):
         # Build list of requirements
         if "issueLinks" in testcase:
             for issue in testcase["issueLinks"]:
-                resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH).json()
-                summary = resp["fields"]["summary"]
+                resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
+                requirement = resp.json()
+                CACHED_REQUIREMENTS[issue] = requirement
+                summary = requirement["fields"]["summary"]
                 jira_url = Config.ISSUE_UI_URL.format(issue=issue)
                 anchor = f'<a href="{jira_url}">{issue}</a>'
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
