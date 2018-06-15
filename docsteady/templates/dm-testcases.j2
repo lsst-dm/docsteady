@@ -36,14 +36,10 @@
 
     {% if testcase.more_objectives %}
         {% for title, objective in testcase.more_objectives.items() %}
-            <h3>{{ title }}</h3>
+            <h3>{{ title.replace("_", " ").title() }}</h3>
             {{ objective }}
         {% endfor %}
 
-        {% if testcase.more_objectives.deprecated_requirements and not testcase.requirements %}
-            <h3>Requirements</h3>
-            {{ testcase.more_objectives.deprecated_requirements }}
-        {% endif %}
     {% endif %}
 
     {% if testcase.requirements %}

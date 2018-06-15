@@ -184,9 +184,9 @@ def extract_strong(content, first_text_name=None):
             if element_name:
                 headers[element_name] = element_neighbor_text
             element_name = elem.text.lower().replace(" ", "_")
-            # translate requirements to "deprecated requirements"
+            # translate requirements to "deprecated requirements" style
             if "requirements" in element_name:
-                element_name = "deprecated_requirements"
+                element_name = "requirements"
             element_neighbor_text = ""
             continue
         element_neighbor_text += str(elem) + "\n"
