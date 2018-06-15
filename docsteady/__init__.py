@@ -33,10 +33,14 @@ from .formatters import *
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
+doc = pandoc.Document()
 
 CACHED_TESTCASES = {}
 CACHED_USERS = {}
 CACHED_REQUIREMENTS = {}
+
+requirements_to_issues = {}
+requirements_map = {}
 
 
 @click.command()
@@ -51,6 +55,7 @@ def cli(output, username, password, folder, file):
     is the ATM Test Case Folder. If specified, FILE is the resulting
     output.
     """
+    global requirements_to_issues
     Config.PANDOC_TYPE = "html"
     Config.AUTH = (username, password)
 
@@ -69,13 +74,23 @@ def cli(output, username, password, folder, file):
         print(e)
         raise e
 
+    # Sort the dictionary
+    requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
+                                                   key=lambda item: alphanum_key(item[0])))
+
+    testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
+
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
     template = env.get_template("dm-testcases.j2")
-    text = template.render(testcases=testcases)
-    doc = pandoc.Document()
+
+    text = template.render(testcases=testcases,
+                           requirements_to_testcases=requirements_to_testcases,
+                           testcases_doc_url_map=testcases_href,
+                           requirements_map=requirements_map)
+
     doc.html = text.encode("utf-8")
     out_text = getattr(doc, output).decode("utf-8")
     print(out_text, file=file or sys.stdout)
@@ -91,8 +106,12 @@ def build_dm_model(folder):
         sys.exit(1)
 
     testcases = resp.json()
-    testcases.sort(key=lambda tc: tc["key"])
+    testcases.sort(key=lambda tc: alphanum_key(tc["key"]))
     for testcase in testcases:
+        # Make a doc_href attribute for the test case
+        full_name = f"{testcase['key']} - {testcase['name']}"
+        testcase["doc_href"] = as_anchor(full_name)
+
         # build simple summary
         testcase['summary'] = build_summary(testcase)
 
@@ -103,10 +122,15 @@ def build_dm_model(folder):
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
                 resp.raise_for_status()
                 requirement = resp.json()
+
                 CACHED_REQUIREMENTS[issue] = requirement
+                requirements_to_issues.setdefault(issue, []).append(testcase['key'])
                 summary = requirement["fields"]["summary"]
                 jira_url = Config.ISSUE_UI_URL.format(issue=issue)
                 anchor = f'<a href="{jira_url}">{issue}</a>'
+                requirement["jira_url"] = jira_url
+                requirement["summary"] = summary
+                requirements_map[issue] = requirement
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
 
         # Extract bolded items from objective
@@ -125,7 +149,7 @@ def build_dm_model(folder):
         if 'steps' in testcase.get("testScript"):
             steps = testcase['testScript']['steps']
             dereferenced_steps = []
-            sorted_steps = sorted(steps, key=lambda i: i['index'])
+            sorted_steps = process_steps(steps)
             for step in sorted_steps:
                 if 'testCaseKey' in step:
                     step_key = step['testCaseKey']
@@ -134,8 +158,7 @@ def build_dm_model(folder):
                         resp = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
                                             auth=Config.AUTH)
                         step_testcase = resp.json()
-                        more_sorted_steps = sorted(step_testcase['testScript']['steps'],
-                                                   key=lambda i: i['index'])
+                        more_sorted_steps = process_steps(step_testcase['testScript']['steps'])
                         step_testcase['steps'] = more_sorted_steps
                         CACHED_TESTCASES[step_key] = step_testcase
                     dereferenced_steps.extend(step_testcase['testScript']['steps'])
@@ -161,9 +184,9 @@ def extract_strong(content, first_text_name=None):
             if element_name:
                 headers[element_name] = element_neighbor_text
             element_name = elem.text.lower().replace(" ", "_")
-            # translate requirements to "deprecated requirements"
+            # translate requirements to "deprecated requirements" style
             if "requirements" in element_name:
-                element_name = "deprecated_requirements"
+                element_name = "requirements"
             element_neighbor_text = ""
             continue
         element_neighbor_text += str(elem) + "\n"
@@ -186,6 +209,26 @@ def build_summary(testcase):
         critical_event=testcase["customFields"]["Critical Event?"],
         owner=user["displayName"])
     return testcase_summary
+
+
+def process_steps(steps):
+    sorted_steps = sorted(steps, key=lambda i: i['index'])
+    for step in sorted_steps:
+        description = step.get("description")
+        if description:
+            soup = BeautifulSoup(description, "html.parser")
+            # normalizes HTML, replace breaks with newline, non-breaking spaces
+            description = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
+            # matches `[markdown]: #`
+            if re.match("\[(.*)\].*:.*#(.*)", description.splitlines()[0]):
+                doc.gfm = description.encode("utf-8")
+                description = doc.html.decode("utf-8")
+                step['description'] = description
+    return sorted_steps
+
+
+def alphanum_key(key):
+    return [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)]
 
 
 if __name__ == '__main__':
