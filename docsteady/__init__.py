@@ -38,6 +38,9 @@ CACHED_TESTCASES = {}
 CACHED_USERS = {}
 CACHED_REQUIREMENTS = {}
 
+requirements_to_issues = {}
+requirements_map = {}
+
 
 @click.command()
 @click.option('--output', default='latex', help='Pandoc output format (see pandoc for options)')
@@ -51,6 +54,7 @@ def cli(output, username, password, folder, file):
     is the ATM Test Case Folder. If specified, FILE is the resulting
     output.
     """
+    global requirements_to_issues
     Config.PANDOC_TYPE = "html"
     Config.AUTH = (username, password)
 
@@ -69,12 +73,23 @@ def cli(output, username, password, folder, file):
         print(e)
         raise e
 
+    # Sort the dictionary
+    requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
+                                                   key=lambda item: alphanum_key(item[0])))
+
+    testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
+
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
     template = env.get_template("dm-testcases.j2")
-    text = template.render(testcases=testcases)
+
+    text = template.render(testcases=testcases,
+                           requirements_to_testcases=requirements_to_testcases,
+                           testcases_doc_url_map=testcases_href,
+                           requirements_map=requirements_map)
+
     doc = pandoc.Document()
     doc.html = text.encode("utf-8")
     out_text = getattr(doc, output).decode("utf-8")
@@ -91,8 +106,12 @@ def build_dm_model(folder):
         sys.exit(1)
 
     testcases = resp.json()
-    testcases.sort(key=lambda tc: tc["key"])
+    testcases.sort(key=lambda tc: alphanum_key(tc["key"]))
     for testcase in testcases:
+        # Make a doc_href attribute for the test case
+        full_name = f"{testcase['key']} - {testcase['name']}"
+        testcase["doc_href"] = as_anchor(full_name)
+
         # build simple summary
         testcase['summary'] = build_summary(testcase)
 
@@ -103,10 +122,15 @@ def build_dm_model(folder):
                 resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
                 resp.raise_for_status()
                 requirement = resp.json()
+
                 CACHED_REQUIREMENTS[issue] = requirement
+                requirements_to_issues.setdefault(issue, []).append(testcase['key'])
                 summary = requirement["fields"]["summary"]
                 jira_url = Config.ISSUE_UI_URL.format(issue=issue)
                 anchor = f'<a href="{jira_url}">{issue}</a>'
+                requirement["jira_url"] = jira_url
+                requirement["summary"] = summary
+                requirements_map[issue] = requirement
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
 
         # Extract bolded items from objective
@@ -186,6 +210,10 @@ def build_summary(testcase):
         critical_event=testcase["customFields"]["Critical Event?"],
         owner=user["displayName"])
     return testcase_summary
+
+
+def alphanum_key(key):
+    return [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)]
 
 
 if __name__ == '__main__':

@@ -90,3 +90,29 @@
     {% endif %}
 
 {% endfor %}
+
+{% if requirements_to_testcases %}
+    <h1>Requirements Index</h1>
+    <table>
+        <tr>
+            <th>Requirements</th>
+            <th>Test Cases</th>
+        </tr>
+        {% for requirement_key, testcases in requirements_to_testcases.items() %}
+            {% set requirement = requirements_map[requirement_key] %}
+            <tr>
+                <td>
+                    <a href="{{ requirement.jira_url }}">
+                        {{ requirement_key }} - {{ requirement.summary }}</a>
+                </td>
+                <td>
+                    {% for testcase in testcases %}
+                        <a href="#{{ testcases_doc_url_map[testcase] }}">{{ testcase }}
+                        </a>{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endif %}
