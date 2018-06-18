@@ -213,17 +213,17 @@ def build_summary(testcase):
 
 def process_steps(steps):
     sorted_steps = sorted(steps, key=lambda i: i['index'])
-    # for step in sorted_steps:
-    #     description = step.get("description")
-    #     if description:
-    #         soup = BeautifulSoup(description, "html.parser")
-    #         # normalizes HTML, replace breaks with newline, non-breaking spaces
-    #         description = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
-    #         # matches `[markdown]: #`
-    #         if re.match("\[(.*)\].*:.*#(.*)", description.splitlines()[0]):
-    #             doc.gfm = description.encode("utf-8")
-    #             description = doc.html.decode("utf-8")
-    #             step['description'] = description
+    for step in sorted_steps:
+        description = step.get("description")
+        if description:
+            soup = BeautifulSoup(description, "html.parser")
+            # normalizes HTML, replace breaks with newline, non-breaking spaces
+            description = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
+            # matches `[markdown]: #`
+            # if re.match("\[(.*)\].*:.*#(.*)", description.splitlines()[0]):
+            doc.gfm = description.encode("utf-8")
+            description = doc.html.decode("utf-8")
+            step['description'] = description
     return sorted_steps
 
 
