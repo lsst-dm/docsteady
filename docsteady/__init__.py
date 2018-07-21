@@ -30,6 +30,7 @@ from jinja2 import Environment, PackageLoader
 
 from .config import Config
 from .formatters import *
+from .utils import *
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
@@ -74,6 +75,10 @@ def cli(output, username, password, folder, file):
         print(e)
         raise e
 
+    summaryT = make_summary_table(testcases)
+    summary = "\\section{Test Cases Summary}\\label{test-cases-summary}\n\n"
+    summary = summary + "Follows the list of test cases documented in this specification.\n\n" + summaryT
+
     # Sort the dictionary
     requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
                                                    key=lambda item: alphanum_key(item[0])))
@@ -95,6 +100,9 @@ def cli(output, username, password, folder, file):
     out_text = getattr(doc, output).decode("utf-8")
     print(out_text, file=file or sys.stdout)
 
+    S=open("summary.tex", 'w')
+    S.write(summary)
+    S.close()
 
 def build_dm_model(folder):
     query = f'folder = "{folder}"'
