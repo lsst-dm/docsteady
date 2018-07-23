@@ -84,6 +84,8 @@ def cli(output, username, password, folder, file):
                                                    key=lambda item: alphanum_key(item[0])))
 
     reqsT = make_reqs_table(requirements_to_testcases, requirements_map, testcases)
+    reqs = "\\section{Requirements Traceabiity}\\label{requirements-traceability}\n\n"
+    reqs = reqs + "In following table the relevant requirements for this document (Verification Elements) are traced down to the dorresponding Test Cases.\n\n" + reqsT
 
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
