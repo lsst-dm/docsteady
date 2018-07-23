@@ -36,3 +36,31 @@ def make_summary_table(testcases):
    sumtable = sumtable + "\\bottomrule\n\\end{longtable}\n"
 
    return(sumtable)
+
+
+def make_reqs_table(reqissues, reqmap, testcases):
+
+   jlnk="https://jira.lsstcorp.org/browse/"
+   
+   traceToVE = {}
+
+   for tc in testcases:
+      if "issueLinks" in tc:
+         for issue in tc['issueLinks']:
+            traceToVE.setdefault(issue, []).append(tc['key'])
+
+   reqstable = "\\scriptsize{\\begin{longtable}[]{p{13cm}p{3cm}}\n"
+   reqstable = reqstable + "\\toprule\n Verification Requirement & Test Cases\\tabularnewline\n"
+   reqstable = reqstable + "\\midrule\n\\endhead"
+   for rissue in reqissues:
+      reqstable = reqstable + " \\href{" + jlnk + reqmap[rissue]['key'] +"}{ " + rissue + " - " + reqmap[rissue]['summary'] + " } & \n{"
+      for tc in traceToVE[rissue]:
+         label = tc.lower()
+         reqstable = reqstable + " \\protect\\hyperlink{" + label + "}{" + tc + "}"
+
+      reqstabke = reqstable.rstrip(',')
+      reqstable = reqstable + "} \\\\ \n"
+
+   reqstable = reqstable + "\\tabularnewline\n\\bottomrule\n\\end{longtable}}\n"
+
+   return(reqstable)

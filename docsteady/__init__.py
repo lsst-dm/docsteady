@@ -83,6 +83,8 @@ def cli(output, username, password, folder, file):
     requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
+    reqsT = make_reqs_table(requirements_to_testcases, requirements_map, testcases)
+
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
@@ -103,6 +105,11 @@ def cli(output, username, password, folder, file):
     S=open("summary.tex", 'w')
     S.write(summary)
     S.close()
+
+    RT=open("reqtrace.tex", 'w')
+    RT.write(reqsT)
+    RT.close()
+
 
 def build_dm_model(folder):
     query = f'folder = "{folder}"'
