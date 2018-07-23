@@ -85,7 +85,7 @@ def cli(output, username, password, folder, file):
 
     reqsT = make_reqs_table(requirements_to_testcases, requirements_map, testcases)
     reqs = "\\section{Requirements Traceabiity}\\label{requirements-traceability}\n\n"
-    reqs = reqs + "In following table the relevant requirements for this document (Verification Elements) are traced down to the dorresponding Test Cases.\n\n" + reqsT
+    reqs = reqs + "In following table the traceability Requirements (Verification Elements) to Test Cases is reported.\n\n" + reqsT
 
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
@@ -109,7 +109,7 @@ def cli(output, username, password, folder, file):
     S.close()
 
     RT=open("reqtrace.tex", 'w')
-    RT.write(reqsT)
+    RT.write(reqs)
     RT.close()
 
 
