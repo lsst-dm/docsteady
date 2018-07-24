@@ -31,3 +31,9 @@ class Config:
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
+    DOC = None
+    OUTPUT_FORMAT = None
+    CACHED_TESTCASES = {}
+    CACHED_USERS = {}
+    CACHED_REQUIREMENTS = {}
+    MODE_PREFIX = None

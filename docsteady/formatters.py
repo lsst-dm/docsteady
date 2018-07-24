@@ -76,3 +76,7 @@ def as_anchor(text):
 
 def as_jira_test_anchor(testcase):
     return Config.TESTCASE_UI_URL.format(testcase=testcase)
+
+
+def alphanum_key(key):
+    return [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)]
