@@ -21,13 +21,14 @@
 """
 Code for Test Specification Model Generation
 """
+from typing import List, Optional
+
 from bs4 import BeautifulSoup
-from collections import OrderedDict
 import requests
 import sys
 from .config import Config
 from .formatters import as_anchor, alphanum_key
-# import re
+import re
 
 
 def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
@@ -45,37 +46,39 @@ def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
     for testcase_resp in testcases_resp:
         testcase = {}
         try:
-            testcase["key"] = testcase_resp["key"]
-            testcase["name"] = testcase_resp["name"]
-            testcase["full_name"] = f"{testcase_resp['key']} - {testcase_resp['name']}"
-            testcase["owner_id"] = testcase_resp["owner"]
-            testcase["owner"] = owner_for_id(testcase["owner_id"])
-            testcase["component"] = testcase_resp.get("component", None)
+            testcase["key"] : str = testcase_resp["key"]
+            testcase["name"] : str = testcase_resp["name"]
+            testcase["full_name"] : str = f"{testcase_resp['key']} - {testcase_resp['name']}"
+            testcase["owner_id"] : str = testcase_resp["owner"]
+            testcase["owner"] : str = owner_for_id(testcase["owner_id"])
+            testcase["component"] : Optional[str] = testcase_resp.get("component")
+
             # FIXME: Use Arrow
-            testcase["created_on"] = testcase_resp.get("createdOn", None)
-            testcase["precondition"] = testcase_resp.get("precondition", None)
-            testcase["version"] = testcase_resp['majorVersion']
-            testcase["status"] = testcase_resp['status']
-            testcase["priority"] = testcase_resp['priority']
+            testcase["created_on"] : Optional[str] = testcase_resp.get("createdOn")
+            testcase["precondition"] : Optional[str] = testcase_resp.get("precondition")
+            testcase["version"] : str = testcase_resp['majorVersion']
+            testcase["status"] : str = testcase_resp['status']
+            testcase["priority"] : str = testcase_resp['priority']
+            testcase["labels"] : List[str] = testcase_resp.get("labels", list())
 
             # For easy referencing later
-            testcase["doc_href"] = as_anchor(testcase["full_name"])
+            testcase["doc_href"] : str = as_anchor(testcase["full_name"])
 
             # customFields
             custom_fields = testcase_resp["customFields"]
-            testcase["verification_type"] = custom_fields.get("Verification Type", None)
-            testcase["verification_configuration"] = \
-                custom_fields.get("Verification Configuration", None)
-            testcase["predecessors"] = custom_fields.get("Predecessors", None)
-            testcase["critical_event"] = custom_fields.get("Critical Event?", None)
-            testcase["associated_risks"] = custom_fields.get("Associated Risks", None)
-            testcase["unit_under_test"] = custom_fields.get("Unit Under Test", None)
-            testcase["required_software"] = custom_fields.get("Required Software", None)
-            testcase["test_equipment"] = custom_fields.get("Test Equipment", None)
-            testcase["test_personnel"] = custom_fields.get("Test Personnel", None)
-            testcase["safety_hazards"] = custom_fields.get("Safety Hazards", None)
-            testcase["required_ppe"] = custom_fields.get("Required PPE", None)
-            testcase["postcondition"] = custom_fields.get("Postcondition", None)
+            testcase["verification_type"] : Optional[str] = custom_fields.get("Verification Type")
+            testcase["verification_configuration"] : Optional[str] = \
+                custom_fields.get("Verification Configuration")
+            testcase["predecessors"] : Optional[str] = custom_fields.get("Predecessors")
+            testcase["critical_event"] : Optional[str] = custom_fields.get("Critical Event?")
+            testcase["associated_risks"] : Optional[str] = custom_fields.get("Associated Risks")
+            testcase["unit_under_test"] : Optional[str] = custom_fields.get("Unit Under Test")
+            testcase["required_software"] : Optional[str] = custom_fields.get("Required Software")
+            testcase["test_equipment"] : Optional[str] = custom_fields.get("Test Equipment")
+            testcase["test_personnel"] : Optional[str] = custom_fields.get("Test Personnel")
+            testcase["safety_hazards"] : Optional[str] = custom_fields.get("Safety Hazards")
+            testcase["required_ppe"] : Optional[str] = custom_fields.get("Required PPE")
+            testcase["postcondition"] : Optional[str] = custom_fields.get("Postcondition")
 
         except KeyError as e:
             from pprint import pprint
@@ -90,47 +93,8 @@ def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
         testcase["test_script"] = {}
         testcase['test_script']['steps'] = process_steps(testcase_resp)
 
-        # Extract bolded items from objective
-        # if "objective" in testcase_resp:
-        #     more_info = extract_strong(testcase_resp["objective"], "test_items")
-        #     if "test_items" in more_info:
-        #         split_text = more_info["test_items"].splitlines()
-        #         # omit first "test items" line
-        #         if split_text and re.match("test item", split_text[0].lower()):
-        #             split_text = split_text[1:]
-        #         testcase["test_items"] = "\n".join(split_text)
-        #         del more_info["test_items"]
-        #     testcase["more_objectives"] = more_info
-
         testcases_model.append(testcase)
     return testcases_model
-
-
-# def extract_strong(content, first_text_name=None):
-#     """
-#     Extract "strong" elements and attach their siblings up to the
-#     next "strong" element.
-#     :param first_text_name:
-#     :param content: HTML to parse
-#     :return: A dict of those elements with the sibling HTML as the values
-#     """
-#     soup = BeautifulSoup(content, "html.parser")
-#     headers = OrderedDict()
-#     element_name = first_text_name
-#     element_neighbor_text = ""
-#     for elem in soup.children:
-#         if "strong" == elem.name:
-#             if element_name:
-#                 headers[element_name] = element_neighbor_text
-#             element_name = elem.text.lower().replace(" ", "_")
-#             # translate requirements to "deprecated requirements" style
-#             if "requirements" in element_name:
-#                 element_name = "requirements"
-#             element_neighbor_text = ""
-#             continue
-#         element_neighbor_text += str(elem) + "\n"
-#     headers[element_name] = element_neighbor_text
-#     return headers
 
 
 def owner_for_id(owner_id):
@@ -194,12 +158,12 @@ def process_requirements(testcase_resp, requirements_to_issues, requirements_map
             summary = requirement_resp["fields"]["summary"]
             anchor = f'<a href="{jira_url}">{issue}</a>'
             # FIXME: Get rid of anchor?
-            requirement = {"key": issue,
-                           "summary": summary,
-                           "anchor": anchor,
-                           "jira_url": jira_url
-                           }
-            requirements_map[issue] = requirement
+            requirement = {}
+            requirement["key"]: str = issue
+            requirement["summary"]: str = summary
+            requirement["anchor"]: str = anchor
+            requirement["jira_url"]: str = jira_url
+            requirements_map[issue]: str = requirement
             requirements.append(requirement)
     return requirements
 
@@ -211,17 +175,18 @@ def _make_step(step_raw):
         # If it exists, look for markdown text
         soup = BeautifulSoup(description, "html.parser")
         # normalizes HTML, replace breaks with newline, non-breaking spaces
-        description = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
-        # matches `[markdown]: #`
-        # if re.match("\[(.*)\].*:.*#(.*)", description.splitlines()[0]):
-        Config.DOC.gfm = description.encode("utf-8")
-        description = Config.DOC.html.decode("utf-8")
+        description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
+        # matches `[markdown]: #` at the top of description
+        if re.match("\[markdown\].*:.*#(.*)", description_txt.splitlines()[0]):
+            Config.DOC.gfm = description_txt.encode("utf-8")
+            description = Config.DOC.html.decode("utf-8")
         return description
 
     step = {}
     step['index'] = step_raw['index']
     step['description'] = extract_description(step_raw.get('description', None))
     step['expected_result'] = step_raw.get('expectedResult', None)
+    step['test_data'] = step_raw.get('testData', None)
     # Note: Don't dereference any further
     # If testCaseKey is in step, then go ahead and add it....
     step['test_case_key'] = step_raw.get('testCaseKey', None)
