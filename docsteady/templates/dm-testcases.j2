@@ -35,55 +35,71 @@
         {{ testcase.test_items }}
     {% endif %}
 
-    {% if testcase.more_objectives %}
-        {% for title, objective in testcase.more_objectives.items() %}
-            <h3>{{ title.replace("_", " ").title() }}</h3>
-            {{ objective }}
-        {% endfor %}
-
-    {% endif %}
+{#    {% if testcase.more_objectives %}#}
+{#        {% for title, objective in testcase.more_objectives.items() %}#}
+{#            <h3>{{ title.replace("_", " ").title() }}</h3>#}
+{#            {{ objective }}#}
+{#        {% endfor %}#}
+{#    {% endif %}#}
 
     {% if testcase.requirements %}
         <h3>Requirements</h3>
         <ul>
             {% for item in testcase.requirements %}
-                <li>{{ item['anchor'] }} - {{ item['summary'] }}</li>
+                <li>{{ item.anchor }} - {{ item.summary }}</li>
             {% endfor %}
         </ul>
     {% endif %}
 
-    {% if "Predecessors" in testcase %}
+    {% if testcase.predecessors %}
         <h3>Predecessors</h3>
-        {{ testcase["predecessors"] }}
+        {{ testcase.predecessors }}
     {% endif %}
 
-    {% if "Required Software" in testcase %}
+    {% if testcase.required_software %}
         <h3>Required Software</h3>
-        {{ testcase["required_software"] }}
+        {{ testcase.required_software }}
     {% endif %}
 
-    {% if "precondition" in testcase %}
+    {% if testcase.precondition %}
         <h3>Precondition</h3>
-        {{ testcase["precondition"] }}
+        {{ testcase.precondition }}
     {% endif %}
 
-    {% if "Postcondition" in testcase %}
+    {% if testcase.postcondition %}
         <h3>Precondition</h3>
-        {{ testcase["postcondition"] }}
+        {{ testcase.postcondition }}
     {% endif %}
 
-    {% if "test_script" in testcase %}
+    {% if testcase.test_script %}
         <h3>Test Script</h3>
-        {% for step in testcase['test_script']['steps'] %}
-            <strong>Step {{ loop.index }}</strong>
-            <br/>
-            {{ step['description'] }}
-            <br/>
-            {% if 'test_data' in step %}
-                {{ step['test_data'] }}
-            {% endif %}
-            <br/>
-        {% endfor %}
+        <table>
+            <tr>
+                <th>Step</th>
+                <th>Description</th>
+            </tr>
+            {% for step in testcase.test_script.steps %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+
+                    <td>
+                        <strong>Description</strong><br>
+                        {{ step.description }}
+                        {% if step.expected_result %}
+                            <hr>
+                            <strong>Expected Result</strong><br>
+                            {{ step.expected_result or "" }}
+                            {{ step.description }}
+                        {% endif %}
+                        {% if step.test_data %}
+                            <hr>
+                            <strong>Test Data</strong><br>
+                            {{ step.test_data }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
     {% endif %}
 
 {% endfor %}
@@ -100,7 +116,7 @@
             <tr>
                 <td>
                     <a href="{{ requirement.jira_url }}">
-                        {{ requirement_key }} - {{ requirement.summary }}</a>
+                        {{ requirement_key }}</a>
                 </td>
                 <td>
                     {% for testcase in testcases %}
