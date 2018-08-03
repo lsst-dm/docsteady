@@ -30,6 +30,7 @@ from jinja2 import Environment, PackageLoader
 
 from .config import Config
 from .formatters import *
+from .utils import *
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
@@ -94,6 +95,25 @@ def cli(output, username, password, folder, file):
     doc.html = text.encode("utf-8")
     out_text = getattr(doc, output).decode("utf-8")
     print(out_text, file=file or sys.stdout)
+
+    # latex files output
+
+    summary = "\\section{Test Cases Summary}\\label{test-cases-summary}\n\n" \
+              "Follows the list of test cases documented in this specification.\n\n"
+    summary += make_summary_table(testcases)
+
+    reqs_text = "\\section{Requirements Traceabiity}\\label{requirements-traceability}\n\n" \
+                "In following table the traceability Requirements (Verification Elements) " \
+                "to Test Cases is reported.\n\n"
+    reqs_text += make_reqs_table(requirements_to_testcases, requirements_map, testcases)
+
+    summary_file = open("summary.tex", 'w')
+    summary_file.write(summary)
+    summary_file.close()
+
+    trace_file = open("reqtrace.tex", 'w')
+    trace_file.write(reqs_text)
+    trace_file.close()
 
 
 def build_dm_model(folder):
