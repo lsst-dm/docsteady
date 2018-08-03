@@ -75,17 +75,9 @@ def cli(output, username, password, folder, file):
         print(e)
         raise e
 
-    summaryT = make_summary_table(testcases)
-    summary = "\\section{Test Cases Summary}\\label{test-cases-summary}\n\n"
-    summary = summary + "Follows the list of test cases documented in this specification.\n\n" + summaryT
-
     # Sort the dictionary
     requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
                                                    key=lambda item: alphanum_key(item[0])))
-
-    reqsT = make_reqs_table(requirements_to_testcases, requirements_map, testcases)
-    reqs = "\\section{Requirements Traceabiity}\\label{requirements-traceability}\n\n"
-    reqs = reqs + "In following table the traceability Requirements (Verification Elements) to Test Cases is reported.\n\n" + reqsT
 
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
@@ -104,13 +96,24 @@ def cli(output, username, password, folder, file):
     out_text = getattr(doc, output).decode("utf-8")
     print(out_text, file=file or sys.stdout)
 
-    S=open("summary.tex", 'w')
-    S.write(summary)
-    S.close()
+    # latex files output
 
-    RT=open("reqtrace.tex", 'w')
-    RT.write(reqs)
-    RT.close()
+    summary = "\\section{Test Cases Summary}\\label{test-cases-summary}\n\n" \
+              "Follows the list of test cases documented in this specification.\n\n"
+    summary += make_summary_table(testcases)
+
+    reqs_text = "\\section{Requirements Traceabiity}\\label{requirements-traceability}\n\n" \
+                "In following table the traceability Requirements (Verification Elements) " \
+                "to Test Cases is reported.\n\n"
+    reqs_text += make_reqs_table(requirements_to_testcases, requirements_map, testcases)
+
+    summary_file = open("summary.tex", 'w')
+    summary_file.write(summary)
+    summary_file.close()
+
+    trace_file = open("reqtrace.tex", 'w')
+    trace_file.write(reqs_text)
+    trace_file.close()
 
 
 def build_dm_model(folder):

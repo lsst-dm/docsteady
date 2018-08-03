@@ -17,50 +17,53 @@
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
-import re
 from .config import Config
 
 
 def make_summary_table(testcases):
 
-   jlnk="https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/"
+    summary_table = "\\begin{longtable}[]{p{3cm}p{13cm}}\n" \
+                    "\\toprule\n" \
+                    "Test Id & Test Name\\tabularnewline\n" \
+                    "\\midrule\n" \
+                    "\\endhead"
+    for testcase in testcases:
+        label = testcase['key'].lower()
+        href = Config.TESTCASE_UI_URL.format(testcase=testcase['key'])
+        summary_table += "\\protect\\hyperlink{" + label + "}{" + testcase['key'] + "} & \n"
+        summary_table += "\\href{" + href + "}{" + testcase['name'] + "} \\tabularnewline\n"
 
-   sumtable = "\\begin{longtable}[]{p{3cm}p{13cm}}\n"
-   sumtable = sumtable + "\\toprule\nTest Id & Test Name\\tabularnewline\n"
-   sumtable = sumtable + "\\midrule\n\\endhead"
-   for TCase in testcases:
-      label = TCase['key'].lower()
-      sumtable = sumtable + "\\protect\\hyperlink{" + label + "}{" + TCase['key'] + "} & \n"
-      sumtable = sumtable + "  \\href{" + jlnk + TCase['key'] + "}{" + TCase['name'] + "} \\tabularnewline\n"
-
-   sumtable = sumtable + "\\bottomrule\n\\end{longtable}\n"
-
-   return(sumtable)
+    summary_table += "\\bottomrule\n\\end{longtable}\n"
+    return summary_table
 
 
 def make_reqs_table(reqissues, reqmap, testcases):
 
-   jlnk="https://jira.lsstcorp.org/browse/"
-   
-   traceToVE = {}
+    trace_to_ve = {}
 
-   for tc in testcases:
-      if "issueLinks" in tc:
-         for issue in tc['issueLinks']:
-            traceToVE.setdefault(issue, []).append(tc['key'])
+    for tc in testcases:
+        if "issueLinks" in tc:
+            for issue in tc['issueLinks']:
+                trace_to_ve.setdefault(issue, []).append(tc['key'])
 
-   reqstable = "\\scriptsize{\\begin{longtable}[]{p{13cm}p{3cm}}\n"
-   reqstable = reqstable + "\\toprule\n Verification Requirement & Test Cases\\tabularnewline\n"
-   reqstable = reqstable + "\\midrule\n\\endhead"
-   for rissue in reqissues:
-      reqstable = reqstable + " \\href{" + jlnk + reqmap[rissue]['key'] +"}{ " + rissue + " - " + reqmap[rissue]['summary'] + " } & \n{"
-      for tc in traceToVE[rissue]:
-         label = tc.lower()
-         reqstable = reqstable + " \\protect\\hyperlink{" + label + "}{" + tc + "}"
+    reqstable = "\\scriptsize{\\begin{longtable}[]{p{13cm}p{3cm}}\n" \
+                "\\toprule \n" \
+                "Verification Requirement & Test Cases\\tabularnewline\n" \
+                "\\midrule\n" \
+                "\\endhead"
 
-      reqstabke = reqstable.rstrip(',')
-      reqstable = reqstable + "} \\\\ \n"
+    for issue in reqissues:
+        href = Config.ISSUE_UI_URL.format(issue=reqmap[issue]['key'])
+        title = issue + " - " + reqmap[issue]['summary']
+        reqstable += " \\href{" + href + "}{ " + title + " } & \n{"
+        for tc in trace_to_ve[issue]:
+            label = tc.lower()
+            reqstable += " \\protect\\hyperlink{" + label + "}{" + tc + "}"
 
-   reqstable = reqstable + "\\tabularnewline\n\\bottomrule\n\\end{longtable}}\n"
+        reqstable = reqstable.rstrip(',')
+        reqstable += "} \\\\ \n"
 
-   return(reqstable)
+    reqstable += "\\tabularnewline\n" \
+                 "\\bottomrule\n" \
+                 "\\end{longtable}}\n"
+    return reqstable
