@@ -45,8 +45,9 @@
     {% if testcase.requirements %}
         <h3>Requirements</h3>
         <ul>
-            {% for item in testcase.requirements %}
-                <li>{{ item.anchor }} - {{ item.summary }}</li>
+            {% for requirement in testcase.requirements %}
+                <li>
+                    <a href="{{ requirement.jira_url }}">{{ requirement.issue }}</a> - {{ requirement.summary }}</li>
             {% endfor %}
         </ul>
     {% endif %}

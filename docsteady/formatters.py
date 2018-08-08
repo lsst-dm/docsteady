@@ -50,7 +50,7 @@ def format_dm_requirements(requirements):
     text = "<h3>Requirements</h3>"
     text += "<ul>"
     for item in requirements:
-        text += f"<li>{item['anchor']} - {item['summary']}</li>"
+        text += f'''<li><a href="{item['jira_url']}">{item['key']}</a> - {item['summary']}</li>'''
     text += "</ul>"
     return text
 

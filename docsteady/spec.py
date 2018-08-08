@@ -26,13 +26,80 @@ from typing import List, Optional
 from bs4 import BeautifulSoup
 import requests
 import sys
+
+from marshmallow import Schema, fields, post_load
+
 from .config import Config
 from .formatters import as_anchor, alphanum_key
-from .utils import owner_for_id, test_case_for_key
+from .utils import owner_for_id, test_case_for_key, as_arrow
 import re
 
 
-def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
+class TestCase(Schema):
+    key = fields.String(required=True)
+    name = fields.String(required=True)
+    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+    owner_id = fields.String(load_from="owner", required=True)
+    component = fields.String()
+    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
+    precondition = fields.String()
+    version = fields.Integer(load_from='majorVersion', required=True)
+    status = fields.String(required=True)
+    priority = fields.String(required=True)
+    labels = fields.List(fields.String(), missing=list())
+    test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
+    custom_fields = fields.Dict(load_from="customFields")
+    issue_links = fields.List(fields.String(), load_from="issueLinks")
+
+    @post_load
+    def process_custom_fields(self, data):
+        data["full_name"] = f"{data['key']} - {data['name']}"
+        data["doc_href"] = as_anchor(data["full_name"])
+        custom_fields = data["custom_fields"]
+        # Note: All are optional
+        data["verification_type"] = custom_fields.get("Verification Type")
+        data["verification_configuration"] = custom_fields.get("Verification Configuration")
+        data["predecessors"] = custom_fields.get("Predecessors")
+        data["critical_event"] = custom_fields.get("Critical Event?")
+        data["associated_risks"] = custom_fields.get("Associated Risks")
+        data["unit_under_test"] = custom_fields.get("Unit Under Test")
+        data["required_software"] = custom_fields.get("Required Software")
+        data["test_equipment"] = custom_fields.get("Test Equipment")
+        data["test_personnel"] = custom_fields.get("Test Personnel")
+        data["safety_hazards"] = custom_fields.get("Safety Hazards")
+        data["required_ppe"] = custom_fields.get("Required PPE")
+        data["postcondition"] = custom_fields.get("Postcondition")
+        data['requirements'] = self.process_requirements(data)
+        return data
+
+    def process_requirements(self, data):
+        requirements = []
+        if "issue_links" in data:
+            # Build list of requirements
+            for issue in data["issue_links"]:
+                requirement = Config.CACHED_REQUIREMENTS.get(issue, None)
+                if not requirement:
+                    resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
+                    resp.raise_for_status()
+                    requirement_resp = resp.json()
+                    jira_url = Config.ISSUE_UI_URL.format(issue=issue)
+
+                    requirement = {}
+                    requirement["key"]: str = issue
+                    requirement["summary"]: str = requirement_resp["fields"]["summary"]
+                    requirement["jira_url"]: str = jira_url
+
+                    Config.CACHED_REQUIREMENTS[issue] = requirement
+
+                Config.REQUIREMENTS_TO_ISSUES.setdefault(issue, []).append(data['key'])
+                requirements.append(requirement)
+        return requirements
+
+    def process_steps(self, test_script):
+        return preprocess_steps(test_script['steps'], dereference=True)
+
+
+def build_dm_spec_model(folder):
     query = f'folder = "{folder}"'
     resp = requests.get(Config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=Config.AUTH)
 
@@ -43,59 +110,13 @@ def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
 
     testcases_resp = resp.json()
     testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
-    testcases_model = []
+    testcases = []
     for testcase_resp in testcases_resp:
-        testcase = {}
-        try:
-            testcase["key"]: str = testcase_resp["key"]
-            testcase["name"]: str = testcase_resp["name"]
-            testcase["full_name"]: str = f"{testcase_resp['key']} - {testcase_resp['name']}"
-            testcase["owner_id"]: str = testcase_resp["owner"]
-            testcase["owner"]: str = owner_for_id(testcase["owner_id"])
-            testcase["component"]: Optional[str] = testcase_resp.get("component")
-
-            # FIXME: Use Arrow
-            testcase["created_on"]: Optional[str] = testcase_resp.get("createdOn")
-            testcase["precondition"]: Optional[str] = testcase_resp.get("precondition")
-            testcase["version"]: str = testcase_resp['majorVersion']
-            testcase["status"]: str = testcase_resp['status']
-            testcase["priority"]: str = testcase_resp['priority']
-            testcase["labels"]: List[str] = testcase_resp.get("labels", list())
-
-            # For easy referencing later
-            testcase["doc_href"]: str = as_anchor(testcase["full_name"])
-
-            # customFields
-            custom_fields = testcase_resp["customFields"]
-            testcase["verification_type"]: Optional[str] = custom_fields.get("Verification Type")
-            testcase["verification_configuration"]: Optional[str] = \
-                custom_fields.get("Verification Configuration")
-            testcase["predecessors"]: Optional[str] = custom_fields.get("Predecessors")
-            testcase["critical_event"]: Optional[str] = custom_fields.get("Critical Event?")
-            testcase["associated_risks"]: Optional[str] = custom_fields.get("Associated Risks")
-            testcase["unit_under_test"]: Optional[str] = custom_fields.get("Unit Under Test")
-            testcase["required_software"]: Optional[str] = custom_fields.get("Required Software")
-            testcase["test_equipment"]: Optional[str] = custom_fields.get("Test Equipment")
-            testcase["test_personnel"]: Optional[str] = custom_fields.get("Test Personnel")
-            testcase["safety_hazards"]: Optional[str] = custom_fields.get("Safety Hazards")
-            testcase["required_ppe"]: Optional[str] = custom_fields.get("Required PPE")
-            testcase["postcondition"]: Optional[str] = custom_fields.get("Postcondition")
-
-        except KeyError as e:
-            from pprint import pprint
-            print("No Key in JSON")
-            print(e)
-            pprint(testcase_resp)
-            raise e
-
-        testcase["requirements"] = process_requirements(testcase_resp,
-                                                        requirements_to_issues,
-                                                        requirements_map)
-        testcase["test_script"] = {}
-        testcase['test_script']['steps'] = process_steps(testcase_resp)
-
-        testcases_model.append(testcase)
-    return testcases_model
+        testcase, errors = TestCase().load(testcase_resp)
+        if errors:
+            raise Exception("Unable to process errors: " + str(errors))
+        testcases.append(testcase)
+    return testcases
 
 
 def process_steps(testcase_resp):
@@ -125,33 +146,6 @@ def preprocess_steps(steps_resp, dereference=True):
     return processed_steps
 
 
-def process_requirements(testcase_resp, requirements_to_issues, requirements_map):
-    requirements = []
-    # Build list of requirements
-    if "issueLinks" in testcase_resp:
-        for issue in testcase_resp["issueLinks"]:
-            requirement_resp = Config.CACHED_REQUIREMENTS.get(issue, None)
-            if not requirement_resp:
-                resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
-                resp.raise_for_status()
-                requirement_resp = resp.json()
-                Config.CACHED_REQUIREMENTS[issue] = requirement_resp
-
-            requirements_to_issues.setdefault(issue, []).append(testcase_resp['key'])
-            jira_url = Config.ISSUE_UI_URL.format(issue=issue)
-            summary = requirement_resp["fields"]["summary"]
-            anchor = f'<a href="{jira_url}">{issue}</a>'
-            # FIXME: Get rid of anchor?
-            requirement = {}
-            requirement["key"]: str = issue
-            requirement["summary"]: str = summary
-            requirement["anchor"]: str = anchor
-            requirement["jira_url"]: str = jira_url
-            requirements_map[issue]: str = requirement
-            requirements.append(requirement)
-    return requirements
-
-
 def _make_step(step_raw):
     def extract_description(description):
         if not description:
@@ -168,10 +162,10 @@ def _make_step(step_raw):
 
     step = {}
     step['index'] = step_raw['index']
-    step['description'] = extract_description(step_raw.get('description', None))
-    step['expected_result'] = step_raw.get('expectedResult', None)
-    step['test_data'] = step_raw.get('testData', None)
+    step['description'] = extract_description(step_raw.get('description'))
+    step['expected_result'] = step_raw.get('expectedResult')
+    step['test_data'] = step_raw.get('testData')
     # Note: Don't dereference any further
     # If testCaseKey is in step, then go ahead and add it....
-    step['test_case_key'] = step_raw.get('testCaseKey', None)
+    step['test_case_key'] = step_raw.get('testCaseKey')
     return step
