@@ -37,3 +37,4 @@ class Config:
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}
     MODE_PREFIX = None
+    TIMEZONE = "US/Pacific"

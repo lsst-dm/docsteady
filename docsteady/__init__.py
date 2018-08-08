@@ -26,6 +26,7 @@ import click
 import pandoc
 from jinja2 import Environment, PackageLoader
 from .spec import build_dm_spec_model
+from .run import build_results_model
 from .config import Config
 from .formatters import *
 
@@ -100,19 +101,31 @@ def generate_spec(format, username, password, folder, file):
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Output file")
-@click.argument('run')
+@click.argument('cycle')
 @click.argument('file', required=False, type=click.File('w'))
-def generate_report(format, username, password, plan, report, file):
+def generate_report(format, username, password, cycle, file):
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
 
     Config.output = TemporaryFile(mode="r+")
+    test_cycle, test_results = build_results_model(cycle)
 
     jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
                             format_dm_requirements=format_dm_requirements,
                             format_dm_testscript=format_dm_testscript)
 
+    env = Environment(loader=PackageLoader('docsteady', 'templates'),
+                      autoescape=None)
+
+    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.j2")
+    text = template.render(testcycle=test_cycle,
+                           testresults=test_results,
+                           testcase_index=Config.CACHED_TESTCASES)
+
+    Config.DOC.html = text.encode("utf-8")
+    out_text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
+    print(out_text, file=file or sys.stdout)
 
 if __name__ == '__main__':
     cli()
