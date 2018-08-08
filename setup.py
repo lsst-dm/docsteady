@@ -6,7 +6,8 @@ requires = [
     'arrow',
     'jinja2',
     'click',
-    'BeautifulSoup4'
+    'BeautifulSoup4',
+    'marshmallow'
 ]
 
 setup(
