@@ -28,12 +28,8 @@ import arrow
 import requests
 from marshmallow import Schema, fields, post_load
 
-from docsteady.utils import owner_for_id, test_case_for_key
+from docsteady.utils import owner_for_id, test_case_for_key, as_arrow
 from .config import Config
-
-
-def as_arrow(datestring):
-    return arrow.get(datestring).to(Config.TIMEZONE)
 
 
 class TestCycleItem(Schema):

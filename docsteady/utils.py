@@ -21,8 +21,13 @@
 """
 Code for Test Specification Model Generation
 """
+import arrow
 from .config import Config
 import requests
+
+
+def as_arrow(datestring):
+    return arrow.get(datestring).to(Config.TIMEZONE)
 
 
 def owner_for_id(owner_id):

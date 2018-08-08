@@ -64,18 +64,16 @@ def generate_spec(format, username, password, folder, file):
                             format_dm_testscript=format_dm_testscript,
                             as_jira_test_anchor=as_jira_test_anchor)
 
-    requirements_to_issues = {}
-    requirements_map = {}
     # Build model
     try:
-        testcases = build_dm_spec_model(folder, requirements_to_issues, requirements_map)
+        testcases = build_dm_spec_model(folder)
     except Exception as e:
         print("Error in building model")
         print(e)
         raise e
 
     # Sort the dictionary
-    requirements_to_testcases = OrderedDict(sorted(requirements_to_issues.items(),
+    requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_ISSUES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
@@ -89,7 +87,7 @@ def generate_spec(format, username, password, folder, file):
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
                            testcases_doc_url_map=testcases_href,
-                           requirements_map=requirements_map)
+                           requirements_map=Config.CACHED_REQUIREMENTS)
 
     Config.DOC.html = text.encode("utf-8")
     out_text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
