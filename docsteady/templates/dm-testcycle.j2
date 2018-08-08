@@ -17,42 +17,61 @@
     </table>
 {% endmacro %}
 
-
+{# Test results are sorted by testcase key #}
 {% for testresult in testresults %}
     {% set testcase = testcase_index[testresult["test_case_key"]] %}
 
-    <h1>{{ testcase.name }}</h1>
-
+    <h1>{{ testcase.key }}({{ testcase.majorVersion }}): {{ testcase.name }}</h1>
+    Test Execution Status: {{ testresult.status.upper() }} <br>
+    {% if testresult.comment %}
+        Comment: {{ testresult.comment }} <br>
+    {% endif %}
     <h2>Execution at: {{ testresult.execution_date.format('YYYY-MM-DD HH:mm:ss') }} </h2>
-
-    <h2>Status: {{ testresult.status }}</h2>
 
     <h2>Environment</h2>
     {{ testresult.environment }}
 
     <h2>Test Script</h2>
-    {% for script_result in testresult.script_results %}
+    <table>
+        <tr>
+            <th>Step</th>
+            <th>Status and Results</th>
+        </tr>
 
-        <h4>{{ script_result.description }}</h4>
-        <strong>Executed on {{ script_result.execution_date.format('YYYY-MM-DD HH:mm:ss') }}</strong>
-        <h4>Status</h4>
-        {{ script_result.status }}
+        {% for script_result in testresult.script_results %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    Status: {{ script_result.status.upper() }}
+                    <hr>
+                    Expected Result: <br>
+                    {{ script_result.expected_result }}
+                    <hr>
+                    Actual Result: <br>
+                    {{ script_result.comment }}
+                </td>
 
-        {% if script_result.expected_result %}
-            <h4>Expected Result</h4>
-            {{ script_result.expected_result }}
-        {% endif %}
+            </tr>
+            {#            <h4>{{ script_result.description }}</h4>#}
+            {#        <strong>Executed on {{ script_result.execution_date.format('YYYY-MM-DD HH:mm:ss') }}</strong>#}
+            {#            <h4>Status</h4>#}
+            {#            {{ script_result.status }}#}
+            {##}
+            {#            {% if script_result.expected_result %}#}
+            {#                <h4>Expected Result</h4>#}
+            {#                {{ script_result.expected_result }}#}
+            {#            {% endif %}#}
+            {##}
+            {#            {% if script_result.test_data %}#}
+            {#                <h4>Test Data</h4>#}
+            {#                {{ script_result.test_data }}#}
+            {#            {% endif %}#}
+            {##}
+            {#            {% if script_result.comment %}#}
+            {#                <h4>Comment</h4>#}
+            {#                {{ script_result.comment }}#}
+            {#            {% endif %}#}
 
-        {% if script_result.test_data %}
-            <h4>Test Data</h4>
-            {{ script_result.test_data }}
-        {% endif %}
-
-        {% if script_result.comment %}
-            <h4>Comment</h4>
-            {{ script_result.comment }}
-        {% endif %}
-
-    {% endfor %}
-
+        {% endfor %}
+    </table>
 {% endfor %}

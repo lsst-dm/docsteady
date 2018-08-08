@@ -110,10 +110,7 @@ def generate_report(format, username, password, cycle, file):
 
     Config.output = TemporaryFile(mode="r+")
     test_cycle, test_results = build_results_model(cycle)
-
-    jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
-                            format_dm_requirements=format_dm_requirements,
-                            format_dm_testscript=format_dm_testscript)
+    sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
 
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
@@ -126,6 +123,7 @@ def generate_report(format, username, password, cycle, file):
     Config.DOC.html = text.encode("utf-8")
     out_text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
     print(out_text, file=file or sys.stdout)
+
 
 if __name__ == '__main__':
     cli()
