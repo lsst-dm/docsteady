@@ -28,6 +28,7 @@ import requests
 import sys
 from .config import Config
 from .formatters import as_anchor, alphanum_key
+from .utils import owner_for_id, test_case_for_key
 import re
 
 
@@ -46,39 +47,39 @@ def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
     for testcase_resp in testcases_resp:
         testcase = {}
         try:
-            testcase["key"] : str = testcase_resp["key"]
-            testcase["name"] : str = testcase_resp["name"]
-            testcase["full_name"] : str = f"{testcase_resp['key']} - {testcase_resp['name']}"
-            testcase["owner_id"] : str = testcase_resp["owner"]
-            testcase["owner"] : str = owner_for_id(testcase["owner_id"])
-            testcase["component"] : Optional[str] = testcase_resp.get("component")
+            testcase["key"]: str = testcase_resp["key"]
+            testcase["name"]: str = testcase_resp["name"]
+            testcase["full_name"]: str = f"{testcase_resp['key']} - {testcase_resp['name']}"
+            testcase["owner_id"]: str = testcase_resp["owner"]
+            testcase["owner"]: str = owner_for_id(testcase["owner_id"])
+            testcase["component"]: Optional[str] = testcase_resp.get("component")
 
             # FIXME: Use Arrow
-            testcase["created_on"] : Optional[str] = testcase_resp.get("createdOn")
-            testcase["precondition"] : Optional[str] = testcase_resp.get("precondition")
-            testcase["version"] : str = testcase_resp['majorVersion']
-            testcase["status"] : str = testcase_resp['status']
-            testcase["priority"] : str = testcase_resp['priority']
-            testcase["labels"] : List[str] = testcase_resp.get("labels", list())
+            testcase["created_on"]: Optional[str] = testcase_resp.get("createdOn")
+            testcase["precondition"]: Optional[str] = testcase_resp.get("precondition")
+            testcase["version"]: str = testcase_resp['majorVersion']
+            testcase["status"]: str = testcase_resp['status']
+            testcase["priority"]: str = testcase_resp['priority']
+            testcase["labels"]: List[str] = testcase_resp.get("labels", list())
 
             # For easy referencing later
-            testcase["doc_href"] : str = as_anchor(testcase["full_name"])
+            testcase["doc_href"]: str = as_anchor(testcase["full_name"])
 
             # customFields
             custom_fields = testcase_resp["customFields"]
-            testcase["verification_type"] : Optional[str] = custom_fields.get("Verification Type")
-            testcase["verification_configuration"] : Optional[str] = \
+            testcase["verification_type"]: Optional[str] = custom_fields.get("Verification Type")
+            testcase["verification_configuration"]: Optional[str] = \
                 custom_fields.get("Verification Configuration")
-            testcase["predecessors"] : Optional[str] = custom_fields.get("Predecessors")
-            testcase["critical_event"] : Optional[str] = custom_fields.get("Critical Event?")
-            testcase["associated_risks"] : Optional[str] = custom_fields.get("Associated Risks")
-            testcase["unit_under_test"] : Optional[str] = custom_fields.get("Unit Under Test")
-            testcase["required_software"] : Optional[str] = custom_fields.get("Required Software")
-            testcase["test_equipment"] : Optional[str] = custom_fields.get("Test Equipment")
-            testcase["test_personnel"] : Optional[str] = custom_fields.get("Test Personnel")
-            testcase["safety_hazards"] : Optional[str] = custom_fields.get("Safety Hazards")
-            testcase["required_ppe"] : Optional[str] = custom_fields.get("Required PPE")
-            testcase["postcondition"] : Optional[str] = custom_fields.get("Postcondition")
+            testcase["predecessors"]: Optional[str] = custom_fields.get("Predecessors")
+            testcase["critical_event"]: Optional[str] = custom_fields.get("Critical Event?")
+            testcase["associated_risks"]: Optional[str] = custom_fields.get("Associated Risks")
+            testcase["unit_under_test"]: Optional[str] = custom_fields.get("Unit Under Test")
+            testcase["required_software"]: Optional[str] = custom_fields.get("Required Software")
+            testcase["test_equipment"]: Optional[str] = custom_fields.get("Test Equipment")
+            testcase["test_personnel"]: Optional[str] = custom_fields.get("Test Personnel")
+            testcase["safety_hazards"]: Optional[str] = custom_fields.get("Safety Hazards")
+            testcase["required_ppe"]: Optional[str] = custom_fields.get("Required PPE")
+            testcase["postcondition"]: Optional[str] = custom_fields.get("Postcondition")
 
         except KeyError as e:
             from pprint import pprint
@@ -97,17 +98,6 @@ def build_dm_spec_model(folder, requirements_to_issues, requirements_map):
     return testcases_model
 
 
-def owner_for_id(owner_id):
-    if owner_id not in Config.CACHED_USERS:
-        resp = requests.get(Config.USER_URL.format(username=owner_id),
-                            auth=Config.AUTH)
-        resp.raise_for_status()
-        user_resp = resp.json()
-        Config.CACHED_USERS[owner_id] = user_resp
-    user_resp = Config.CACHED_USERS[owner_id]
-    return user_resp["displayName"]
-
-
 def process_steps(testcase_resp):
     if 'steps' in testcase_resp.get("testScript"):
         raw_steps = testcase_resp['testScript']['steps']
@@ -124,13 +114,7 @@ def preprocess_steps(steps_resp, dereference=True):
             processed_steps.append(step)
         elif 'testCaseKey' in step_resp and dereference:
             step_key = step_resp['testCaseKey']
-            cached_testcase_resp = Config.CACHED_TESTCASES.get(step_key)
-            if not cached_testcase_resp:
-                resp = requests.get(Config.TESTCASE_URL.format(testcase=step_key),
-                                    auth=Config.AUTH)
-                step_testcase_resp = resp.json()
-                Config.CACHED_TESTCASES[step_key] = step_testcase_resp
-                cached_testcase_resp = step_testcase_resp
+            cached_testcase_resp = test_case_for_key(step_key)
             more_raw_steps = cached_testcase_resp['testScript']['steps']
             made_steps = [_make_step(step) for step in preprocess_steps(more_raw_steps)]
             processed_steps.extend(made_steps)

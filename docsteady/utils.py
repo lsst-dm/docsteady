@@ -17,53 +17,31 @@
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
+
+"""
+Code for Test Specification Model Generation
+"""
 from .config import Config
+import requests
 
 
-def make_summary_table(testcases):
-
-    summary_table = "\\begin{longtable}[]{p{3cm}p{13cm}}\n" \
-                    "\\toprule\n" \
-                    "Test Id & Test Name\\tabularnewline\n" \
-                    "\\midrule\n" \
-                    "\\endhead\n"
-    for testcase in testcases:
-        label = testcase['key'].lower()
-        href = Config.TESTCASE_UI_URL.format(testcase=testcase['key'])
-        summary_table += "\\hyperref[" + label + "]{" + testcase['key'] + "} & \n"
-        summary_table += "\\href{" + href + "}{" + testcase['name'] + "} \\tabularnewline\n"
-
-    summary_table += "\\bottomrule\n\\end{longtable}\n"
-    return summary_table
+def owner_for_id(owner_id):
+    if owner_id not in Config.CACHED_USERS:
+        resp = requests.get(Config.USER_URL.format(username=owner_id),
+                            auth=Config.AUTH)
+        resp.raise_for_status()
+        user_resp = resp.json()
+        Config.CACHED_USERS[owner_id] = user_resp
+    user_resp = Config.CACHED_USERS[owner_id]
+    return user_resp["displayName"]
 
 
-def make_reqs_table(reqissues, reqmap, testcases):
-
-    trace_to_ve = {}
-
-    for tc in testcases:
-        if "issueLinks" in tc:
-            for issue in tc['issueLinks']:
-                trace_to_ve.setdefault(issue, []).append(tc['key'])
-
-    reqstable = "\\scriptsize{\\begin{longtable}[]{p{13cm}p{3cm}}\n" \
-                "\\toprule \n" \
-                "Verification Requirement & Test Cases\\tabularnewline\n" \
-                "\\midrule\n" \
-                "\\endhead"
-
-    for issue in reqissues:
-        href = Config.ISSUE_UI_URL.format(issue=reqmap[issue]['key'])
-        title = issue + " - " + reqmap[issue]['summary']
-        reqstable += " \\href{" + href + "}{ " + title + " } & \n{"
-        for tc in trace_to_ve[issue]:
-            label = tc.lower()
-            reqstable += " \\hyperref[" + label + "]{" + tc + "}"
-
-        reqstable = reqstable.rstrip(',')
-        reqstable += "} \\\\ \n"
-
-    reqstable += "\\tabularnewline\n" \
-                 "\\bottomrule\n" \
-                 "\\end{longtable}}\n"
-    return reqstable
+def test_case_for_key(test_case_key):
+    cached_testcase_resp = Config.CACHED_TESTCASES.get(test_case_key)
+    if not cached_testcase_resp:
+        resp = requests.get(Config.TESTCASE_URL.format(testcase=test_case_key),
+                            auth=Config.AUTH)
+        step_testcase_resp = resp.json()
+        Config.CACHED_TESTCASES[test_case_key] = step_testcase_resp
+        cached_testcase_resp = step_testcase_resp
+    return cached_testcase_resp
