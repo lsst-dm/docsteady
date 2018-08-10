@@ -79,16 +79,18 @@ Test EquipmentTest EquipmentRequired SoftwareRequired Software{% macro as_table(
 
         <h3>Test Procedure</h3>
     {% if "testScript" in testcase %}
+        <table>
+        <tr><td>Step</td><td>Results and Status</td></tr>
         {% for step in testcase['testScript']['steps'] %}
-            <strong>Step {{ loop.index }}</strong>
-            <br/>
-            {{ step['description'] }}
-            <br/>
+            <tr><td rowspan=2>Step {{ loop.index }}</td>
+            <td>{{ step['description'] }}</td></tr>
+            <tr><td></td><td>
             {% if 'testData' in step %}
                 {{ step['testData'] }}
             {% endif %}
-            <br/>
+            </td></tr>
         {% endfor %}
+        </table>
     {% endif %}
 
 {% endfor %}

@@ -136,7 +136,7 @@ def build_dm_model(folder):
         testcase['summary'] = build_summary(testcase)
 
         #print(testcase.keys())
-        print(testcase["customFields"].keys())
+        #print(testcase["customFields"].keys())
 
         #if "Postcondition" in testcase["customFields"]:
         #    #print(testcase["key"])
@@ -188,10 +188,19 @@ def build_dm_model(folder):
                         more_sorted_steps = process_steps(step_testcase['testScript']['steps'])
                         step_testcase['steps'] = more_sorted_steps
                         CACHED_TESTCASES[step_key] = step_testcase
-                    dereferenced_steps.extend(step_testcase['testScript']['steps'])
+                    #dereferenced_steps.extend(step_testcase['testScript']['steps'])
+                    subStep = {"testCaseKey": step['testCaseKey'], "subSteps": more_sorted_steps}
+                    dereferenced_steps.append(subStep)
                 else:
                     dereferenced_steps.append(step)
             testcase['testScript']['steps'] = dereferenced_steps
+            #print(len(testcase['testScript']['steps']))
+            #for step in testcase['testScript']['steps']:
+            #    if 'testCaseKey' in step:
+            #        for subStep in step['subSteps']:
+            #            print(step['testCaseKey'], subStep['id'], subStep['index'])
+            #    else:
+            #        print(step['id'], step['index'])
     return testcases
 
 
