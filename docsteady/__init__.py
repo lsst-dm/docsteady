@@ -130,10 +130,17 @@ def build_dm_model(folder):
     for testcase in testcases:
         # Make a doc_href attribute for the test case
         full_name = f"{testcase['key']} - {testcase['name']}"
-        testcase["doc_href"] = as_anchor(full_name)
+        testcase["doc_href"] = as_anchor(testcase["key"])
 
         # build simple summary
         testcase['summary'] = build_summary(testcase)
+
+        #print(testcase.keys())
+        print(testcase["customFields"].keys())
+
+        #if "Postcondition" in testcase["customFields"]:
+        #    #print(testcase["key"])
+        #    print(testcase["customFields"]["Postcondition"])
 
         # Build list of requirements
         if "issueLinks" in testcase:

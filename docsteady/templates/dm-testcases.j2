@@ -1,4 +1,4 @@
-{% macro as_table(rows, headers=None) %}
+Test EquipmentTest EquipmentRequired SoftwareRequired Software{% macro as_table(rows, headers=None) %}
     <table>
         {% if headers %}
             <tr>
@@ -26,50 +26,59 @@
 
     {{ as_table([testcase['summary'].values()], headers=testcase['summary'].keys()) }}
 
-    {% if testcase.test_items %}
-        <h3>Test Items</h3>
-        {{ testcase.test_items }}
-    {% endif %}
-
-    {% if testcase.more_objectives %}
-        {% for title, objective in testcase.more_objectives.items() %}
-            <h3>{{ title.replace("_", " ").title() }}</h3>
-            {{ objective }}
-        {% endfor %}
-
-    {% endif %}
-
-    {% if testcase.requirements %}
         <h3>Requirements</h3>
+    {% if testcase.requirements %}
         <ul>
             {% for item in testcase.requirements %}
                 <li>{{ item['anchor'] }} - {{ item['summary'] }}</li>
             {% endfor %}
         </ul>
+    {% else %}
+        None.
     {% endif %}
 
-    {% if "Predecessors" in testcase %}
-        <h3>Predecessors</h3>
-        {{ testcase["Predecessors"] }}
+        <h3>Test Items</h3>
+    {% if testcase.objective %}
+        {{ testcase.objective }}
     {% endif %}
 
-    {% if "Required Software" in testcase %}
-        <h3>Required Software</h3>
-        {{ testcase["Required Software"] }}
+    {% if testcase.more_objectives %}
+        {% for title, objective in testcase.more_objectives.items() %}
+            <h4>{{ title.replace("_", " ").title() }}</h4>
+            {{ objective }}
+        {% endfor %}
+
     {% endif %}
 
+        <h3>Intercase Dependencies</h3>
+    {% if "Predecessors" in testcase["customFields"] %}
+        {{ testcase["customFields"]["Predecessors"] }}
+    {% endif %}
+
+        <h3>Environment Needs</h3>
+
+        <h4>Software</h4>
+    {% if "Required Software" in testcase["customFields"] %}
+        {{ testcase["customFields"]["Required Software"] }}
+    {% endif %}
+
+        <h4>Hardware</h4>
+    {% if "Test Equipment" in testcase["customFields"] %}
+        {{ testcase["customFields"]["Test Equipment"] }}
+    {% endif %}
+
+        <h3>Input Specification</h3>
     {% if "precondition" in testcase %}
-        <h3>Precondition</h3>
         {{ testcase["precondition"] }}
     {% endif %}
 
-    {% if "Postcondition" in testcase %}
-        <h3>Precondition</h3>
-        {{ testcase["Postcondition"] }}
+        <h3>Output Specification</h3>
+    {% if "Postcondition" in testcase["customFields"] %}
+        {{ testcase["customFields"]["Postcondition"] }}
     {% endif %}
 
+        <h3>Test Procedure</h3>
     {% if "testScript" in testcase %}
-        <h3>Test Script</h3>
         {% for step in testcase['testScript']['steps'] %}
             <strong>Step {{ loop.index }}</strong>
             <br/>
