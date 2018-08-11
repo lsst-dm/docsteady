@@ -39,3 +39,4 @@ class Config:
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_ISSUES = {}
+    TEMPLATE_LANGUAGE = "latex"

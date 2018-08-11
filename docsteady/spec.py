@@ -21,18 +21,25 @@
 """
 Code for Test Specification Model Generation
 """
-from typing import List, Optional
 
 from bs4 import BeautifulSoup
 import requests
 import sys
 
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, post_load, pre_load
 
 from .config import Config
 from .formatters import as_anchor, alphanum_key
 from .utils import owner_for_id, test_case_for_key, as_arrow
 import re
+
+
+class HtmlPandocField(fields.Field):
+    def _deserialize(self, value, attr, data):
+        if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            Config.DOC.html = value.encode("utf-8")
+            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+        return value
 
 
 class TestCase(Schema):
@@ -42,33 +49,56 @@ class TestCase(Schema):
     owner_id = fields.String(load_from="owner", required=True)
     component = fields.String()
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
-    precondition = fields.String()
+    precondition = HtmlPandocField()
+    objective = HtmlPandocField()
     version = fields.Integer(load_from='majorVersion', required=True)
     status = fields.String(required=True)
     priority = fields.String(required=True)
     labels = fields.List(fields.String(), missing=list())
     test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
-    custom_fields = fields.Dict(load_from="customFields")
     issue_links = fields.List(fields.String(), load_from="issueLinks")
 
+    # custom fields go here and in pre_load
+    verification_type = fields.String()
+    verification_configuration = HtmlPandocField()
+    predecessors = fields.String()
+    critical_event = fields.String()
+    associated_risks = HtmlPandocField()
+    unit_under_test = HtmlPandocField()
+    required_software = HtmlPandocField()
+    test_equipment = HtmlPandocField()
+    test_personnel = HtmlPandocField()
+    safety_hazards = HtmlPandocField()
+    required_ppe = HtmlPandocField()
+    postcondition = HtmlPandocField()
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data):
+        custom_fields = data["customFields"]
+        del data["customFields"]
+
+        def _set_if(target_field, custom_field):
+            if custom_field in custom_fields:
+                data[target_field] = custom_fields[custom_field]
+
+        _set_if("verification_type", "Verification Type")
+        _set_if("verification_configuration", "Verification Configuration")
+        _set_if("predecessors", "Predecessors")
+        _set_if("critical_event", "Critical Event?")
+        _set_if("associated_risks", "Associated Risks")
+        _set_if("unit_under_test", "Unit Under Test")
+        _set_if("required_software", "Required Software")
+        _set_if("test_equipment", "Test Equipment")
+        _set_if("test_personnel", "Test Personnel")
+        _set_if("safety_hazards", "Safety Hazards")
+        _set_if("required_ppe", "Required PPE")
+        _set_if("postcondition", "Postcondition")
+        return data
+
     @post_load
-    def process_custom_fields(self, data):
+    def postprocess(self, data):
         data["full_name"] = f"{data['key']} - {data['name']}"
         data["doc_href"] = as_anchor(data["full_name"])
-        custom_fields = data["custom_fields"]
-        # Note: All are optional
-        data["verification_type"] = custom_fields.get("Verification Type")
-        data["verification_configuration"] = custom_fields.get("Verification Configuration")
-        data["predecessors"] = custom_fields.get("Predecessors")
-        data["critical_event"] = custom_fields.get("Critical Event?")
-        data["associated_risks"] = custom_fields.get("Associated Risks")
-        data["unit_under_test"] = custom_fields.get("Unit Under Test")
-        data["required_software"] = custom_fields.get("Required Software")
-        data["test_equipment"] = custom_fields.get("Test Equipment")
-        data["test_personnel"] = custom_fields.get("Test Personnel")
-        data["safety_hazards"] = custom_fields.get("Safety Hazards")
-        data["required_ppe"] = custom_fields.get("Required PPE")
-        data["postcondition"] = custom_fields.get("Postcondition")
         data['requirements'] = self.process_requirements(data)
         return data
 
@@ -157,14 +187,14 @@ def _make_step(step_raw):
         # matches `[markdown]: #` at the top of description
         if re.match("\[markdown\].*:.*#(.*)", description_txt.splitlines()[0]):
             Config.DOC.gfm = description_txt.encode("utf-8")
-            description = Config.DOC.html.decode("utf-8")
+            description = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
         return description
 
     step = {}
     step['index'] = step_raw['index']
     step['description'] = extract_description(step_raw.get('description'))
-    step['expected_result'] = step_raw.get('expectedResult')
-    step['test_data'] = step_raw.get('testData')
+    step['expected_result'] = extract_description(step_raw.get('expectedResult'))
+    step['test_data'] = extract_description(step_raw.get('testData'))
     # Note: Don't dereference any further
     # If testCaseKey is in step, then go ahead and add it....
     step['test_case_key'] = step_raw.get('testCaseKey')

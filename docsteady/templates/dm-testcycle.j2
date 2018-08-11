@@ -52,26 +52,6 @@
                 </td>
 
             </tr>
-            {#            <h4>{{ script_result.description }}</h4>#}
-            {#        <strong>Executed on {{ script_result.execution_date.format('YYYY-MM-DD HH:mm:ss') }}</strong>#}
-            {#            <h4>Status</h4>#}
-            {#            {{ script_result.status }}#}
-            {##}
-            {#            {% if script_result.expected_result %}#}
-            {#                <h4>Expected Result</h4>#}
-            {#                {{ script_result.expected_result }}#}
-            {#            {% endif %}#}
-            {##}
-            {#            {% if script_result.test_data %}#}
-            {#                <h4>Test Data</h4>#}
-            {#                {{ script_result.test_data }}#}
-            {#            {% endif %}#}
-            {##}
-            {#            {% if script_result.comment %}#}
-            {#                <h4>Comment</h4>#}
-            {#                {{ script_result.comment }}#}
-            {#            {% endif %}#}
-
         {% endfor %}
     </table>
 {% endfor %}
