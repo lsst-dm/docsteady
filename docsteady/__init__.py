@@ -132,7 +132,10 @@ def build_dm_model(folder):
     for testcase in testcases:
         # Make a doc_href attribute for the test case
         full_name = f"{testcase['key']} - {testcase['name']}"
-        testcase["doc_href"] = as_anchor(testcase["key"])
+        testcase["doc_href"] = "\label{"
+        testcase["doc_href"] += as_anchor(testcase["key"])
+        testcase["doc_href"] += "}"
+        testcase["jira_href"] = "\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/"+testcase["key"]+"}"
 
         # build simple summary
         testcase['summary'] = build_summary(testcase)
@@ -225,14 +228,26 @@ def build_dm_model(folder):
                             deref_substeps.append(refstep)    
                         step_testcase['steps'] = deref_substeps
                         CACHED_TESTCASES[step_key] = step_testcase
+                        refanchor = "\hyperref["+as_anchor(step["testCaseKey"])+"]{"+step["testCaseKey"]+"}"
                         #dereferenced_steps.extend(step_testcase['testScript']['steps'])
-                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": deref_substeps}
+                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": deref_substeps, "refanchor":refanchor}
                     else:
-                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": step_testcase}
+                        refanchor = "\hyperref["+as_anchor(step["testCaseKey"])+"]{"+step["testCaseKey"]+"}"
+                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": deref_substeps, "refanchor":refanchor}
                     dereferenced_steps.append(subStep)
                 else:
                     tmp.html = step['description'].encode("utf-8")
                     step['description'] = getattr(tmp, 'latex').decode("utf-8")
+                    if 'testData' in step:
+                        tmp.html = step['testData'].encode("utf-8")
+                        step['testData'] = getattr(tmp, 'latex').decode("utf-8")
+                    else:
+                        step['testData'] = "No data."
+                    if 'expectedResult' in step:
+                        tmp.html = step['expectedResult'].encode("utf-8")
+                        step['expectedResult'] = getattr(tmp, 'latex').decode("utf-8")
+                    else:
+                        step['expectedResult'] = "-"
                     dereferenced_steps.append(step)
             testcase['testScript']['steps'] = dereferenced_steps
             #print(len(testcase['testScript']['steps']))

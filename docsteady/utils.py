@@ -26,11 +26,11 @@ def make_summary_table(testcases):
                     "\\toprule\n" \
                     "Test Id & Test Name\\tabularnewline\n" \
                     "\\midrule\n" \
-                    "\\endhead"
+                    "\\endhead\n"
     for testcase in testcases:
         label = testcase['key'].lower()
         href = Config.TESTCASE_UI_URL.format(testcase=testcase['key'])
-        summary_table += "\\protect\\hyperlink{" + label + "}{" + testcase['key'] + "} & \n"
+        summary_table += "\\hyperref[" + label + "]{" + testcase['key'] + "} & \n"
         summary_table += "\\href{" + href + "}{" + testcase['name'] + "} \\tabularnewline\n"
 
     summary_table += "\\bottomrule\n\\end{longtable}\n"
@@ -58,7 +58,7 @@ def make_reqs_table(reqissues, reqmap, testcases):
         reqstable += " \\href{" + href + "}{ " + title + " } & \n{"
         for tc in trace_to_ve[issue]:
             label = tc.lower()
-            reqstable += " \\protect\\hyperlink{" + label + "}{" + tc + "}"
+            reqstable += " \\hyperref[" + label + "]{" + tc + "}"
 
         reqstable = reqstable.rstrip(',')
         reqstable += "} \\\\ \n"

@@ -1,8 +1,8 @@
 \section{Test Cases}
 {% for testcase in testcases %}
 
-\subsection{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{testcase["key"]}} }{ {{testcase["key"]}} }
-             - {{testcase['name']}} \label{ {{testcase["doc_href"]}} } }
+\subsection{ {{testcase["jira_href"]}}{ {{testcase["key"]}} }
+             - {{testcase['name']}} }{{testcase["doc_href"]}}
 
 
 {% set headers = testcase['summary'].keys() %}
@@ -70,19 +70,26 @@ None.
 \subsubsection{Test Procedure}
 {% if "testScript" in testcase %}
 \begin{longtable}[]{p{1cm}p{2cm}p{13cm}}
-\toprule
-Step & \multicolumn{2}{@{}l}{Expected Result and Input Data} \\ \toprule
+%\toprule
+Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
 \endhead
 {% for step in testcase['testScript']['steps'] %}
 {% if "testCaseKey" in step %}
+{{ loop.index }} & \multicolumn{2}{@{}l}{Steps from {{step["refanchor"]}} to be executed.} 
 {% else %}
-\multirow{2}{*}{ {{ loop.index }} } & Description &
-\begin{minipage}[t]{13cm}{\scriptsize
+\multirow{3}{*}{ {{ loop.index }} } & Description &
+\begin{minipage}[t]{13cm}{\footnotesize
 {{ step['description'] }} 
 } \end{minipage} \\ \cline{2-3}
 & Test Data &
 {% if 'testData' in step %}
-{{ step['testData'] }}
+{{ step['testData'] }} \\ \cline{2-3}
+{% endif %}
+& Expedted Result &
+{% if 'expectedResult' in step %}
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ step['expectedResult'] }}
+} \end{minipage} 
 {% endif %}
 {% endif %}
 \\ \midrule
