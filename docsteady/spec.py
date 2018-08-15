@@ -22,7 +22,6 @@
 Code for Test Specification Model Generation
 """
 
-from bs4 import BeautifulSoup
 import requests
 import sys
 
@@ -30,16 +29,29 @@ from marshmallow import Schema, fields, post_load, pre_load
 
 from .config import Config
 from .formatters import as_anchor, alphanum_key
-from .utils import owner_for_id, test_case_for_key, as_arrow
-import re
+from .utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
+    MarkdownableHtmlPandocField
 
 
-class HtmlPandocField(fields.Field):
-    def _deserialize(self, value, attr, data):
-        if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
-            Config.DOC.html = value.encode("utf-8")
-            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
-        return value
+class RequirementIssue(Schema):
+    key = fields.String(required=True)
+    summary = fields.String()
+    jira_url = fields.String()
+
+    @pre_load(pass_many=False)
+    def extract_fields(self, data):
+        fields = data["fields"]
+        data["summary"] = fields["summary"]
+        data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
+        return data
+
+
+class TestStep(Schema):
+    index = fields.Integer()
+    test_case_key = fields.String(load_from="testCaseKey")
+    description = MarkdownableHtmlPandocField()
+    expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
+    test_data = MarkdownableHtmlPandocField(load_from="testData")
 
 
 class TestCase(Schema):
@@ -58,6 +70,9 @@ class TestCase(Schema):
     test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
     issue_links = fields.List(fields.String(), load_from="issueLinks")
 
+    # Just in case it's necessary - these aren't guaranteed to be correct
+    custom_fields = fields.Dict(load_from="customFields")
+
     # custom fields go here and in pre_load
     verification_type = fields.String()
     verification_configuration = HtmlPandocField()
@@ -72,10 +87,15 @@ class TestCase(Schema):
     required_ppe = HtmlPandocField()
     postcondition = HtmlPandocField()
 
+    # synthesized fields (See @pre_load and @post_load)
+    doc_href = fields.String()
+    requirements = fields.Nested(RequirementIssue, many=True)
+
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
+        # Synthesized fields
+        data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
         custom_fields = data["customFields"]
-        del data["customFields"]
 
         def _set_if(target_field, custom_field):
             if custom_field in custom_fields:
@@ -97,8 +117,7 @@ class TestCase(Schema):
 
     @post_load
     def postprocess(self, data):
-        data["full_name"] = f"{data['key']} - {data['name']}"
-        data["doc_href"] = as_anchor(data["full_name"])
+        # Need to do this here because we need issue_links _and_ key
         data['requirements'] = self.process_requirements(data)
         return data
 
@@ -112,21 +131,14 @@ class TestCase(Schema):
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
                     resp.raise_for_status()
                     requirement_resp = resp.json()
-                    jira_url = Config.ISSUE_UI_URL.format(issue=issue)
-
-                    requirement = {}
-                    requirement["key"]: str = issue
-                    requirement["summary"]: str = requirement_resp["fields"]["summary"]
-                    requirement["jira_url"]: str = jira_url
-
+                    requirement = RequirementIssue().load(requirement_resp)
                     Config.CACHED_REQUIREMENTS[issue] = requirement
-
                 Config.REQUIREMENTS_TO_ISSUES.setdefault(issue, []).append(data['key'])
                 requirements.append(requirement)
         return requirements
 
     def process_steps(self, test_script):
-        return preprocess_steps(test_script['steps'], dereference=True)
+        return TestStep().load(test_script['steps'], many=True)
 
 
 def build_dm_spec_model(folder):
@@ -147,55 +159,3 @@ def build_dm_spec_model(folder):
             raise Exception("Unable to process errors: " + str(errors))
         testcases.append(testcase)
     return testcases
-
-
-def process_steps(testcase_resp):
-    if 'steps' in testcase_resp.get("testScript"):
-        raw_steps = testcase_resp['testScript']['steps']
-        return preprocess_steps(raw_steps, dereference=True)
-    raise KeyError("No Steps found for testcase")
-
-
-def preprocess_steps(steps_resp, dereference=True):
-    sorted_steps = sorted(steps_resp, key=lambda i: i['index'])
-    processed_steps = []
-    for step_resp in sorted_steps:
-        if 'description' in step_resp:
-            step = _make_step(step_resp)
-            processed_steps.append(step)
-        elif 'testCaseKey' in step_resp and dereference:
-            step_key = step_resp['testCaseKey']
-            cached_testcase_resp = test_case_for_key(step_key)
-            more_raw_steps = cached_testcase_resp['testScript']['steps']
-            made_steps = [_make_step(step) for step in preprocess_steps(more_raw_steps)]
-            processed_steps.extend(made_steps)
-        else:
-            from pprint import pprint
-            pprint(step_resp)
-            raise KeyError("Malformed Step")
-    return processed_steps
-
-
-def _make_step(step_raw):
-    def extract_description(description):
-        if not description:
-            return description
-        # If it exists, look for markdown text
-        soup = BeautifulSoup(description, "html.parser")
-        # normalizes HTML, replace breaks with newline, non-breaking spaces
-        description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
-        # matches `[markdown]: #` at the top of description
-        if re.match("\[markdown\].*:.*#(.*)", description_txt.splitlines()[0]):
-            Config.DOC.gfm = description_txt.encode("utf-8")
-            description = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
-        return description
-
-    step = {}
-    step['index'] = step_raw['index']
-    step['description'] = extract_description(step_raw.get('description'))
-    step['expected_result'] = extract_description(step_raw.get('expectedResult'))
-    step['test_data'] = extract_description(step_raw.get('testData'))
-    # Note: Don't dereference any further
-    # If testCaseKey is in step, then go ahead and add it....
-    step['test_case_key'] = step_raw.get('testCaseKey')
-    return step

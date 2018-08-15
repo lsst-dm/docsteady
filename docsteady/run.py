@@ -21,14 +21,11 @@
 """
 Code for Test Report (Run) Model Generation
 """
-# from typing import Any, Optional, List, Dict
-# from collections import OrderedDict
-import arrow
-# from arrow.arrow import Arrow
 import requests
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, pre_load
 
-from docsteady.utils import owner_for_id, test_case_for_key, as_arrow
+from docsteady.utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
+    MarkdownableHtmlPandocField
 from .config import Config
 
 
@@ -57,18 +54,27 @@ class TestCycle(Schema):
     custom_fields = fields.Dict(load_from="customFields")
     items = fields.Nested(TestCycleItem, many=True)
 
-    @post_load
-    def process_custom_fields(self, data):
-        custom_fields = data["custom_fields"]
-        data["software_version"] = custom_fields.get("Software Version / Baseline")
+    # custom fields
+    software_version = HtmlPandocField()
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data):
+        custom_fields = data["customFields"]
+
+        def _set_if(target_field, custom_field):
+            if custom_field in custom_fields:
+                data[target_field] = custom_fields[custom_field]
+
+        _set_if("software_version", "Software Version / Baseline")
+        return data
 
 
 class ScriptResult(Schema):
     index = fields.Integer(load_from='index')
-    expected_result = fields.String(load_from='expectedResult')
+    expected_result = MarkdownableHtmlPandocField(load_from='expectedResult')
     execution_date = fields.String(load_from='executionDate')
-    description = fields.String(load_from='description')
-    comment = fields.String(load_from='comment')
+    description = MarkdownableHtmlPandocField(load_from='description')
+    comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
 
 
@@ -99,35 +105,3 @@ def build_results_model(testrun_id):
     resp.raise_for_status()
     testresults, errors = TestResult().load(resp.json(), many=True)
     return testcycle, testresults
-
-    # for testresult_resp in testresults_resp:
-    #     testresult = {}
-    #     testresult['key']: str = testresult_resp["key"]
-    #     testresult['name']: str = testresult_resp['name']
-    #     testresult['description']: str = testresult_resp["description"]
-    #     testresult['status']: str = testresult_resp['status']
-    #     testresult['execution_time']: int = testresult_resp["execution_time"]
-    #     testresult['execution_date']: Arrow = arrow.get(
-    #         testresult_resp["executionDate"]).to("US/Pacific")
-    #     testresult['created_on']: Arrow = arrow.get(
-    #         testresult_resp["createdOn"]).to("US/Pacific")
-    #     testresult['updated_on']: Arrow = arrow.get(
-    #         testresult_resp["updated_on"]).to("US/Pacific")
-    #     testresult['planned_start_date']: Arrow = arrow.get(
-    #         testresult_resp["plannedStartDate"]).to("US/Pacific")
-    #     testresult["owner_id"]: str = testresult_resp["owner"]
-    #     testresult["owner"]: str = owner_for_id(testresult_resp["owner"])
-    #     testresult["created_by"]: str = owner_for_id(testresult_resp["createdBy"])
-    #
-    #     script_results = []
-    #     for i, sr_item in enumerate(testresult_resp["scriptResults"]):
-    #         script_result = {} # dict(script_result_resp.items())
-    #         script_result["execution_date"]: Arrow = arrow.get(sr_item["executionDate"]).to("US/Pacific")
-    #         # script_date = script_date.format('YYYY-MM-DD HH:mm:ss')
-    #         script_result['expected_result']: Optional[str] = sr_item.get("expectedResult")
-    #         script_result['test_data']: Optional[str] = sr_item.get("testData")
-    #         script_result['comment']: str = sr_item.get("comment")
-    #         script_results.append(script_result)
-    #     testresult_resp["script_results"]: List[Dict[str, Any]] = script_results
-    #     testresults.append(testresult_resp)
-    # return testresults

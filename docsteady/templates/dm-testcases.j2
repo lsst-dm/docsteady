@@ -1,132 +1,94 @@
-{% macro as_table(rows, headers=None) %}
-    <table>
-        {% if headers %}
-            <tr>
-                {% for col in headers %}
-                    <th>{{ col.replace("_", " ").title() }}</th>
-                {% endfor %}
-            </tr>
-        {% endif %}
-        {% for row in rows %}
-            <tr>
-                {% for col in row %}
-                    <td>{{ col }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-{% endmacro %}
-
-
-<h1>Test Cases Summary</h1>
-{{ format_tests_preamble(testcases) }}
-
-<h1>Test Cases</h1>
+\section{Test Cases}
 {% for testcase in testcases %}
-    <h2>
-        <a href="{{ as_jira_test_anchor(testcase["key"]) }}">
-            {{ testcase["key"] }}</a> - {{ testcase['name'] }}</h2>
 
-    {{ as_table([[testcase.version, testcase.status, testcase.priority, testcase.verification_type, testcase.critical_event, testcase.owner]],
-                headers=['version', 'status', 'priority', 'verification_type', 'critical_event', 'owner']) }}
+\subsection{{ '{' }}{{ testcase.jira_href }}{ {{ testcase.key }} } - {{ testcase.name }}{{ '}' }}{{ testcase.doc_href }}
 
-    {% if testcase.test_items %}
-        <h3>Test Items</h3>
-        {{ testcase.test_items }}
-    {% endif %}
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Critical Event & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} & {{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
 
-{#    {% if testcase.more_objectives %}#}
-{#        {% for title, objective in testcase.more_objectives.items() %}#}
-{#            <h3>{{ title.replace("_", " ").title() }}</h3>#}
-{#            {{ objective }}#}
-{#        {% endfor %}#}
-{#    {% endif %}#}
-
-    {% if testcase.requirements %}
-        <h3>Requirements</h3>
-        <ul>
-            {% for requirement in testcase.requirements %}
-                <li>
-                    <a href="{{ requirement.jira_url }}">{{ requirement.issue }}</a> - {{ requirement.summary }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {% if testcase.predecessors %}
-        <h3>Predecessors</h3>
-        {{ testcase.predecessors }}
-    {% endif %}
-
-    {% if testcase.required_software %}
-        <h3>Required Software</h3>
-        {{ testcase.required_software }}
-    {% endif %}
-
-    {% if testcase.precondition %}
-        <h3>Precondition</h3>
-        {{ testcase.precondition }}
-    {% endif %}
-
-    {% if testcase.postcondition %}
-        <h3>Precondition</h3>
-        {{ testcase.postcondition }}
-    {% endif %}
-
-    {% if testcase.test_script %}
-        <h3>Test Script</h3>
-        <table>
-            <tr>
-                <th>Step</th>
-                <th>Description</th>
-            </tr>
-            {% for step in testcase.test_script.steps %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-
-                    <td>
-                        <strong>Description</strong><br>
-                        {{ step.description }}
-                        {% if step.expected_result %}
-                            <hr>
-                            <strong>Expected Result</strong><br>
-                            {{ step.expected_result or "" }}
-                            {{ step.description }}
-                        {% endif %}
-                        {% if step.test_data %}
-                            <hr>
-                            <strong>Test Data</strong><br>
-                            {{ step.test_data }}
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
-
-{% endfor %}
-
-{% if requirements_to_testcases %}
-    <h1>Requirements Traceability</h1>
-    <table>
-        <tr>
-            <th>Requirements</th>
-            <th>Test Cases</th>
-        </tr>
-        {% for requirement_key, testcases in requirements_to_testcases.items() %}
-            {% set requirement = requirements_map[requirement_key] %}
-            <tr>
-                <td>
-                    <a href="{{ requirement.jira_url }}">
-                        {{ requirement_key }}</a>
-                </td>
-                <td>
-                    {% for testcase in testcases %}
-                        <a href="#{{ testcases_doc_url_map[testcase] }}">{{ testcase }}
-                        </a>{% if not loop.last %},{% endif %}
-                    {% endfor %}
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-
+\subsubsection{Requirements}
+{% if testcase.requirements %}
+    \begin{itemize}
+    {% for item in testcase.requirements %}
+        \item \href{https://jira.lsstcorp.org/browse/{{ item.key }} }{ {{ item.key }} } - {{item.summary }}
+    {% endfor %}
+    \end{itemize}
+{% else %}
+    None.
 {% endif %}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+    {{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+\subsubsection{Intercase Dependencies}
+{% if testcase.predecessors %}
+{{ testcase.predecessors }}
+{% endif %}
+
+\subsubsection{Environment Needs}
+
+\paragraph{Software}
+{% if testcase.required_software %}
+{{ testcase.required_software }}
+{% endif %}
+
+\paragraph{Hardware}
+{% if testcase.test_equipment %}
+{{ testcase.test_equipment }}
+{% endif %}
+
+\subsubsection{Input Specification}
+{% if testcase.precondition %}
+{{ testcase.precondition }}
+{% endif %}
+
+\subsubsection{Output Specification}
+{% if testcase.postcondition %}
+{{ testcase.postcondition }}
+{% endif %}
+
+\subsubsection{Test Procedure}
+{% if testcase.test_script %}
+    \begin{longtable}[]{p{1cm}p{2cm}p{13cm}}
+    %\toprule
+    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+    \endhead
+    {% for step in testcase.test_script %}
+        {% if step.test_case_key %}
+            {{ loop.index }} & \multicolumn{2}{@{}l}{Steps from
+            \hyperref[{{ step.test_case_key.lower() }}{{ '{' }}{{ step.test_case_key }}) to be executed.}
+        {% else %}
+            \multirow{3}{*}{ {{ loop.index }} } & Description &
+            \begin{minipage}[t]{13cm}{\footnotesize
+            {{ step.description }}
+            } \end{minipage} \\ \cline{2-3}
+            & Test Data &
+            {% if step.test_data %}
+                {{ step.test_data }} \\ \cline{2-3}
+            {% endif %}
+            & Expected Result &
+            {% if step.expected_result %}
+                \begin{minipage}[t]{13cm}{\footnotesize
+                {{ step.expected_result }}
+                } \end{minipage}
+            {% endif %}
+        {% endif %}
+        \\ \midrule
+    {% endfor %}
+    \end{longtable}
+{% endif %}
+{% endfor %}

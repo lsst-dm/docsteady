@@ -21,9 +21,39 @@
 """
 Code for Test Specification Model Generation
 """
+import re
+
 import arrow
+from bs4 import BeautifulSoup
+from marshmallow import fields
+
 from .config import Config
 import requests
+
+
+class HtmlPandocField(fields.String):
+    def _deserialize(self, value, attr, data):
+        if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            Config.DOC.html = value.encode("utf-8")
+            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+        return value
+
+
+class MarkdownableHtmlPandocField(fields.String):
+    def _deserialize(self, value, attr, data):
+        if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            # If it exists, look for markdown text
+            soup = BeautifulSoup(value, "html.parser")
+            # normalizes HTML, replace breaks with newline, non-breaking spaces
+            description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
+            # matches `[markdown]: #` at the top of description
+            if re.match("\[markdown\].*:.*#(.*)", description_txt.splitlines()[0]):
+                # Assume github-flavored markdown
+                Config.DOC.gfm = description_txt.encode("utf-8")
+            else:
+                Config.DOC.html = value.encode("utf-8")
+            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+        return value
 
 
 def as_arrow(datestring):
