@@ -89,12 +89,13 @@ def generate_spec(format, username, password, folder, file):
                            testcases_doc_url_map=testcases_href,
                            requirements_map=Config.CACHED_REQUIREMENTS)
 
-    Config.DOC.html = text.encode("utf-8")
-    out_text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
-    print(out_text, file=file or sys.stdout)
+    if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
+        setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
+        text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
+    print(text, file=file or sys.stdout)
 
 
-@cli.command("generate-run")
+@cli.command("generate-cycle")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
 @click.option('--password', prompt="Jira Password", hide_input=True,
@@ -118,9 +119,10 @@ def generate_report(format, username, password, cycle, file):
                            testresults=test_results,
                            testcase_index=Config.CACHED_TESTCASES)
 
-    Config.DOC.html = text.encode("utf-8")
-    out_text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
-    print(out_text, file=file or sys.stdout)
+    if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
+        setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
+        text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
+    print(text, file=file or sys.stdout)
 
 
 if __name__ == '__main__':
