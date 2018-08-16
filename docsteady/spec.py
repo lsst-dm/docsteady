@@ -29,7 +29,7 @@ from marshmallow import Schema, fields, post_load, pre_load
 
 from .config import Config
 from .formatters import as_anchor, alphanum_key
-from .utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
+from .utils import owner_for_id, as_arrow, HtmlPandocField, \
     MarkdownableHtmlPandocField
 
 
@@ -40,8 +40,8 @@ class RequirementIssue(Schema):
 
     @pre_load(pass_many=False)
     def extract_fields(self, data):
-        fields = data["fields"]
-        data["summary"] = fields["summary"]
+        data_fields = data["fields"]
+        data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
         return data
 
@@ -59,6 +59,7 @@ class TestCase(Schema):
     name = fields.String(required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner", required=True)
+    jira_url = fields.String()
     component = fields.String()
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
     precondition = HtmlPandocField()
@@ -76,7 +77,7 @@ class TestCase(Schema):
     # custom fields go here and in pre_load
     verification_type = fields.String()
     verification_configuration = HtmlPandocField()
-    predecessors = fields.String()
+    predecessors = HtmlPandocField()
     critical_event = fields.String()
     associated_risks = HtmlPandocField()
     unit_under_test = HtmlPandocField()
@@ -94,6 +95,7 @@ class TestCase(Schema):
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
         # Synthesized fields
+        data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data['key'])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
         custom_fields = data["customFields"]
 
@@ -131,14 +133,19 @@ class TestCase(Schema):
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
                     resp.raise_for_status()
                     requirement_resp = resp.json()
-                    requirement = RequirementIssue().load(requirement_resp)
+                    requirement, errors = RequirementIssue().load(requirement_resp)
+                    if errors:
+                        raise Exception("Unable to Process Requirement: " + str(errors))
                     Config.CACHED_REQUIREMENTS[issue] = requirement
                 Config.REQUIREMENTS_TO_ISSUES.setdefault(issue, []).append(data['key'])
                 requirements.append(requirement)
         return requirements
 
     def process_steps(self, test_script):
-        return TestStep().load(test_script['steps'], many=True)
+        teststeps, errors = TestStep().load(test_script['steps'], many=True)
+        if errors:
+            raise Exception("Unable to process Test Steps: " + str(errors))
+        return teststeps
 
 
 def build_dm_spec_model(folder):
