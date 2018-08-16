@@ -1,7 +1,15 @@
+{% macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro %}
+
+{% macro href(url, text) -%}
+\href{{ curlies(url) }}{{ curlies(text) }}
+{%- endmacro %}
+
 \section{Test Cases}
 {% for testcase in testcases %}
 
-\subsection{{ '{' }}{{ testcase.jira_href }}{ {{ testcase.key }} } - {{ testcase.name }}{{ '}' }}{{ testcase.doc_href }}
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }} - {{ testcase.name }}{{ "}" }}\label{{ curlies(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -15,7 +23,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 {% if testcase.requirements %}
     \begin{itemize}
     {% for item in testcase.requirements %}
-        \item \href{https://jira.lsstcorp.org/browse/{{ item.key }} }{ {{ item.key }} } - {{item.summary }}
+        \item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
     {% endfor %}
     \end{itemize}
 {% else %}
@@ -70,7 +78,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
     {% for step in testcase.test_script %}
         {% if step.test_case_key %}
             {{ loop.index }} & \multicolumn{2}{@{}l}{Steps from
-            \hyperref[{{ step.test_case_key.lower() }}{{ '{' }}{{ step.test_case_key }}) to be executed.}
+            \hyperref[{{ step.test_case_key.lower() }}]{{ curlies(step.test_case_key) }}) to be executed.}
         {% else %}
             \multirow{3}{*}{ {{ loop.index }} } & Description &
             \begin{minipage}[t]{13cm}{\footnotesize
