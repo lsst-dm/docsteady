@@ -1,0 +1,101 @@
+\section{Test Cases}
+{% for testcase in testcases %}
+
+\subsection{ {{testcase["jira_href"]}}{ {{testcase["key"]}} }
+             - {{testcase['name']}} }{{testcase["doc_href"]}}
+
+
+{% set headers = testcase['summary'].keys() %}
+{% set row = testcase['summary'].values() %}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Critical Event & Owner
+\\\midrule
+{{ testcase["summary"].version }} & {{ testcase.status }} & {{ testcase.priority }} & {{ testcase["customFields"]["Verification Type"] }} & {{ testcase["customFields"]["Critical Event?"] }} & {{ testcase["summary"].owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Requirements}
+{% if testcase.requirements %}
+\begin{itemize}
+{% for item in testcase.requirements %}
+\item \href{https://jira.lsstcorp.org/browse/{{item['key']}} }{ {{item['key']}} } - {{item['summary']}}
+{% endfor %}
+\end{itemize}
+{% else %}
+None.
+{% endif %}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+
+{% endif %}
+
+\subsubsection{Intercase Dependencies}
+{% if "Predecessors" in testcase["customFields"] %}
+{{ testcase["customFields"]["Predecessors"] }}
+{% endif %}
+
+\subsubsection{Environment Needs}
+
+\paragraph{Software}
+{% if "Required Software" in testcase["customFields"] %}
+{{ testcase["customFields"]["Required Software"] }}
+{% endif %}
+
+\paragraph{Hardware}
+{% if "Test Equipment" in testcase["customFields"] %}
+{{ testcase["customFields"]["Test Equipment"] }}
+{% endif %}
+
+\subsubsection{Input Specification}
+{% if "precondition" in testcase %}
+{{ testcase["precondition"] }}
+{% endif %}
+
+\subsubsection{Output Specification}
+{% if "Postcondition" in testcase["customFields"] %}
+{{ testcase["customFields"]["Postcondition"] }}
+{% endif %}
+
+\subsubsection{Test Procedure}
+{% if "testScript" in testcase %}
+\begin{longtable}[]{p{1cm}p{2cm}p{13cm}}
+%\toprule
+Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+\endhead
+{% for step in testcase['testScript']['steps'] %}
+{% if "testCaseKey" in step %}
+{{ loop.index }} & \multicolumn{2}{@{}l}{Steps from {{step["refanchor"]}} to be executed.} 
+{% else %}
+\multirow{3}{*}{ {{ loop.index }} } & Description &
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ step['description'] }} 
+} \end{minipage} \\ \cline{2-3}
+& Test Data &
+{% if 'testData' in step %}
+{{ step['testData'] }} \\ \cline{2-3}
+{% endif %}
+& Expedted Result &
+{% if 'expectedResult' in step %}
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ step['expectedResult'] }}
+} \end{minipage} 
+{% endif %}
+{% endif %}
+\\ \midrule
+{% endfor %}
+\end{longtable}
+{% endif %}
+
+{% endfor %}
+

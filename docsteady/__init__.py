@@ -57,7 +57,7 @@ def cli(output, username, password, folder, file):
     output.
     """
     global requirements_to_issues
-    Config.PANDOC_TYPE = "html"
+    Config.PANDOC_TYPE = "latex"
     Config.AUTH = (username, password)
 
     Config.output = TemporaryFile(mode="r+")
@@ -85,15 +85,16 @@ def cli(output, username, password, folder, file):
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
-    template = env.get_template("dm-testcases.j2")
+    template = env.get_template("dm-testcases-tex.j2")
 
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
                            testcases_doc_url_map=testcases_href,
                            requirements_map=requirements_map)
 
-    doc.html = text.encode("utf-8")
-    out_text = getattr(doc, output).decode("utf-8")
+    out_text = text#.encode("utf-8")
+    #doc.html = text.encode("utf-8")
+    #out_text = getattr(doc, output).decode("utf-8")
     print(out_text, file=file or sys.stdout)
 
     # latex files output
@@ -117,6 +118,7 @@ def cli(output, username, password, folder, file):
 
 
 def build_dm_model(folder):
+    tmp = pandoc.Document()
     query = f'folder = "{folder}"'
     resp = requests.get(Config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=Config.AUTH)
 
@@ -130,7 +132,10 @@ def build_dm_model(folder):
     for testcase in testcases:
         # Make a doc_href attribute for the test case
         full_name = f"{testcase['key']} - {testcase['name']}"
-        testcase["doc_href"] = as_anchor(full_name)
+        testcase["doc_href"] = "\label{"
+        testcase["doc_href"] += as_anchor(testcase["key"])
+        testcase["doc_href"] += "}"
+        testcase["jira_href"] = "\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/"+testcase["key"]+"}"
 
         # build simple summary
         testcase['summary'] = build_summary(testcase)
@@ -153,7 +158,7 @@ def build_dm_model(folder):
                 requirements_map[issue] = requirement
                 testcase["requirements"].append(dict(key=issue, summary=summary, anchor=anchor))
 
-        # Extract bolded items from objective
+        # Extract bolded items from objective and convert html to tex
         if "objective" in testcase:
             more_info = extract_strong(testcase["objective"], "test_items")
             if "test_items" in more_info:
@@ -163,7 +168,44 @@ def build_dm_model(folder):
                     split_text = split_text[1:]
                 testcase["test_items"] = "\n".join(split_text)
                 del more_info["test_items"]
-            testcase["more_objectives"] = more_info
+            testcase["more objectives"] = more_info
+            tmp.html = testcase["objective"].encode("utf-8")
+            testcase["objective"] = getattr(tmp, 'latex').decode("utf-8") 
+
+        # Extract bolded items from precondition and convert html to tex
+        if "precondition" in testcase:
+            more_info = extract_strong(testcase["precondition"], "")
+            testcase["more precondition"] = more_info
+            tmp.html = testcase["precondition"].encode("utf-8")
+            testcase["precondition"] = getattr(tmp, 'latex').decode("utf-8")
+
+        # Extract bolded items from Required Software and convert html to tex
+        if "Required Software" in testcase["customFields"]:
+            more_info = extract_strong(testcase["customFields"]["Required Software"], "")
+            testcase["customFields"]["more Required Software"] = more_info
+            tmp.html = testcase["customFields"]["Required Software"].encode("utf-8")
+            testcase["customFields"]["Required Software"] = getattr(tmp, 'latex').decode("utf-8")
+
+        # Extract bolded items from Test Equipment and convert html to tex
+        if "Test Equipment" in testcase["customFields"]:
+            more_info = extract_strong(testcase["customFields"]["Test Equipment"], "")
+            testcase["customFields"]["more Test Equipment"] = more_info
+            tmp.html = testcase["customFields"]["Test Equipment"].encode("utf-8")
+            testcase["customFields"]["Test Equipment"] = getattr(tmp, 'latex').decode("utf-8")
+
+        # Extract bolded items from Postcondition and convert html to tex
+        if "Postcondition" in testcase["customFields"]:
+            more_info = extract_strong(testcase["customFields"]["Postcondition"], "")
+            testcase["customFields"]["more Postcondition"] = more_info
+            tmp.html = testcase["customFields"]["Postcondition"].encode("utf-8")
+            testcase["customFields"]["Postcondition"] = getattr(tmp, 'latex').decode("utf-8")
+
+        # Extract bolded items from Predecessors and convert html to tex
+        if "Predecessors" in testcase["customFields"]:
+            more_info = extract_strong(testcase["customFields"]["Predecessors"], "")
+            testcase["customFields"]["more Predecessors"] = more_info
+            tmp.html = testcase["customFields"]["Predecessors"].encode("utf-8")
+            testcase["customFields"]["Predecessors"] = getattr(tmp, 'latex').decode("utf-8")
 
         # order and dereference steps (non-recursive)
         if 'steps' in testcase.get("testScript"):
@@ -179,16 +221,47 @@ def build_dm_model(folder):
                                             auth=Config.AUTH)
                         step_testcase = resp.json()
                         more_sorted_steps = process_steps(step_testcase['testScript']['steps'])
-                        step_testcase['steps'] = more_sorted_steps
+                        deref_substeps = []
+                        for refstep in more_sorted_steps:
+                            tmp.html = refstep['description'].encode("utf-8")
+                            refstep['description'] = getattr(tmp, 'latex').decode("utf-8")
+                            deref_substeps.append(refstep)    
+                        step_testcase['steps'] = deref_substeps
                         CACHED_TESTCASES[step_key] = step_testcase
-                    dereferenced_steps.extend(step_testcase['testScript']['steps'])
+                        refanchor = "\hyperref["+as_anchor(step["testCaseKey"])+"]{"+step["testCaseKey"]+"}"
+                        #dereferenced_steps.extend(step_testcase['testScript']['steps'])
+                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": deref_substeps, "refanchor":refanchor}
+                    else:
+                        refanchor = "\hyperref["+as_anchor(step["testCaseKey"])+"]{"+step["testCaseKey"]+"}"
+                        subStep = {"testCaseKey": step['testCaseKey'], "subSteps": deref_substeps, "refanchor":refanchor}
+                    dereferenced_steps.append(subStep)
                 else:
+                    tmp.html = step['description'].encode("utf-8")
+                    step['description'] = getattr(tmp, 'latex').decode("utf-8")
+                    if 'testData' in step:
+                        tmp.html = step['testData'].encode("utf-8")
+                        step['testData'] = getattr(tmp, 'latex').decode("utf-8")
+                    else:
+                        step['testData'] = "No data."
+                    if 'expectedResult' in step:
+                        tmp.html = step['expectedResult'].encode("utf-8")
+                        step['expectedResult'] = getattr(tmp, 'latex').decode("utf-8")
+                    else:
+                        step['expectedResult'] = "-"
                     dereferenced_steps.append(step)
             testcase['testScript']['steps'] = dereferenced_steps
+            #print(len(testcase['testScript']['steps']))
+            #for step in testcase['testScript']['steps']:
+            #    if 'testCaseKey' in step:
+            #        for subStep in step['subSteps']:
+            #            print(step['testCaseKey'], subStep['id'], subStep['index'])
+            #    else:
+            #        print(step['id'], step['index'])
     return testcases
 
 
 def extract_strong(content, first_text_name=None):
+    tmp = pandoc.Document()
     """
     Extract "strong" elements and attach their siblings up to the
     next "strong" element.
@@ -210,6 +283,8 @@ def extract_strong(content, first_text_name=None):
             element_neighbor_text = ""
             continue
         element_neighbor_text += str(elem) + "\n"
+    tmp.html = element_neighbor_text.encode("utf-8")
+    element_neighbor_text = getattr(tmp, 'latex').decode("utf-8")
     headers[element_name] = element_neighbor_text
     return headers
 
