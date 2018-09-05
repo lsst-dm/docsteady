@@ -35,8 +35,8 @@ class Config:
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
     CACHED_USERS = {}
-    CACHED_REQUIREMENTS = {}
+    CACHED_REQUIREMENTS = {}  # type : Dict[str, RequirementIssue]
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"
-    REQUIREMENTS_TO_ISSUES = {}
+    REQUIREMENTS_TO_TESTCASES = {}
     TEMPLATE_LANGUAGE = "latex"

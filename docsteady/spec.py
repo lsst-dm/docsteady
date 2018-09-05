@@ -137,7 +137,7 @@ class TestCase(Schema):
                     if errors:
                         raise Exception("Unable to Process Requirement: " + str(errors))
                     Config.CACHED_REQUIREMENTS[issue] = requirement
-                Config.REQUIREMENTS_TO_ISSUES.setdefault(issue, []).append(data['key'])
+                Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue, []).append(data['key'])
                 requirements.append(requirement)
         return requirements
 
