@@ -17,7 +17,7 @@
 {#\\ \midrule#}
 {#\endhead#}
 {#{% for testcase in testcases %}#}
-{#    \protect\hyperlink{{ curlies(testcase.key.lower()) }}{{ curlies(testcase.key) }} &#}
+{#    \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &#}
 {#    {{ href(testcase.jira_url, testcase.name) }}#}
 {#    \tabularnewline#}
 {#{% endfor %}#}
@@ -135,7 +135,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 {#} &#}
 {#{#}
 {#    {%- for tc in testcases_list  -%}#}
-{#        \protect\hyperlink{{  curlies(tc.lower()) }}{{ curlies(tc) }}#}
+{#        \hyperref[{{ tc.lower()) }}]{{ curlies(tc) }}#}
 {#    {%- endfor %}#}
 {#} \\#}
 {##}
