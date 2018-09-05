@@ -1,22 +1,41 @@
-{% macro curlies(item) -%}
+{%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
-{%- endmacro %}
+{%- endmacro -%}
 
-{% macro href(url, text) -%}
-\href{{ curlies(url) }}{{ curlies(text) }}
-{%- endmacro %}
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+
+{#\begin{longtable}[]{p{3cm}p{13cm}}#}
+{#\toprule#}
+{#Test Id & Test Name\tabularnewline#}
+{#\\ \midrule#}
+{#\endhead#}
+{#{% for testcase in testcases %}#}
+{#    \protect\hyperlink{{ curlies(testcase.key.lower()) }}{{ curlies(testcase.key) }} &#}
+{#    {{ href(testcase.jira_url, testcase.name) }}#}
+{#    \tabularnewline#}
+{#{% endfor %}#}
+{#\bottomrule#}
+{#\end{longtable}#}
 
 \section{Test Cases}
 {% for testcase in testcases %}
 
-\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }} - {{ testcase.name }}{{ "}" }}\label{{ curlies(testcase.key.lower()) }}
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
 Version & Status & Priority & Verification Type & Critical Event & Owner
-\\\midrule
+\\ \midrule
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} & {{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
-\\\bottomrule
+\\ \bottomrule
 \end{longtable}
 
 \subsubsection{Requirements}
@@ -32,7 +51,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 
 \subsubsection{Test Items}
 {% if testcase.objective %}
-    {{ testcase.objective }}
+{{ testcase.objective }}
 {% endif %}
 
 {% if testcase.more_objectives %}
@@ -87,6 +106,8 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
             & Test Data &
             {% if step.test_data %}
                 {{ step.test_data }} \\ \cline{2-3}
+            {% else %}
+                No data. \\ \cline{2-3}
             {% endif %}
             & Expected Result &
             {% if step.expected_result %}
@@ -100,3 +121,26 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
     \end{longtable}
 {% endif %}
 {% endfor %}
+
+{#\scriptsize{#}
+{#\begin{longtable}[]{p{13cm}p{3cm}}#}
+{#\toprule#}
+{#Verification Requirement & Test Cases\tabularnewline#}
+{#\midrule#}
+{#\endhead#}
+{##}
+{#{% for requirement in requirements_map.values()  %}#}
+{#    {%- set testcases_list = requirements_to_testcases[requirement.key] %}#}
+{#    \{{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}#}
+{#} &#}
+{#{#}
+{#    {%- for tc in testcases_list  -%}#}
+{#        \protect\hyperlink{{  curlies(tc.lower()) }}{{ curlies(tc) }}#}
+{#    {%- endfor %}#}
+{#} \\#}
+{##}
+{#{% endfor %}#}
+{#\tabularnewline#}
+{#\bottomrule#}
+{#\end{longtable}#}
+{#\} % end scriptsize#}
