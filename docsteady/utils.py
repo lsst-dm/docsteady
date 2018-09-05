@@ -32,6 +32,10 @@ import requests
 
 
 class HtmlPandocField(fields.String):
+    """
+    A field that originates as HTML but is normalized to a template
+    language.
+    """
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             Config.DOC.html = value.encode("utf-8")
@@ -40,6 +44,11 @@ class HtmlPandocField(fields.String):
 
 
 class MarkdownableHtmlPandocField(fields.String):
+    """
+    An field that originates as HTML, but is intepreted as plain
+    text (bold, italics, and font styles are ignored) if the field
+    has a markdown comment in the beginning, of the form `[markdown]: #`
+    """
     def _deserialize(self, value, attr, data):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
