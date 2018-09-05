@@ -73,12 +73,13 @@ def generate_spec(format, username, password, folder, file):
         raise e
 
     # Sort the dictionary
-    requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_ISSUES.items(),
+    requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
+                      lstrip_blocks=True,
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
@@ -87,7 +88,8 @@ def generate_spec(format, username, password, folder, file):
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
                            testcases_doc_url_map=testcases_href,
-                           requirements_map=Config.CACHED_REQUIREMENTS)
+                           requirements_map=Config.CACHED_REQUIREMENTS,
+                           testcases_map={tc["key"]: tc for tc in testcases})
 
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
