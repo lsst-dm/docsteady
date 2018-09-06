@@ -44,6 +44,19 @@ class HtmlPandocField(fields.String):
         return value
 
 
+class SubsectionableHtmlPandocField(fields.String):
+    """
+    A field that originates as HTML. We process the HTML and extract
+    find subsections, extracting them so we can transform them into
+    subsections.
+    """
+    def _deserialize(self, value, attr, data):
+        if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            Config.DOC.html = value.encode("utf-8")
+            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+        return value
+
+
 class MarkdownableHtmlPandocField(fields.String):
     """
     An field that originates as HTML, but is intepreted as plain
@@ -99,3 +112,32 @@ def test_case_for_key(test_case_key):
         Config.CACHED_TESTCASES[test_case_key] = testcase
         cached_testcase_resp = testcase
     return cached_testcase_resp
+
+
+def extract_strong(content, first_text_name=None):
+    tmp = pandoc.Document()
+    """
+    Extract "strong" elements and attach their siblings up to the
+    next "strong" element.
+    :param content: HTML to parse
+    :return: A dict of those elements with the sibling HTML as the values
+    """
+    soup = BeautifulSoup(content, "html.parser")
+    headers = OrderedDict()
+    element_name = first_text_name
+    element_neighbor_text = ""
+    for elem in soup.children:
+        if "strong" == elem.name:
+            if element_name:
+                headers[element_name] = element_neighbor_text
+            element_name = elem.text.lower().replace(" ", "_")
+            # translate requirements to "deprecated requirements" style
+            if "requirements" in element_name:
+                element_name = "requirements"
+            element_neighbor_text = ""
+            continue
+        element_neighbor_text += str(elem) + "\n"
+    tmp.html = element_neighbor_text.encode("utf-8")
+    element_neighbor_text = getattr(tmp, 'latex').decode("utf-8")
+    headers[element_name] = element_neighbor_text
+    return headers
