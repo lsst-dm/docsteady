@@ -3,7 +3,7 @@
 {%- endmacro -%}
 
 {%- macro href(url, text) -%}
-\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{curlies(text) }}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
 
 {%- macro label(text) -%}
@@ -11,18 +11,23 @@
 {%- endmacro -%}
 
 
-{#\begin{longtable}[]{p{3cm}p{13cm}}#}
-{#\toprule#}
-{#Test Id & Test Name\tabularnewline#}
-{#\\ \midrule#}
-{#\endhead#}
-{#{% for testcase in testcases %}#}
-{#    \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &#}
-{#    {{ href(testcase.jira_url, testcase.name) }}#}
-{#    \tabularnewline#}
-{#{% endfor %}#}
-{#\bottomrule#}
-{#\end{longtable}#}
+\section{Test Cases Summary}\label{test-cases-summary}
+
+Follows the list of test cases documented in this specification.
+
+\begin{longtable}[]{p{3cm}p{13cm}}
+\toprule
+Test Id & Test Name\tabularnewline
+\midrule
+\endhead
+{% for testcase in testcases %}
+    \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &
+    {{ href(testcase.jira_url, testcase.name) }} \tabularnewline
+{% endfor %}
+\bottomrule
+\end{longtable}
+
+\newpage
 
 \section{Test Cases}
 {% for testcase in testcases %}
@@ -33,18 +38,18 @@
 \begin{longtable}[]{llllll}
 \toprule
 Version & Status & Priority & Verification Type & Critical Event & Owner
-\\ \midrule
+\\\midrule
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} & {{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
-\\ \bottomrule
+\\\bottomrule
 \end{longtable}
 
 \subsubsection{Requirements}
 {% if testcase.requirements %}
-    \begin{itemize}
-    {% for item in testcase.requirements %}
-        \item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
-    {% endfor %}
-    \end{itemize}
+\begin{itemize}
+{% for item in testcase.requirements %}
+\item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
+{% endfor %}
+\end{itemize}
 {% else %}
     None.
 {% endif %}
@@ -90,29 +95,66 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 
 \subsubsection{Test Procedure}
 {% if testcase.test_script %}
-    \begin{longtable}[]{p{1cm}p{2cm}p{13cm}}
+    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
     %\toprule
     Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
     \endhead
     {% for step in testcase.test_script %}
+        {% set rowloop = loop %}
         {% if step.test_case_key %}
-            {{ loop.index }} & \multicolumn{2}{@{}l}{Steps from
-            \hyperref[{{ step.test_case_key.lower() }}]{{ curlies(step.test_case_key) }}) to be executed.}
+            {% set step_testcase = testcases_map[step.test_case_key] %}
+            {{ loop.index }} & \multicolumn{2}{@{}l}{Steps from \hyperref[{{ step.test_case_key.lower() }}]{{ curlies(step.test_case_key) }}) to be executed.}
+            {% for substep in step_testcase.test_script %}
+
+                \multirow{3}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
+                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]{{ curlies(step_testcase.key) }} } } }
+
+                & {\small Description} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {{ substep.description }}
+                \vspace{\dp0}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Test Data} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {% if substep.test_data %}
+                    {{ substep.test_data }}
+                    \vspace{\dp0}
+                {% endif %}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Expedted Result} &
+                {% if substep.expected_result %}
+                    \begin{minipage}[t]{13cm}{\scriptsize
+                    {{ substep.expected_result }}
+                    \vspace{\dp0}
+                    } \end{minipage}
+                {% endif %}
+                \\ \hdashline
+
+            {% endfor %}
+
         {% else %}
-            \multirow{3}{*}{ {{ loop.index }} } & Description &
+
+            \multirow{3}{*}{ {{ rowloop.index }} } & Description &
+{#            \multirow{3}{*}{ {{ loop.index }} } & Description &#}
             \begin{minipage}[t]{13cm}{\footnotesize
             {{ step.description }}
+            \vspace{\dp0}
             } \end{minipage} \\ \cline{2-3}
             & Test Data &
+            \begin{minipage}[t]{13cm}{\footnotesize
             {% if step.test_data %}
-                {{ step.test_data }} \\ \cline{2-3}
+                {{ step.test_data }}
+                \vspace{\dp0}
             {% else %}
-                No data. \\ \cline{2-3}
+                No data.
+                \vspace{\dp0}
             {% endif %}
+            } \end{minipage} \\ \cline{2-3}
             & Expected Result &
             {% if step.expected_result %}
                 \begin{minipage}[t]{13cm}{\footnotesize
                 {{ step.expected_result }}
+                \vspace{\dp0}
                 } \end{minipage}
             {% endif %}
         {% endif %}
@@ -122,25 +164,28 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 {% endif %}
 {% endfor %}
 
-{#\scriptsize{#}
-{#\begin{longtable}[]{p{13cm}p{3cm}}#}
-{#\toprule#}
-{#Verification Requirement & Test Cases\tabularnewline#}
-{#\midrule#}
-{#\endhead#}
-{##}
-{#{% for requirement in requirements_map.values()  %}#}
-{#    {%- set testcases_list = requirements_to_testcases[requirement.key] %}#}
-{#    \{{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}#}
-{#} &#}
-{#{#}
-{#    {%- for tc in testcases_list  -%}#}
-{#        \hyperref[{{ tc.lower()) }}]{{ curlies(tc) }}#}
-{#    {%- endfor %}#}
-{#} \\#}
-{##}
-{#{% endfor %}#}
-{#\tabularnewline#}
-{#\bottomrule#}
-{#\end{longtable}#}
-{#\} % end scriptsize#}
+% Appendix
+
+\newpage
+\appendix
+
+\scriptsize{
+\begin{longtable}[]{p{13cm}p{3cm}}
+\toprule
+Verification Requirement & Test Cases\tabularnewline
+\midrule
+\endhead
+
+{% for requirement in requirements_map.values() -%}
+    {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
+    {% set testcases_list = requirements_to_testcases[requirement.key] -%}
+    & {
+    {% for tc in testcases_list -%}
+        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }}
+    {% endfor -%}
+    } \\
+{% endfor %}
+\tabularnewline
+\bottomrule
+\end{longtable}
+\} % end scriptsize
