@@ -31,6 +31,7 @@ import pandoc
 import requests
 from .config import Config
 
+
 class HtmlPandocField(fields.String):
     """
     A field that originates as HTML but is normalized to a template
