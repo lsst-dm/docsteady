@@ -36,8 +36,10 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 
 @click.group()
 @click.option('--mode', default='dm', help='Project mode (dm, ts, etc..)')
-def cli(mode):
+@click.option('--template', default='latex', help='Template language (latex, html)')
+def cli(mode, template):
     Config.MODE_PREFIX = f"{mode.lower()}-"
+    Config.TEMPLATE_LANGUAGE = template
     Config.DOC = pandoc.Document()
 
 
@@ -83,7 +85,7 @@ def generate_spec(format, username, password, folder, file):
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcases.j2")
+    template = env.get_template(f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.j2")
 
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
@@ -116,7 +118,7 @@ def generate_report(format, username, password, cycle, file):
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.j2")
+    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.{Config.TEMPLATE_LANGUAGE}.j2")
     text = template.render(testcycle=test_cycle,
                            testresults=test_results,
                            testcase_index=Config.CACHED_TESTCASES)
