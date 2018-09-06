@@ -95,6 +95,8 @@ def test_case_for_key(test_case_key):
                             auth=Config.AUTH)
         testcase_resp = resp.json()
         testcase, errors = TestCase().load(testcase_resp)
+        if errors:
+            raise Exception("Unable to process test cases: " + str(errors))
         Config.CACHED_TESTCASES[test_case_key] = testcase
         cached_testcase_resp = testcase
     return cached_testcase_resp

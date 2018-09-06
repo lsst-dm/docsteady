@@ -25,8 +25,8 @@ from tempfile import TemporaryFile
 import click
 import pandoc
 from jinja2 import Environment, PackageLoader
-from .spec import build_dm_spec_model
-from .run import build_results_model
+from .spec import build_spec_model
+from .cycle import build_results_model
 from .config import Config
 from .formatters import alphanum_key
 
@@ -63,7 +63,7 @@ def generate_spec(format, username, password, folder, file):
 
     # Build model
     try:
-        testcases = build_dm_spec_model(folder)
+        testcases = build_spec_model(folder)
     except Exception as e:
         print("Error in building model")
         print(e)

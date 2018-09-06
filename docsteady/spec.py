@@ -152,7 +152,7 @@ class TestCase(Schema):
         return teststeps
 
 
-def build_dm_spec_model(folder):
+def build_spec_model(folder):
     query = f'folder = "{folder}"'
     resp = requests.get(Config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=Config.AUTH)
 
