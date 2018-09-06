@@ -7,12 +7,12 @@ requires = [
     'jinja2',
     'click',
     'BeautifulSoup4',
-    'marshmallow'
+    'marshmallow<3'
 ]
 
 setup(
     name='docsteady',
-    version='0.5',
+    version='1.0pre1',
     packages=['docsteady'],
     url='https://github.com/lsst-dm/docsteady',
     license='GPL',
@@ -20,7 +20,7 @@ setup(
     author_email='bvan@slac.stanford.edu',
     description='Docsteady Document Printer',
     install_requires=requires,
-    package_data={'docsteady': ['templates/*.j2']},
+    package_data={'docsteady': ['templates/*.jinja2']},
     entry_points={
         'console_scripts': [
             'docsteady = docsteady:cli',
