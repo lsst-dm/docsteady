@@ -79,7 +79,7 @@ def generate_spec(format, username, password, folder, file):
     testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
 
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
-                      lstrip_blocks=True,
+                      lstrip_blocks=True, trim_blocks=True,
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
@@ -89,7 +89,7 @@ def generate_spec(format, username, password, folder, file):
                            requirements_to_testcases=requirements_to_testcases,
                            testcases_doc_url_map=testcases_href,
                            requirements_map=Config.CACHED_REQUIREMENTS,
-                           testcases_map={tc["key"]: tc for tc in testcases})
+                           testcases_map=Config.CACHED_TESTCASES)
 
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
@@ -127,5 +127,5 @@ def generate_report(format, username, password, cycle, file):
     print(text, file=file or sys.stdout)
 
 
-if __name__ == '__main__':
-    cli()
+#if __name__ == '__main__':
+cli()

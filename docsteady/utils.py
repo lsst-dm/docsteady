@@ -81,11 +81,20 @@ def owner_for_id(owner_id):
 
 
 def test_case_for_key(test_case_key):
+    """
+    This will return a cached testcases (a test case already processed)
+    or fetch it if and add to cache.
+    :param test_case_key: Key of test case to fetch
+    :return: Cached or fetched test case.
+    """
+    # Prevent circular import
+    from .spec import TestCase
     cached_testcase_resp = Config.CACHED_TESTCASES.get(test_case_key)
     if not cached_testcase_resp:
         resp = requests.get(Config.TESTCASE_URL.format(testcase=test_case_key),
                             auth=Config.AUTH)
-        step_testcase_resp = resp.json()
-        Config.CACHED_TESTCASES[test_case_key] = step_testcase_resp
-        cached_testcase_resp = step_testcase_resp
+        testcase_resp = resp.json()
+        testcase, errors = TestCase().load(testcase_resp)
+        Config.CACHED_TESTCASES[test_case_key] = testcase
+        cached_testcase_resp = testcase
     return cached_testcase_resp
