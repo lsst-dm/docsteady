@@ -85,7 +85,7 @@ def generate_spec(format, username, password, folder, file):
                       autoescape=None)
     env.globals.update(**jinja_formatters)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.j2")
+    template = env.get_template(f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
@@ -118,7 +118,7 @@ def generate_report(format, username, password, cycle, file):
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       autoescape=None)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.{Config.TEMPLATE_LANGUAGE}.j2")
+    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.{Config.TEMPLATE_LANGUAGE}.jinja2")
     text = template.render(testcycle=test_cycle,
                            testresults=test_results,
                            testcase_index=Config.CACHED_TESTCASES)
@@ -129,5 +129,5 @@ def generate_report(format, username, password, cycle, file):
     print(text, file=file or sys.stdout)
 
 
-#if __name__ == '__main__':
-cli()
+if __name__ == '__main__':
+    cli()
