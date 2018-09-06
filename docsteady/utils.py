@@ -24,12 +24,12 @@ Code for Test Specification Model Generation
 import re
 
 import arrow
+from collections import OrderedDict
 from bs4 import BeautifulSoup
 from marshmallow import fields
-
-from .config import Config
+import pandoc
 import requests
-
+from .config import Config
 
 class HtmlPandocField(fields.String):
     """
