@@ -30,7 +30,7 @@ from marshmallow import Schema, fields, post_load, pre_load
 from .config import Config
 from .formatters import as_anchor, alphanum_key
 from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField
+    MarkdownableHtmlPandocField, test_case_for_key
 
 
 class RequirementIssue(Schema):
@@ -145,6 +145,10 @@ class TestCase(Schema):
         teststeps, errors = TestStep().load(test_script['steps'], many=True)
         if errors:
             raise Exception("Unable to process Test Steps: " + str(errors))
+        # Prefetch any testcases we might need
+        for teststep in teststeps:
+            if teststep.get("test_case_key"):
+                test_case_for_key(teststep["test_case_key"])
         return teststeps
 
 
@@ -164,5 +168,7 @@ def build_dm_spec_model(folder):
         testcase, errors = TestCase().load(testcase_resp)
         if errors:
             raise Exception("Unable to process errors: " + str(errors))
+        if testcase["key"] not in Config.CACHED_TESTCASES:
+            Config.CACHED_TESTCASES["key"] = testcase
         testcases.append(testcase)
     return testcases

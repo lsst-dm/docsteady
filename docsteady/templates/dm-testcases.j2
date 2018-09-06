@@ -39,7 +39,8 @@ Test Id & Test Name\tabularnewline
 \toprule
 Version & Status & Priority & Verification Type & Critical Event & Owner
 \\\midrule
-{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} & {{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
 \\\bottomrule
 \end{longtable}
 
@@ -103,11 +104,11 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
         {% set rowloop = loop %}
         {% if step.test_case_key %}
             {% set step_testcase = testcases_map[step.test_case_key] %}
-            {{ loop.index }} & \multicolumn{2}{@{}l}{Steps from \hyperref[{{ step.test_case_key.lower() }}]{{ curlies(step.test_case_key) }}) to be executed.}
             {% for substep in step_testcase.test_script %}
 
                 \multirow{3}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
-                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]{{ curlies(step_testcase.key) }} } } }
+                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
+                {{ curlies(step_testcase.key) }} } } }
 
                 & {\small Description} &
                 \begin{minipage}[t]{13cm}{\scriptsize
@@ -121,7 +122,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
                     \vspace{\dp0}
                 {% endif %}
                 } \end{minipage} \\ \cdashline{2-3}
-                & {\small Expedted Result} &
+                & {\small Expected Result} &
                 {% if substep.expected_result %}
                     \begin{minipage}[t]{13cm}{\scriptsize
                     {{ substep.expected_result }}
@@ -135,7 +136,6 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
         {% else %}
 
             \multirow{3}{*}{ {{ rowloop.index }} } & Description &
-{#            \multirow{3}{*}{ {{ loop.index }} } & Description &#}
             \begin{minipage}[t]{13cm}{\footnotesize
             {{ step.description }}
             \vspace{\dp0}
