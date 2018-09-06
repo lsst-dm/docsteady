@@ -28,7 +28,7 @@ from jinja2 import Environment, PackageLoader
 from .spec import build_dm_spec_model
 from .run import build_results_model
 from .config import Config
-from .formatters import *
+from .formatters import alphanum_key
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
@@ -61,11 +61,6 @@ def generate_spec(format, username, password, folder, file):
 
     Config.output = TemporaryFile(mode="r+")
 
-    jinja_formatters = dict(format_tests_preamble=format_tests_preamble,
-                            format_dm_requirements=format_dm_requirements,
-                            format_dm_testscript=format_dm_testscript,
-                            as_jira_test_anchor=as_jira_test_anchor)
-
     # Build model
     try:
         testcases = build_dm_spec_model(folder)
@@ -78,18 +73,14 @@ def generate_spec(format, username, password, folder, file):
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
-    testcases_href = {testcase["key"]: testcase["doc_href"] for testcase in testcases}
-
     env = Environment(loader=PackageLoader('docsteady', 'templates'),
                       lstrip_blocks=True, trim_blocks=True,
                       autoescape=None)
-    env.globals.update(**jinja_formatters)
 
     template = env.get_template(f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
-                           testcases_doc_url_map=testcases_href,
                            requirements_map=Config.CACHED_REQUIREMENTS,
                            testcases_map=Config.CACHED_TESTCASES)
 
