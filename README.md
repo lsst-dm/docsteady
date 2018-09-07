@@ -33,14 +33,29 @@ Latex.
 
 ### MarkdownableHtmlPandocField
 Fields that are designated as `MarkdownableHtmlPandocField` will be intepreted primarily
-as an `HtmlPandocField` _unless_ a special tag is found in teh first line of the
+as an `HtmlPandocField` _unless_ a special tag is found in the first line of the
 field:
 
-    [markdown]: #
+`[markdown]: #`
 
 If that tag is found, the text in jira field is interpreted as plain text, (ignoring any
 HTML formatting) and translated to the target template language. This includes code
-highlighting. This 
+highlighting.
+
+A more complete example:
+
+~~~markdown
+[markdown]: #
+
+# This is a markdown version of a test step
+
+We can embed code in it:
+```python
+import sys
+sys.exit(1)
+```
+... And it will be formatted in the final document just fine.
+~~~
 
 
 ## Models
