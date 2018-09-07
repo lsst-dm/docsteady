@@ -97,7 +97,7 @@ def generate_spec(format, username, password, folder, file):
               envvar="JIRA_PASSWORD", help="Output file")
 @click.argument('cycle')
 @click.argument('file', required=False, type=click.File('w'))
-def generate_report(format, username, password, cycle, file):
+def generate_cycle(format, username, password, cycle, file):
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
@@ -112,7 +112,7 @@ def generate_report(format, username, password, cycle, file):
     template = env.get_template(f"{Config.MODE_PREFIX}testcycle.{Config.TEMPLATE_LANGUAGE}.jinja2")
     text = template.render(testcycle=test_cycle,
                            testresults=test_results,
-                           testcase_index=Config.CACHED_TESTCASES)
+                           testcases_map=Config.CACHED_TESTCASES)
 
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))

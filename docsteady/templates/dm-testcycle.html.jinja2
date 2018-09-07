@@ -19,7 +19,7 @@
 
 {# Test results are sorted by testcase key #}
 {% for testresult in testresults %}
-    {% set testcase = testcase_index[testresult["test_case_key"]] %}
+    {% set testcase = testcases_map[testresult["test_case_key"]] %}
 
     <h1>{{ testcase.key }}({{ testcase.majorVersion }}): {{ testcase.name }}</h1>
     Test Execution Status: {{ testresult.status.upper() }} <br>
