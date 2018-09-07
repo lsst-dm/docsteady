@@ -1,0 +1,12 @@
+# Testcases
+
+{% for testcase in testcases %}
+## {{ testcase.name }}
+On the web at {{ testcase.jira_url }}
+
+### Requirements:
+{% for requirement in testcase.requirements %}
+* {{ requirement.key }} at {{ requirement.jira_url }}
+{% endfor %}
+
+{% endfor %}

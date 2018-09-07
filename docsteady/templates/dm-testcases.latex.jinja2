@@ -1,0 +1,165 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+
+\section{Test Cases Summary}\label{test-cases-summary}
+
+Follows the list of test cases documented in this specification.
+
+\begin{longtable}[]{p{3cm}p{13cm}}
+\toprule
+Test Id & Test Name\tabularnewline
+\midrule
+\endhead
+{% for testcase in testcases %}
+    \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &
+    {{ href(testcase.jira_url, testcase.name) }} \tabularnewline
+{% endfor %}
+\bottomrule
+\end{longtable}
+
+\newpage
+
+\section{Test Cases}
+{% for testcase in testcases %}
+
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Critical Event & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Requirements}
+{% if testcase.requirements %}
+\begin{itemize}
+{% for item in testcase.requirements %}
+\item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
+{% endfor %}
+\end{itemize}
+{% else %}
+    None.
+{% endif %}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+\subsubsection{Intercase Dependencies}
+{% if testcase.predecessors %}
+{{ testcase.predecessors }}
+{% endif %}
+
+\subsubsection{Environment Needs}
+
+\paragraph{Software}
+{% if testcase.required_software %}
+{{ testcase.required_software }}
+{% endif %}
+
+\paragraph{Hardware}
+{% if testcase.test_equipment %}
+{{ testcase.test_equipment }}
+{% endif %}
+
+\subsubsection{Input Specification}
+{% if testcase.precondition %}
+{{ testcase.precondition }}
+{% endif %}
+
+\subsubsection{Output Specification}
+{% if testcase.postcondition %}
+{{ testcase.postcondition }}
+{% endif %}
+
+\subsubsection{Test Procedure}
+{% if testcase.test_script %}
+    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
+    %\toprule
+    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+    \endhead
+    {% for step in testcase.test_script %}
+        {% set rowloop = loop %}
+        {% if step.test_case_key %}
+            {% set step_testcase = testcases_map[step.test_case_key] %}
+            {% for substep in step_testcase.test_script %}
+
+                \multirow{3}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
+                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
+                {{ curlies(step_testcase.key) }} } } }
+
+                & {\small Description} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {{ substep.description }}
+                \vspace{\dp0}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Test Data} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {% if substep.test_data %}
+                    {{ substep.test_data }}
+                    \vspace{\dp0}
+                {% endif %}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Expected Result} &
+                {% if substep.expected_result %}
+                    \begin{minipage}[t]{13cm}{\scriptsize
+                    {{ substep.expected_result }}
+                    \vspace{\dp0}
+                    } \end{minipage}
+                {% endif %}
+                \\ \hdashline
+
+            {% endfor %}
+
+        {% else %}
+
+            \multirow{3}{*}{ {{ rowloop.index }} } & Description &
+            \begin{minipage}[t]{13cm}{\footnotesize
+            {{ step.description }}
+            \vspace{\dp0}
+            } \end{minipage} \\ \cline{2-3}
+            & Test Data &
+            \begin{minipage}[t]{13cm}{\footnotesize
+            {% if step.test_data %}
+                {{ step.test_data }}
+                \vspace{\dp0}
+            {% else %}
+                No data.
+                \vspace{\dp0}
+            {% endif %}
+            } \end{minipage} \\ \cline{2-3}
+            & Expected Result &
+            {% if step.expected_result %}
+                \begin{minipage}[t]{13cm}{\footnotesize
+                {{ step.expected_result }}
+                \vspace{\dp0}
+                } \end{minipage}
+            {% endif %}
+        {% endif %}
+        \\ \midrule
+    {% endfor %}
+    \end{longtable}
+{% endif %}
+{% endfor %}

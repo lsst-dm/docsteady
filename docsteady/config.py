@@ -31,3 +31,12 @@ class Config:
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
+    DOC = None
+    OUTPUT_FORMAT = None
+    CACHED_TESTCASES = {}
+    CACHED_USERS = {}
+    CACHED_REQUIREMENTS = {}  # type : Dict[str, RequirementIssue]
+    MODE_PREFIX = None
+    TIMEZONE = "US/Pacific"
+    REQUIREMENTS_TO_TESTCASES = {}
+    TEMPLATE_LANGUAGE = "latex"

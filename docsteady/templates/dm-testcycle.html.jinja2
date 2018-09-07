@@ -1,0 +1,57 @@
+{% macro as_table(rows, headers=None) %}
+    <table>
+        {% if headers %}
+            <tr>
+                {% for col in headers %}
+                    <th>{{ col.replace("_", " ").title() }}</th>
+                {% endfor %}
+            </tr>
+        {% endif %}
+        {% for row in rows %}
+            <tr>
+                {% for col in row %}
+                    <td>{{ col }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endmacro %}
+
+{# Test results are sorted by testcase key #}
+{% for testresult in testresults %}
+    {% set testcase = testcases_map[testresult["test_case_key"]] %}
+
+    <h1>{{ testcase.key }}({{ testcase.majorVersion }}): {{ testcase.name }}</h1>
+    Test Execution Status: {{ testresult.status.upper() }} <br>
+    {% if testresult.comment %}
+        Comment: {{ testresult.comment }} <br>
+    {% endif %}
+    <h2>Execution at: {{ testresult.execution_date.format('YYYY-MM-DD HH:mm:ss') }} </h2>
+
+    <h2>Environment</h2>
+    {{ testresult.environment }}
+
+    <h2>Test Script</h2>
+    <table>
+        <tr>
+            <th>Step</th>
+            <th>Status and Results</th>
+        </tr>
+
+        {% for script_result in testresult.script_results %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    Status: {{ script_result.status.upper() }}
+                    <hr>
+                    Expected Result: <br>
+                    {{ script_result.expected_result }}
+                    <hr>
+                    Actual Result: <br>
+                    {{ script_result.comment }}
+                </td>
+
+            </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
