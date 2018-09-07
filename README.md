@@ -21,8 +21,14 @@ This is just simple types and are treated as such in the templates.
 
 ### Timestamps (arrow)
 Timestamps are parsed and loaded to arrow objects. This allows flexible formatting
-when writing out to template. For more information, see the arrow documentation:
-https://arrow.readthedocs.io/en/latest/
+when writing out to template. Timestamps are converted to `US/Pacific` by default.
+
+A naive formatting of an arrow timestamp looks like this:
+
+`{{ testresult.execution_date.format('YYYY-MM-DD HH:mm:ss') }}`
+
+For more information on formatting and conversion, see the arrow documentation:
+https://arrow.readthedocs.io/en/latest/.
 
 ### HtmlPandocField
 Fields that are designated as `HtmlPandocField` means that docsteady will take the HTML output
