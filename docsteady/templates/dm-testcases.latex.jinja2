@@ -163,29 +163,3 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
     \end{longtable}
 {% endif %}
 {% endfor %}
-
-% Appendix
-
-\newpage
-\appendix
-
-\scriptsize{
-\begin{longtable}[]{p{13cm}p{3cm}}
-\toprule
-Verification Requirement & Test Cases\tabularnewline
-\midrule
-\endhead
-
-{% for requirement in requirements_map.values() -%}
-    {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
-    {% set testcases_list = requirements_to_testcases[requirement.key] -%}
-    & {
-    {% for tc in testcases_list -%}
-        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }}
-    {% endfor -%}
-    } \\
-{% endfor %}
-\tabularnewline
-\bottomrule
-\end{longtable}
-\} % end scriptsize

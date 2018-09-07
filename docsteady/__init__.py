@@ -24,7 +24,7 @@ from tempfile import TemporaryFile
 
 import click
 import pandoc
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, TemplateNotFound
 from .spec import build_spec_model
 from .cycle import build_results_model
 from .config import Config
@@ -49,11 +49,18 @@ def cli(mode, template):
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Output file")
 @click.argument('folder')
-@click.argument('file', required=False, type=click.File('w'))
-def generate_spec(format, username, password, folder, file):
+@click.argument('path', required=False, type=click.Path())
+def generate_spec(format, username, password, folder, path):
     """Read in tests from Adaptavist Test management where FOLDER
-    is the ATM Test Case Folder. If specified, FILE is the resulting
+    is the ATM Test Case Folder. If specified, PATH is the resulting
     output.
+
+    If PATH is specified, docsteady will examine the output filename
+    and attempt to write an appendix to a similar file.
+    For example, if the output is jira_docugen.tex, the output
+    will also print out a jira_docugen.appendix.tex file if a
+    template for the appendix is found. Otherwise, it will print
+    to standard out.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
@@ -69,6 +76,8 @@ def generate_spec(format, username, password, folder, file):
         print(e)
         raise e
 
+    file = open(path, "w") if path else sys.stdout
+
     # Sort the dictionary
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
@@ -77,7 +86,12 @@ def generate_spec(format, username, password, folder, file):
                       lstrip_blocks=True, trim_blocks=True,
                       autoescape=None)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    try:
+        template_path = f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template = env.get_template(template_path)
+    except TemplateNotFound as e:
+        click.echo(f"No Template Found: {template_path}", err=True)
+        sys.exit(1)
 
     text = template.render(testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
@@ -87,7 +101,34 @@ def generate_spec(format, username, password, folder, file):
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
         text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
-    print(text, file=file or sys.stdout)
+    print(text, file=file)
+
+    # Now appendix
+    appendix_path = None
+    if path:
+        parts = path.split(".")
+        extension = parts[-1]
+        path_parts = parts[:-1] + ["appendix", extension]
+        appendix_path = ".".join(path_parts)
+
+    appendix_file = open(appendix_path, "w") if appendix_path else sys.stdout
+
+    appendix_template_path = \
+        f"{Config.MODE_PREFIX}testcases-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
+
+    try:
+        appendix_template = env.get_template(appendix_template_path)
+    except TemplateNotFound as e:
+        click.echo(f"No Appendix Template Found: {appendix_template_path}", err=True)
+        sys.exit(0)
+
+    appendix_text = appendix_template.render(
+        testcases=testcases,
+        requirements_to_testcases=requirements_to_testcases,
+        requirements_map=Config.CACHED_REQUIREMENTS,
+        testcases_map=Config.CACHED_TESTCASES)
+
+    print(appendix_text, file=appendix_file)
 
 
 @cli.command("generate-cycle")
