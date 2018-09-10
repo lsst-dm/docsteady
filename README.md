@@ -5,6 +5,75 @@ docsteady is a python package (and optionally Docker container) that talks to
 Jira and the Adaptavist Test Management system to output Test folders and
 Test plans to a variety of documents by utilizing pandoc.
 
+# Usage
+The defaults of docsteady are to build documents based on DM defaults. There
+are two commands you can give to docsteady to do this, `generate-spec` and
+`generate-cycle`.
+
+## Docker quickstart
+```shell
+# Use appropriate credentials
+docker run -it --rm \
+    -v `pwd`:/workspace -w /workspace lsstdm/docsteady:latest \
+    docsteady generate-spec "/Data Management/Prompt" jira_docugen.tex
+```
+
+## The `generate-spec` command
+
+```
+Usage: docsteady generate-spec [OPTIONS] FOLDER [PATH]
+
+  Read in tests from Adaptavist Test management where FOLDER is the ATM Test
+  Case Folder. If specified, PATH is the resulting output.
+
+  If PATH is specified, docsteady will examine the output filename and
+  attempt to write an appendix to a similar file. For example, if the output
+  is jira_docugen.tex, the output will also print out a
+  jira_docugen.appendix.tex file if a template for the appendix is found.
+  Otherwise, it will print to standard out.
+
+Options:
+  --format TEXT    Pandoc output format (see pandoc for options)
+  --username TEXT
+  --password TEXT  Output file
+  --help           Show this message and exit.
+```
+
+## The `generate-cycle` command
+
+```
+Usage: docsteady generate-cycle [OPTIONS] CYCLE [PATH]
+
+Options:
+  --format TEXT    Pandoc output format (see pandoc for options)
+  --username TEXT
+  --password TEXT  Output file
+  --help           Show this message and exit.
+
+```
+
+## More options
+Before executing a command, you can specify some different environment options.
+
+The default `namespace` is `dm` and the default `template-format` is `latex`.
+
+`load-from` defaults to the current working directory.
+
+```
+Usage: docsteady [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --namespace TEXT        Project namespace (dm, ts, etc..)
+  --template-format TEXT  Template language (latex, html)
+  --load-from TEXT        Path to search for templates in
+  --help                  Show this message and exit.
+
+Commands:
+  generate-cycle
+  generate-spec   Read in tests from Adaptavist Test management...
+```
+
+
 
 # Writing Templates
 
@@ -14,6 +83,30 @@ We use pandoc for converting things between different formats.
 In general, you can write a a template using jinja in any language supported
 by pandoc, including latex, html, markdown, and restructured text. Our
 default language is latex. 
+
+
+## Resolving templates
+
+For both goals, **docsteady will first look for a template in
+`load-from`, which defaults to the current working directory**,
+and if no template is found, **it will then default to the templates
+defined in this package under  `docsteady/templates`**.
+
+* In the case of the `generate-spec` goal, it will by default look for a
+`spec` template.
+
+* In the case of `generate-cycle` goal, it will look for a `cycle` template.
+
+* When no options are presented to docsteady, the defaults are:
+  * `dm-spec.latex.jinja2` for `generate-spec` 
+  * `dm-cycle.latex.jinja2` for `generate-cycle`    
+  * The generate format is `{namespace}-{goal}.{template_format}.jinja2`
+
+* An appendix can be processed separately. Accordingly, the defaults are:
+  * `dm-spec-appendix.latex.jinja2` for `generate-spec` 
+  * `dm-cycle-appendix.latex.jinja2` for `generate-cycle`
+  * The general format is `{namespace}-{goal}-appendix.{template_format}.jinja2`
+
 
 ## Fields
 ### String, Integer, etc...
@@ -146,7 +239,7 @@ class TestStep(Schema):
 ```
 
 ### Simple Example
-If you added example template (`docsteady/templates/example-testcases.markdown.jinja2`),
+If you added example template (`docsteady/templates/example-spec.markdown.jinja2`),
 defined as:
 
 ```jinja2
@@ -165,13 +258,13 @@ On the web at {{ testcase.jira_url }}
 ```
 
 You could generate the resultant file, in latex (by default) via:
-* `docsteady --mode example --template markdown generate-spec "/Data Management/Prompt`
+* `docsteady --namespace example --template markdown generate-spec "/Data Management/Prompt`
 
 Or actually ask for it in markdown:
-* `docsteady --mode example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
+* `docsteady --namespace example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
 
 Or HTML:
-* `docsteady --mode example --template markdown generate-spec --format html "/Data Management/Prompt"`
+* `docsteady --namespace example --template markdown generate-spec --format html "/Data Management/Prompt"`
 
 ## Cycle model and `generate-cycle` 
 

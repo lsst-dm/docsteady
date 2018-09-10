@@ -18,16 +18,21 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
+import os
+
 
 class Config:
-    ISSUE_URL = "https://jira.lsstcorp.org/rest/api/latest/issue/{issue}"
-    ISSUE_UI_URL = "https://jira.lsstcorp.org/browse/{issue}"
-    USER_URL = "https://jira.lsstcorp.org/rest/api/latest/user?username={username}"
-    TESTCASE_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testcase/{testcase}"
-    TESTCASE_UI_URL = "https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{testcase}"
-    TESTCASE_SEARCH_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testcase/search"
-    TESTRUN_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testrun/{testrun}"
-    TESTRESULTS_URL = "https://jira.lsstcorp.org/rest/atm/1.0/testrun/{testrun}/testresults"
+    JIRA_INSTANCE = "https://jira.lsstcorp.org"
+    JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
+    ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
+    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}"
+    ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
+    USER_URL = f"{JIRA_API}/user?username={{username}}"
+    TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
+    TESTCASE_UI_URL = f"{JIRA_INSTANCE}/secure/Tests.jspa#/testCase/{{testcase}}"
+    TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
+    TESTRUN_URL = f"{ATM_API}/testrun/{{testrun}}"
+    TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -40,3 +45,4 @@ class Config:
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_TESTCASES = {}
     TEMPLATE_LANGUAGE = "latex"
+    TEMPLATE_DIRECTORY = os.curdir

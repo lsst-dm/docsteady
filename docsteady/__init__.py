@@ -18,13 +18,14 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
+import os
 import sys
 from collections import OrderedDict
 from tempfile import TemporaryFile
 
 import click
 import pandoc
-from jinja2 import Environment, PackageLoader, TemplateNotFound
+from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, FileSystemLoader
 from .spec import build_spec_model
 from .cycle import build_results_model
 from .config import Config
@@ -35,19 +36,27 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
 
 
 @click.group()
-@click.option('--mode', default='dm', help='Project mode (dm, ts, etc..)')
-@click.option('--template', default='latex', help='Template language (latex, html)')
-def cli(mode, template):
-    Config.MODE_PREFIX = f"{mode.lower()}-"
-    Config.TEMPLATE_LANGUAGE = template
+@click.option('--namespace', default='dm', help='Project namespace (dm, ts, example, etc..). '
+                                                'Defaults to "dm".')
+@click.option('--template-format', default='latex', help='Template language (latex, html). '
+                                                         'Defaults to "latex".')
+@click.option('--load-from', default=os.path.curdir, help='Path to search for templates in. '
+                                                          'Defaults to the working directory')
+def cli(namespace, template_format, load_from):
+    """Docsteady generates documents from Jira with the Adaptavist
+    Test Management plugin.
+    """
+    Config.MODE_PREFIX = f"{namespace.lower()}-" if namespace else ""
+    Config.TEMPLATE_LANGUAGE = template_format
     Config.DOC = pandoc.Document()
+    Config.TEMPLATE_DIRECTORY = load_from
 
 
 @cli.command("generate-spec")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
-@click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
-              envvar="JIRA_PASSWORD", help="Output file")
+              envvar="JIRA_PASSWORD", help="Jira Password")
 @click.argument('folder')
 @click.argument('path', required=False, type=click.Path())
 def generate_spec(format, username, password, folder, path):
@@ -65,7 +74,7 @@ def generate_spec(format, username, password, folder, path):
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
-    target = "testcases"
+    target = "spec"
     Config.output = TemporaryFile(mode="r+")
 
     # Build model
@@ -82,9 +91,13 @@ def generate_spec(format, username, password, folder, path):
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
-    env = Environment(loader=PackageLoader('docsteady', 'templates'),
-                      lstrip_blocks=True, trim_blocks=True,
-                      autoescape=None)
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(Config.TEMPLATE_DIRECTORY),
+        PackageLoader('docsteady', 'templates')
+        ]),
+        lstrip_blocks=True, trim_blocks=True,
+        autoescape=None
+    )
 
     try:
         template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
@@ -123,18 +136,33 @@ def generate_spec(format, username, password, folder, path):
 @click.argument('cycle')
 @click.argument('path', required=False, type=click.Path())
 def generate_cycle(format, username, password, cycle, path):
+    """Read in a test cycle and results from Adaptavist Test management
+    where CYCLE is the ATM Test Cycle. If specified, PATH is the resulting
+    output.
+
+    If PATH is specified, docsteady will examine the output filename
+    and attempt to write an appendix to a similar file.
+    For example, if the output is jira_docugen.tex, the output
+    will also print out a jira_docugen.appendix.tex file if a
+    template for the appendix is found. Otherwise, it will print
+    to standard out.
+    """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
-    target = "testcycle"
+    target = "cycle"
 
     Config.output = TemporaryFile(mode="r+")
     test_cycle, test_results = build_results_model(cycle)
     sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
 
-    env = Environment(PackageLoader('docsteady', 'templates'),
-                      lstrip_blocks=True, trim_blocks=True,
-                      autoescape=None)
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(Config.TEMPLATE_DIRECTORY),
+        PackageLoader('docsteady', 'templates')
+        ]),
+        lstrip_blocks=True, trim_blocks=True,
+        autoescape=None
+    )
 
     template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
     text = template.render(testcycle=test_cycle,
@@ -163,8 +191,7 @@ def _try_appendix_template(target, env):
         f"{Config.MODE_PREFIX}{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
 
     try:
-        template = env.get_template(appendix_template_path)
-        return template
+        return env.get_template(appendix_template_path)
     except TemplateNotFound as e:
         return None
 
