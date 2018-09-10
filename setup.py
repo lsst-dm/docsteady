@@ -10,9 +10,15 @@ requires = [
     'marshmallow<3'
 ]
 
+doc_requires = [
+    "sphinx",
+    "sphinx_click",
+    "sphinx_rtd_theme"
+]
+
 setup(
     name='docsteady',
-    version='1.0pre1',
+    version='1.0rc2',
     packages=['docsteady'],
     url='https://github.com/lsst-dm/docsteady',
     license='GPL',
@@ -25,5 +31,6 @@ setup(
         'console_scripts': [
             'docsteady = docsteady:cli',
         ],
-    }
+    },
+    extras_require={'docs': doc_requires}
 )
