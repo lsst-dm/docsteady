@@ -65,7 +65,7 @@ def generate_spec(format, username, password, folder, path):
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
-
+    target = "testcases"
     Config.output = TemporaryFile(mode="r+")
 
     # Build model
@@ -87,7 +87,7 @@ def generate_spec(format, username, password, folder, path):
                       autoescape=None)
 
     try:
-        template_path = f"{Config.MODE_PREFIX}testcases.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
     except TemplateNotFound as e:
         click.echo(f"No Template Found: {template_path}", err=True)
@@ -98,37 +98,21 @@ def generate_spec(format, username, password, folder, path):
                            requirements_map=Config.CACHED_REQUIREMENTS,
                            testcases_map=Config.CACHED_TESTCASES)
 
-    if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
-        setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
-        text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
-    print(text, file=file)
+    print(_as_output_format(text), file=file)
 
-    # Now appendix
-    appendix_path = None
-    if path:
-        parts = path.split(".")
-        extension = parts[-1]
-        path_parts = parts[:-1] + ["appendix", extension]
-        appendix_path = ".".join(path_parts)
-
-    appendix_file = open(appendix_path, "w") if appendix_path else sys.stdout
-
-    appendix_template_path = \
-        f"{Config.MODE_PREFIX}testcases-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
-
-    try:
-        appendix_template = env.get_template(appendix_template_path)
-    except TemplateNotFound as e:
-        click.echo(f"No Appendix Template Found: {appendix_template_path}", err=True)
+    # Will exit if it can't find a template
+    appendix_template = _try_appendix_template(target, env)
+    if not appendix_template:
+        click.echo(f"No Appendix Template Found, skipping...", err=True)
         sys.exit(0)
 
+    appendix_file = _get_appendix_output(path)
     appendix_text = appendix_template.render(
         testcases=testcases,
         requirements_to_testcases=requirements_to_testcases,
         requirements_map=Config.CACHED_REQUIREMENTS,
         testcases_map=Config.CACHED_TESTCASES)
-
-    print(appendix_text, file=appendix_file)
+    print(_as_output_format(appendix_text), file=appendix_file)
 
 
 @cli.command("generate-cycle")
@@ -137,28 +121,69 @@ def generate_spec(format, username, password, folder, path):
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Output file")
 @click.argument('cycle')
-@click.argument('file', required=False, type=click.File('w'))
-def generate_cycle(format, username, password, cycle, file):
+@click.argument('path', required=False, type=click.Path())
+def generate_cycle(format, username, password, cycle, path):
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
+    target = "testcycle"
 
     Config.output = TemporaryFile(mode="r+")
     test_cycle, test_results = build_results_model(cycle)
     sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
 
-    env = Environment(loader=PackageLoader('docsteady', 'templates'),
+    env = Environment(PackageLoader('docsteady', 'templates'),
+                      lstrip_blocks=True, trim_blocks=True,
                       autoescape=None)
 
-    template = env.get_template(f"{Config.MODE_PREFIX}testcycle.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
     text = template.render(testcycle=test_cycle,
                            testresults=test_results,
                            testcases_map=Config.CACHED_TESTCASES)
 
+    file = open(path, "w") if path else sys.stdout
+    print(_as_output_format(text), file=file or sys.stdout)
+
+    # Will exit if it can't find a template
+    appendix_template = _try_appendix_template(target, env)
+    if not appendix_template:
+        click.echo(f"No Appendix Template Found, skipping...", err=True)
+        sys.exit(0)
+
+    appendix_file = _get_appendix_output(path)
+    appendix_text = appendix_template.render(testcycle=test_cycle,
+                                             testresults=test_results,
+                                             testcases_map=Config.CACHED_TESTCASES)
+    print(_as_output_format(appendix_text), file=appendix_file)
+
+
+def _try_appendix_template(target, env):
+    # Now appendix
+    appendix_template_path = \
+        f"{Config.MODE_PREFIX}{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
+
+    try:
+        template = env.get_template(appendix_template_path)
+        return template
+    except TemplateNotFound as e:
+        return None
+
+
+def _get_appendix_output(path):
+    appendix_path = None
+    if path:
+        parts = path.split(".")
+        extension = parts[-1]
+        path_parts = parts[:-1] + ["appendix", extension]
+        appendix_path = ".".join(path_parts)
+    return open(appendix_path, "w") if appendix_path else sys.stdout
+
+
+def _as_output_format(text):
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
         text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
-    print(text, file=file or sys.stdout)
+    return text
 
 
 if __name__ == '__main__':
