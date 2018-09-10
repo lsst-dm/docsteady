@@ -130,9 +130,9 @@ def generate_spec(format, username, password, folder, path):
 
 @cli.command("generate-cycle")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
-@click.option('--username', prompt="Jira Username", envvar="JIRA_USER")
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
-              envvar="JIRA_PASSWORD", help="Output file")
+              envvar="JIRA_PASSWORD", help="Jira Password")
 @click.argument('cycle')
 @click.argument('path', required=False, type=click.Path())
 def generate_cycle(format, username, password, cycle, path):

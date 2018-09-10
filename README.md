@@ -18,62 +18,9 @@ docker run -it --rm \
     docsteady generate-spec "/Data Management/Prompt" jira_docugen.tex
 ```
 
-## The `generate-spec` command
+## CLI
 
-```
-Usage: docsteady generate-spec [OPTIONS] FOLDER [PATH]
-
-  Read in tests from Adaptavist Test management where FOLDER is the ATM Test
-  Case Folder. If specified, PATH is the resulting output.
-
-  If PATH is specified, docsteady will examine the output filename and
-  attempt to write an appendix to a similar file. For example, if the output
-  is jira_docugen.tex, the output will also print out a
-  jira_docugen.appendix.tex file if a template for the appendix is found.
-  Otherwise, it will print to standard out.
-
-Options:
-  --format TEXT    Pandoc output format (see pandoc for options)
-  --username TEXT
-  --password TEXT  Output file
-  --help           Show this message and exit.
-```
-
-## The `generate-cycle` command
-
-```
-Usage: docsteady generate-cycle [OPTIONS] CYCLE [PATH]
-
-Options:
-  --format TEXT    Pandoc output format (see pandoc for options)
-  --username TEXT
-  --password TEXT  Output file
-  --help           Show this message and exit.
-
-```
-
-## More options
-Before executing a command, you can specify some different environment options.
-
-The default `namespace` is `dm` and the default `template-format` is `latex`.
-
-`load-from` defaults to the current working directory.
-
-```
-Usage: docsteady [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --namespace TEXT        Project namespace (dm, ts, etc..)
-  --template-format TEXT  Template language (latex, html)
-  --load-from TEXT        Path to search for templates in
-  --help                  Show this message and exit.
-
-Commands:
-  generate-cycle
-  generate-spec   Read in tests from Adaptavist Test management...
-```
-
-
+See the [generated documentation](https://lsst-dm.github.io/docsteady).
 
 # Writing Templates
 
