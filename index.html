@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>docsteady &mdash; docsteady  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> docsteady
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">docsteady</a><ul>
+<li><a class="reference internal" href="#docsteady">docsteady</a><ul>
+<li><a class="reference internal" href="#docsteady-generate-cycle">generate-cycle</a></li>
+<li><a class="reference internal" href="#docsteady-generate-spec">generate-spec</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">docsteady</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>docsteady</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="docsteady">
+<h1>docsteady<a class="headerlink" href="#docsteady" title="Permalink to this headline">¶</a></h1>
+<p>docsteady is a python package (and optionally Docker container) that talks to
+Jira and the Adaptavist Test Management system to output Test folders and
+Test plans to a variety of documents by utilizing pandoc.</p>
+<div class="section" id="docsteady">
+<h2>docsteady<a class="headerlink" href="#docsteady" title="Permalink to this headline">¶</a></h2>
+<p>Docsteady generates documents from Jira with the Adaptavist
+Test Management plugin.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docsteady <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-docsteady-namespace">
+<code class="descname">--namespace</code><code class="descclassname"> &lt;namespace&gt;</code><a class="headerlink" href="#cmdoption-docsteady-namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project namespace (dm, ts, example, etc..). Defaults to “dm”.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-template-format">
+<code class="descname">--template-format</code><code class="descclassname"> &lt;template_format&gt;</code><a class="headerlink" href="#cmdoption-docsteady-template-format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Template language (latex, html). Defaults to “latex”.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-load-from">
+<code class="descname">--load-from</code><code class="descclassname"> &lt;load_from&gt;</code><a class="headerlink" href="#cmdoption-docsteady-load-from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to search for templates in. Defaults to the working directory</p>
+</dd></dl>
+
+<div class="section" id="docsteady-generate-cycle">
+<h3>generate-cycle<a class="headerlink" href="#docsteady-generate-cycle" title="Permalink to this headline">¶</a></h3>
+<p>Read in a test cycle and results from Adaptavist Test management
+where CYCLE is the ATM Test Cycle. If specified, PATH is the resulting
+output.</p>
+<p>If PATH is specified, docsteady will examine the output filename
+and attempt to write an appendix to a similar file.
+For example, if the output is jira_docugen.tex, the output
+will also print out a jira_docugen.appendix.tex file if a
+template for the appendix is found. Otherwise, it will print
+to standard out.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docsteady generate-cycle <span class="o">[</span>OPTIONS<span class="o">]</span> CYCLE <span class="o">[</span>PATH<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-cycle-format">
+<code class="descname">--format</code><code class="descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-cycle-format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandoc output format (see pandoc for options)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-cycle-username">
+<code class="descname">--username</code><code class="descclassname"> &lt;username&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-cycle-username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-cycle-password">
+<code class="descname">--password</code><code class="descclassname"> &lt;password&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-cycle-password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output file</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-cycle-arg-cycle">
+<code class="descname">CYCLE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-docsteady-generate-cycle-arg-cycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-cycle-arg-path">
+<code class="descname">PATH</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-docsteady-generate-cycle-arg-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional argument</p>
+</dd></dl>
+
+<p class="rubric">Environment variables</p>
+<dl class="envvar">
+<dt id="envvar-JIRA_USER">
+<code class="descname">JIRA_USER</code><a class="headerlink" href="#envvar-JIRA_USER" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a default for <a class="reference internal" href="#cmdoption-docsteady-generate-cycle-username"><code class="xref std std-option docutils literal notranslate"><span class="pre">--username</span></code></a></p>
+</dd></dl>
+
+<dl class="envvar">
+<dt id="envvar-JIRA_PASSWORD">
+<code class="descname">JIRA_PASSWORD</code><a class="headerlink" href="#envvar-JIRA_PASSWORD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a default for <a class="reference internal" href="#cmdoption-docsteady-generate-cycle-password"><code class="xref std std-option docutils literal notranslate"><span class="pre">--password</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="docsteady-generate-spec">
+<h3>generate-spec<a class="headerlink" href="#docsteady-generate-spec" title="Permalink to this headline">¶</a></h3>
+<p>Read in tests from Adaptavist Test management where FOLDER
+is the ATM Test Case Folder. If specified, PATH is the resulting
+output.</p>
+<p>If PATH is specified, docsteady will examine the output filename
+and attempt to write an appendix to a similar file.
+For example, if the output is jira_docugen.tex, the output
+will also print out a jira_docugen.appendix.tex file if a
+template for the appendix is found. Otherwise, it will print
+to standard out.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docsteady generate-spec <span class="o">[</span>OPTIONS<span class="o">]</span> FOLDER <span class="o">[</span>PATH<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-spec-format">
+<code class="descname">--format</code><code class="descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-spec-format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandoc output format (see pandoc for options)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-spec-username">
+<code class="descname">--username</code><code class="descclassname"> &lt;username&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-spec-username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-spec-password">
+<code class="descname">--password</code><code class="descclassname"> &lt;password&gt;</code><a class="headerlink" href="#cmdoption-docsteady-generate-spec-password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output file</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-spec-arg-folder">
+<code class="descname">FOLDER</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-docsteady-generate-spec-arg-folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-docsteady-generate-spec-arg-path">
+<code class="descname">PATH</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-docsteady-generate-spec-arg-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional argument</p>
+</dd></dl>
+
+<p class="rubric">Environment variables</p>
+<dl class="envvar">
+<dt id="envvar-JIRA_USER">
+<code class="descname">JIRA_USER</code><a class="headerlink" href="#envvar-JIRA_USER" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a default for <a class="reference internal" href="#cmdoption-docsteady-generate-spec-username"><code class="xref std std-option docutils literal notranslate"><span class="pre">--username</span></code></a></p>
+</dd></dl>
+
+<dl class="envvar">
+<dt id="envvar-JIRA_PASSWORD">
+<code class="descname">JIRA_PASSWORD</code><a class="headerlink" href="#envvar-JIRA_PASSWORD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a default for <a class="reference internal" href="#cmdoption-docsteady-generate-spec-password"><code class="xref std std-option docutils literal notranslate"><span class="pre">--password</span></code></a></p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Brian Van Klaveren.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
