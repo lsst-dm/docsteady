@@ -5,6 +5,22 @@ docsteady is a python package (and optionally Docker container) that talks to
 Jira and the Adaptavist Test Management system to output Test folders and
 Test plans to a variety of documents by utilizing pandoc.
 
+# Usage
+The defaults of docsteady are to build documents based on DM defaults. There
+are two commands you can give to docsteady to do this, `generate-spec` and
+`generate-cycle`.
+
+## Docker quickstart
+```shell
+# Use appropriate credentials
+docker run -it --rm \
+    -v `pwd`:/workspace -w /workspace lsstdm/docsteady:latest \
+    docsteady generate-spec "/Data Management/Prompt" jira_docugen.tex
+```
+
+## CLI
+
+See the [generated documentation](https://lsst-dm.github.io/docsteady).
 
 # Writing Templates
 
@@ -14,6 +30,30 @@ We use pandoc for converting things between different formats.
 In general, you can write a a template using jinja in any language supported
 by pandoc, including latex, html, markdown, and restructured text. Our
 default language is latex. 
+
+
+## Resolving templates
+
+For both goals, **docsteady will first look for a template in
+`load-from`, which defaults to the current working directory**,
+and if no template is found, **it will then default to the templates
+defined in this package under  `docsteady/templates`**.
+
+* In the case of the `generate-spec` goal, it will by default look for a
+`spec` template.
+
+* In the case of `generate-cycle` goal, it will look for a `cycle` template.
+
+* When no options are presented to docsteady, the defaults are:
+  * `dm-spec.latex.jinja2` for `generate-spec` 
+  * `dm-cycle.latex.jinja2` for `generate-cycle`    
+  * The generate format is `{namespace}-{goal}.{template_format}.jinja2`
+
+* An appendix can be processed separately. Accordingly, the defaults are:
+  * `dm-spec-appendix.latex.jinja2` for `generate-spec` 
+  * `dm-cycle-appendix.latex.jinja2` for `generate-cycle`
+  * The general format is `{namespace}-{goal}-appendix.{template_format}.jinja2`
+
 
 ## Fields
 ### String, Integer, etc...
@@ -146,7 +186,7 @@ class TestStep(Schema):
 ```
 
 ### Simple Example
-If you added example template (`docsteady/templates/example-testcases.markdown.jinja2`),
+If you added example template (`docsteady/templates/example-spec.markdown.jinja2`),
 defined as:
 
 ```jinja2
@@ -165,13 +205,13 @@ On the web at {{ testcase.jira_url }}
 ```
 
 You could generate the resultant file, in latex (by default) via:
-* `docsteady --mode example --template markdown generate-spec "/Data Management/Prompt`
+* `docsteady --namespace example --template markdown generate-spec "/Data Management/Prompt`
 
 Or actually ask for it in markdown:
-* `docsteady --mode example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
+* `docsteady --namespace example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
 
 Or HTML:
-* `docsteady --mode example --template markdown generate-spec --format html "/Data Management/Prompt"`
+* `docsteady --namespace example --template markdown generate-spec --format html "/Data Management/Prompt"`
 
 ## Cycle model and `generate-cycle` 
 

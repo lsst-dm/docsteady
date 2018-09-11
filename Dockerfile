@@ -6,3 +6,4 @@ RUN dpkg -i pandoc-2.2.1-1-amd64.deb
 COPY setup.py /
 COPY docsteady /docsteady
 RUN python setup.py install
+WORKDIR /workspace
