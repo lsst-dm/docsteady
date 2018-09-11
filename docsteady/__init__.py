@@ -23,6 +23,7 @@ import sys
 from collections import OrderedDict
 from tempfile import TemporaryFile
 
+import arrow
 import click
 import pandoc
 from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, FileSystemLoader
@@ -30,6 +31,13 @@ from .spec import build_spec_model
 from .cycle import build_results_model
 from .config import Config
 from .formatters import alphanum_key
+
+from pkg_resources import get_distribution, DistributionNotFound
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    pass
 
 # Hack because pandoc doesn't have gfm yet
 pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
@@ -42,6 +50,7 @@ pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['
                                                          'Defaults to "latex".')
 @click.option('--load-from', default=os.path.curdir, help='Path to search for templates in. '
                                                           'Defaults to the working directory')
+@click.version_option(__version__)
 def cli(namespace, template_format, load_from):
     """Docsteady generates documents from Jira with the Adaptavist
     Test Management plugin.
@@ -106,7 +115,11 @@ def generate_spec(format, username, password, folder, path):
         click.echo(f"No Template Found: {template_path}", err=True)
         sys.exit(1)
 
-    text = template.render(testcases=testcases,
+    metadata = _metadata()
+    metadata["folder"] = folder
+    metadata["template"] = template.filename
+    text = template.render(metadata=metadata,
+                           testcases=testcases,
                            requirements_to_testcases=requirements_to_testcases,
                            requirements_map=Config.CACHED_REQUIREMENTS,
                            testcases_map=Config.CACHED_TESTCASES)
@@ -118,9 +131,10 @@ def generate_spec(format, username, password, folder, path):
     if not appendix_template:
         click.echo(f"No Appendix Template Found, skipping...", err=True)
         sys.exit(0)
-
+    metadata["template"] = appendix_template.filename
     appendix_file = _get_appendix_output(path)
     appendix_text = appendix_template.render(
+        metadata=metadata,
         testcases=testcases,
         requirements_to_testcases=requirements_to_testcases,
         requirements_map=Config.CACHED_REQUIREMENTS,
@@ -165,7 +179,13 @@ def generate_cycle(format, username, password, cycle, path):
     )
 
     template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
-    text = template.render(testcycle=test_cycle,
+
+    metadata = _metadata()
+    metadata["cycle"] = cycle
+    metadata["template"] = template.filename
+
+    text = template.render(metadata=metadata,
+                           testcycle=test_cycle,
                            testresults=test_results,
                            testcases_map=Config.CACHED_TESTCASES)
 
@@ -178,8 +198,11 @@ def generate_cycle(format, username, password, cycle, path):
         click.echo(f"No Appendix Template Found, skipping...", err=True)
         sys.exit(0)
 
+    metadata["template"] = appendix_template.filename
     appendix_file = _get_appendix_output(path)
-    appendix_text = appendix_template.render(testcycle=test_cycle,
+
+    appendix_text = appendix_template.render(metadata=metadata,
+                                             testcycle=test_cycle,
                                              testresults=test_results,
                                              testcases_map=Config.CACHED_TESTCASES)
     print(_as_output_format(appendix_text), file=appendix_file)
@@ -213,5 +236,13 @@ def _as_output_format(text):
     return text
 
 
-if __name__ == '__main__':
-    cli()
+def _metadata():
+    return dict(
+        created_on=arrow.now(),
+        docsteady_version=__version__,
+        project="LVV"
+    )
+
+
+#if __name__ == '__main__':
+cli()

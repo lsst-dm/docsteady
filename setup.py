@@ -7,7 +7,8 @@ requires = [
     'jinja2',
     'click',
     'BeautifulSoup4',
-    'marshmallow<3'
+    'marshmallow<3',
+    'setuptools_scm'
 ]
 
 doc_requires = [
@@ -18,7 +19,8 @@ doc_requires = [
 
 setup(
     name='docsteady',
-    version='1.0rc2',
+    use_scm_version={'version_scheme': 'post-release'},
+    setup_requires=['setuptools_scm'],
     packages=['docsteady'],
     url='https://github.com/lsst-dm/docsteady',
     license='GPL',
