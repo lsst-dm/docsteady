@@ -22,8 +22,9 @@
 Code for Test Report (Run) Model Generation
 """
 import requests
-from marshmallow import Schema, fields, pre_load
+from marshmallow import Schema, fields, pre_load, post_load
 
+from docsteady.spec import Issue
 from docsteady.utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
     MarkdownableHtmlPandocField
 from .config import Config
@@ -78,11 +79,17 @@ class ScriptResult(Schema):
     status = fields.String(load_from='status')
 
 
+class TestIssue(Schema):
+    key = fields.String()
+    jira_url = fields.String()
+
+
 class TestResult(Schema):
     id = fields.Integer(required=True)
     key = fields.String(required=True)
     automated = fields.Boolean(required=True)
     environment = fields.String()
+    comment = fields.String()
     execution_time = fields.Integer(load_from='executionTime', required=True)
     test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
                                     load_from='testCaseKey', required=True)
@@ -90,9 +97,35 @@ class TestResult(Schema):
                                      load_from='executionDate')
     script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
                                    required=True)
+    issues = fields.Nested(Issue, many=True)
+    issue_links = fields.List(fields.String(), load_from="issueLinks")
     user_id = fields.String(load_from="userKey")
     user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
     status = fields.String(load_from='status', required=True)
+
+    @post_load
+    def postprocess(self, data):
+        # Need to do this here because we need issue_links _and_ key
+        data['issues'] = self.process_issues(data)
+        return data
+
+    def process_issues(self, data):
+        issues = []
+        if "issue_links" in data:
+            # Build list of requirements
+            for issue_key in data["issue_links"]:
+                issue = Config.CACHED_ISSUES.get(issue_key, None)
+                if not issue:
+                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
+                    resp.raise_for_status()
+                    issue_resp = resp.json()
+                    issue, errors = Issue().load(issue_resp)
+                    if errors:
+                        raise Exception("Unable to Process Requirement: " + str(errors))
+                    Config.CACHED_ISSUES[issue_key] = issue
+                Config.ISSUES_TO_TESTRESULTS.setdefault(issue_key, []).append(data['key'])
+                issues.append(issue)
+        return issues
 
 
 def build_results_model(testrun_id):

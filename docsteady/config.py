@@ -40,9 +40,11 @@ class Config:
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
     CACHED_USERS = {}
-    CACHED_REQUIREMENTS = {}  # type : Dict[str, RequirementIssue]
+    CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
+    CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_TESTCASES = {}
+    ISSUES_TO_TESTRESULTS = {}
     TEMPLATE_LANGUAGE = "latex"
     TEMPLATE_DIRECTORY = os.curdir

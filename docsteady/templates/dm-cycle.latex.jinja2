@@ -1,0 +1,33 @@
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{% for testresult in testresults %}
+{% set testcase = testcases_map[testresult.test_case_key] %}
+{% set execution_date = testresult.execution_date.format('YYYY-MM-DD HH:mm:ss') %}
+
+\label{sect:detail-{{ testcase.key.lower() }}
+
+Test Execution Status: {{ testresult.status }}
+
+Summary: {{ testresult.comment }}
+
+Issues found:
+{%- if testresult.issues -%}
+{%- for issues in testresult.issues -%}{{ href(issue.jira_url, issue.key)}} {% endfor %}
+{%- else %} None.{% endif %}
+
+Steps Executions Report:
+
+\begin{longtable}{p{2cm}p{14cm}}
+\hline
+{Step} & {Actual Results and Status}\\ \hline
+{% for script_result in testresult.script_results %}
+{{ loop.index }} & Expected Result: {{ script_result.expected_result }} \\\cline{2-2}
+  & Actual Result: {{ script_result.comment }} \\\cline{2-2}
+  & Step Status: {{ script_result.status.upper() }} \\\hline
+{% endfor %}
+\end{longtable}
+
+
+{% endfor %}
