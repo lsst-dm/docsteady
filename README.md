@@ -117,7 +117,7 @@ and a small amount of code to aid in building the models.
 * `requirements_to_testcases`: Map of requirement key to testcase key 
 (type: `Dict[str, str]`)
 * `requirements_map`: All found requirements - requirement key to requirement 
-(type: `Dict[str, RequirementIssue]`)
+(type: `Dict[str, Issue]`)
 * `testcases_map`: All found testcases - testcase key to testcase 
 (type: `Dict[str, TestCase]`). This includes all test cases found in test scripts.
 
@@ -170,9 +170,9 @@ class TestCase(Schema):
     doc_href = fields.String()
 
     #: See below
-    requirements = fields.Nested(RequirementIssue, many=True)
+    requirements = fields.Nested(Issue, many=True)
 
-class RequirementIssue(Schema):
+class Issue(Schema):
     key = fields.String(required=True)
     summary = fields.String()
     jira_url = fields.String()
@@ -263,6 +263,8 @@ class TestResult(Schema):
                                      load_from='executionDate')
     script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
                                    required=True)
+    issues = fields.Nested(Issue, many=True)
+    issue_links = fields.List(fields.String(), load_from="issueLinks")
     user_id = fields.String(load_from="userKey")
     user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
     status = fields.String(load_from='status', required=True)

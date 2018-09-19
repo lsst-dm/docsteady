@@ -33,7 +33,7 @@ from .utils import owner_for_id, as_arrow, HtmlPandocField, \
     MarkdownableHtmlPandocField, test_case_for_key
 
 
-class RequirementIssue(Schema):
+class Issue(Schema):
     key = fields.String(required=True)
     summary = fields.String()
     jira_url = fields.String()
@@ -90,7 +90,7 @@ class TestCase(Schema):
 
     # synthesized fields (See @pre_load and @post_load)
     doc_href = fields.String()
-    requirements = fields.Nested(RequirementIssue, many=True)
+    requirements = fields.Nested(Issue, many=True)
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
@@ -124,22 +124,22 @@ class TestCase(Schema):
         return data
 
     def process_requirements(self, data):
-        requirements = []
+        issues = []
         if "issue_links" in data:
             # Build list of requirements
-            for issue in data["issue_links"]:
-                requirement = Config.CACHED_REQUIREMENTS.get(issue, None)
-                if not requirement:
-                    resp = requests.get(Config.ISSUE_URL.format(issue=issue), auth=Config.AUTH)
+            for issue_key in data["issue_links"]:
+                issue = Config.CACHED_REQUIREMENTS.get(issue_key, None)
+                if not issue:
+                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
                     resp.raise_for_status()
-                    requirement_resp = resp.json()
-                    requirement, errors = RequirementIssue().load(requirement_resp)
+                    issue_resp = resp.json()
+                    issue, errors = Issue().load(issue_resp)
                     if errors:
                         raise Exception("Unable to Process Requirement: " + str(errors))
-                    Config.CACHED_REQUIREMENTS[issue] = requirement
-                Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue, []).append(data['key'])
-                requirements.append(requirement)
-        return requirements
+                    Config.CACHED_REQUIREMENTS[issue_key] = issue
+                Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(data['key'])
+                issues.append(issue)
+        return issues
 
     def process_steps(self, test_script):
         teststeps, errors = TestStep().load(test_script['steps'], many=True)
