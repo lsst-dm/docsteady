@@ -58,6 +58,10 @@ class TestCycle(Schema):
     # custom fields
     software_version = HtmlPandocField()
     observing_required = fields.Boolean()
+    system_overview = HtmlPandocField()
+    verification_environment = HtmlPandocField()
+    entry_criteria = HtmlPandocField()
+    exit_criteria = HtmlPandocField()
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
@@ -69,6 +73,11 @@ class TestCycle(Schema):
 
         _set_if("software_version", "Software Version / Baseline")
         _set_if("observing_required", "Observing Required?")
+        _set_if("system_overview", "System Overview")
+        _set_if("verification_environment", "Verification Environment")
+        _set_if("entry_criteria", "Entry Criteria")
+        _set_if("exit_criteria", "Exit Criteria")
+
         return data
 
 
