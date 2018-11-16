@@ -57,6 +57,7 @@ class TestCycle(Schema):
 
     # custom fields
     software_version = HtmlPandocField()
+    observing_required = fields.Boolean()
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
@@ -67,6 +68,7 @@ class TestCycle(Schema):
                 data[target_field] = custom_fields[custom_field]
 
         _set_if("software_version", "Software Version / Baseline")
+        _set_if("observing_required", "Observing Required?")
         return data
 
 
