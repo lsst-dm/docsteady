@@ -164,12 +164,12 @@ def generate_cycle(format, username, password, tplan, path):
     tpr = build_tpr_model(tplan)
     print(tpr['tplan']['key'])
 
-    #for cycle in tpr['test_cycles']:
-    #    print(cycle)
+    for cycle in tpr['test_cycles']:
+        print(cycle)
     #    #print(tpr['test_cycles'][cycle])
-    #    for test in tpr['test_cycles'][cycle]['items']:
+        for test in tpr['test_cycles'][cycle]['items']:
             #print(tpr['test_cases'][test['test_case_key']])
-            #print(test)
+            print(test)
 
     # there should be no need to sort the test result
     #sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))

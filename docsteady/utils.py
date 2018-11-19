@@ -45,18 +45,27 @@ class HtmlPandocField(fields.String):
         return value
 
 def render(field):
-    words = field.split(' ')
-    i = 0
-    for word in words:
-        if 'LDM-' in word:
-            sw = word.split('LDM-')
-            #check that they are not milestones
-            checkm = sw[1].split('-')
-            if len(checkm) == 1:
-                words[i] = sw[0] + '\citeds{LDM-' + checkm[0][:3] + '}' + checkm[0][3:]
-        i += 1  
-    rendered = ' '.join(map(str, words))
-    return rendered
+    docs = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS']
+    content = field
+    for doc in docs:
+        doc = doc + '-'
+        #print(doc, end=" ")
+        words = content.split(' ')
+        i = 0
+        for word in words:
+            if doc in word:
+                #print('> ',doc , ' ', word)
+                sw = word.split(doc)
+                #print('- ', sw[1])
+                #check that they are not milestones (503-5)
+                # this check may need to be extended/adjusted
+                checkm = sw[1].split('-')
+                if len(checkm) == 1:
+                    #print('-> ', word)
+                    words[i] = sw[0] + '\citeds{' + doc + checkm[0][:3] + '}' + checkm[0][3:]
+            i += 1  
+        content = ' '.join(map(str, words))
+    return content
 
 class MarkdownableHtmlPandocField(fields.String):
     """

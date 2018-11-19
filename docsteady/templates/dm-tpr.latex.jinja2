@@ -138,12 +138,43 @@ Following personnel is involved in the test activity:
 \subsubsection{{ '{' }}{{ test.test_case_key }}{{ '}' }}
 
 {% set tc = testcases[test.test_case_key] %}
-{{ tc['objective'] }}
 {{ testcases[test.test_case_key]['objective'] }}
 
 {% endfor %}
 
 {% endfor %}
 
+\newpage
+
+\section{Test Results}
+\label{sect:testresults}
+
+\subsection{Overview of the Test Results}
+\label{sect:overview}
+
+\subsubsection{Summary Table}
+\label{sect:summarytable}
+
+
+\begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
+\toprule
+{% for cycle in testcycles %}
+\multicolumn{3}{c}{ Test Cycle {\bf {{ testcycles[cycle]['key'] }}: {{ testcycles[cycle]['name'] }} }} \\\hline
+{\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+{% for test in testcycles[cycle]['items'] %}
+{{ test['test_case_key'] }} & {{ test['status'] }} & {{ test['comment'] }} \\\hline
+{% endfor %}
+{% endfor %}
+\end{longtable}
+
+\subsubsection{Overall Assessment}
+\label{sect:overallassessment}
+
+
+\subsubsection{Recommended Improvements}
+\label{sect:recommendations}
+
+\subsection{Detailed Test Results}
+\label{sect:detailedtestresults}
 
 \end{document}
