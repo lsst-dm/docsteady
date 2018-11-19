@@ -40,8 +40,23 @@ class HtmlPandocField(fields.String):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+            if Config.TEMPLATE_LANGUAGE == 'latex':
+                value = render(value)
         return value
 
+def render(field):
+    words = field.split(' ')
+    i = 0
+    for word in words:
+        if 'LDM-' in word:
+            sw = word.split('LDM-')
+            #check that they are not milestones
+            checkm = sw[1].split('-')
+            if len(checkm) == 1:
+                words[i] = sw[0] + '\citeds{LDM-' + checkm[0][:3] + '}' + checkm[0][3:]
+        i += 1  
+    rendered = ' '.join(map(str, words))
+    return rendered
 
 class MarkdownableHtmlPandocField(fields.String):
     """

@@ -28,9 +28,9 @@ import click
 import pandoc
 from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, FileSystemLoader
 from .spec import build_spec_model
-from .cycle import build_results_model
 from .config import Config
 from .formatters import alphanum_key
+from .tplan import build_tpr_model
 
 from pkg_resources import get_distribution, DistributionNotFound
 try:
@@ -142,33 +142,37 @@ def generate_spec(format, username, password, folder, path):
     print(_as_output_format(appendix_text), file=appendix_file)
 
 
-@cli.command("generate-cycle")
+
+@cli.command("generate-tpr")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
-@click.argument('cycle')
+@click.argument('tplan')
 @click.argument('path', required=False, type=click.Path())
-def generate_cycle(format, username, password, cycle, path):
-    """Read in a test cycle and results from Adaptavist Test management
-    where CYCLE is the ATM Test Cycle. If specified, PATH is the resulting
-    output.
-
-    If PATH is specified, docsteady will examine the output filename
-    and attempt to write an appendix to a similar file.
-    For example, if the output is jira_docugen.tex, the output
-    will also print out a jira_docugen.appendix.tex file if a
-    template for the appendix is found. Otherwise, it will print
-    to standard out.
+def generate_cycle(format, username, password, tplan, path):
+    """Read in a Test Plan and related cycles from Adaptavist Test management.
+    If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
-    target = "cycle"
+    target = "tpr"
 
     Config.output = TemporaryFile(mode="r+")
-    test_cycle, test_results = build_results_model(cycle)
-    sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
+    #test_plan,test_cycles, test_results = build_tpr_model(tplan)
+    tpr = build_tpr_model(tplan)
+    print(tpr['tplan']['key'])
+
+    #for cycle in tpr['test_cycles']:
+    #    print(cycle)
+    #    #print(tpr['test_cycles'][cycle])
+    #    for test in tpr['test_cycles'][cycle]['items']:
+            #print(tpr['test_cases'][test['test_case_key']])
+            #print(test)
+
+    # there should be no need to sort the test result
+    #sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -181,13 +185,18 @@ def generate_cycle(format, username, password, cycle, path):
     template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     metadata = _metadata()
-    metadata["cycle"] = cycle
+    metadata["tplan"] = tplan
     metadata["template"] = template.filename
 
     text = template.render(metadata=metadata,
-                           testcycle=test_cycle,
-                           testresults=test_results,
+                           milestone=tpr['milestone'],
+                           testplan=tpr['tplan'],
+                           product=tpr['product'],
+                           testcycles=tpr['test_cycles'],
+                           testresults=tpr['test_results'],
+                           testcases=tpr['test_cases'],
                            testcases_map=Config.CACHED_TESTCASES)
+
 
     file = open(path, "w") if path else sys.stdout
     print(_as_output_format(text), file=file or sys.stdout)

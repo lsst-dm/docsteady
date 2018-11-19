@@ -31,7 +31,8 @@ class Config:
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
     TESTCASE_UI_URL = f"{JIRA_INSTANCE}/secure/Tests.jspa#/testCase/{{testcase}}"
     TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
-    TESTRUN_URL = f"{ATM_API}/testrun/{{testrun}}"
+    TESTCYCLE_URL = f"{ATM_API}/testrun/{{testrun}}"
+    TESTPLAN_URL = f"{ATM_API}/testplan/{{testplan}}"
     TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
     PANDOC_TYPE = None
     AUTH = None

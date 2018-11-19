@@ -1,0 +1,149 @@
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+\documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
+\usepackage{geometry}
+\usepackage{longtable,booktabs}
+
+\input meta.tex
+
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\begin{document}
+
+\def\milestoneName{{ '{' }}{{ milestone['name'] }}{{ '}' }} 
+\def\milestoneId{{ '{' }}{{ milestone['id'] }}{{ '}' }}
+\def\product{{ '{' }}{{ product }}{{ '}' }}
+
+\setDocCompact{true}
+
+\title[\milestoneId{}~Test Report]{\milestoneId{} (\milestoneName{})~Test Plan and Report}
+\setDocRef{\lsstDocType-\lsstDocNum}
+\setDocDate{\vcsdate}
+\setDocUpstreamLocation{\url{https://github.com/lsst/lsst-texmf/examples}}
+\author{ {{ testplan['owner'] }} }
+
+\input history_and_info.tex
+
+
+\setDocAbstract{
+This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST DM level 1 milestone pertaining to the \product{}.
+}
+
+
+\maketitle
+
+\section{Introduction}
+\label{sect:intro}
+
+\subsection{Objectives}
+\label{sect:objectives}
+
+{{  testplan['objective']}}
+
+\subsection{System Overview}
+\label{sect:systemoverview}
+
+{{  testplan['system_overview']}}
+
+\subsection{References}
+\label{sect:references}
+
+\renewcommand{\refname}{}
+\bibliography{lsst,refs,books,refs_ads}
+
+\subsection{Document Overview}
+\label{sect:docoverview}
+
+The following planning sections are completed before the start of the test activity.
+Section \ref{sect:configuration} of this document provides details of the \product{} baseline used for this test, including relevant hardware and software configurations.
+Section \ref{sect:personnel} lists the individuals involved in performing the tests.
+Section \ref{sect:plannedtestactivities} provides a descriptive list of planned test cases.
+Once the above sections are completed, this document can be reviewd in order to ensure that the test activity can start.
+
+Section \ref{sect:testresults} is filled after the test activity is completed.
+Its includes  an overview of the resulta in \ref{sect:overview}
+while \ref{sect:detailedtestresults} provides more detailed results from each individual test case.
+
+\newpage
+\section{Test Configuration}
+\label{sect:configuration}
+
+{% if testplan.observing_required %}
+Observing is required for this test campaign.
+{% else %}
+Observing is not required for this test campaign.
+{% endif %}
+
+
+\subsection{Verification Environment}
+\label{sect:hwconf}
+{% if testplan.verification_environment %}
+{{ testplan.verification_environment }}
+{% endif %}
+
+{% if testplan.entry_criteria %}
+\subsection{Entry Criteria}
+{{ testplan.entry_criteria }}
+{% endif %}
+
+{% if testplan.exit_criteria %}
+\subsection{Exit Criteria}
+{{ testplan.exit_criteria }}
+{% endif %}
+
+{% if testplan.pmcs_activity %}
+\subsection{PMCS Activity}
+{{ testplan.pmcs_activity }}
+{% endif %}
+
+\newpage
+\section{Personnel}
+\label{sect:personnel}
+
+Following personnel is involved in the test activity:
+
+\begin{itemize}
+\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }} ({{ testplan.owner_id }})
+\item Test Cycles:
+\begin{itemize}
+{% for cycle in testcycles %}
+  \item {{ cycle }}: {{ testcycles[cycle]['owner'] }} ({{ testcycles[cycle]['owner_id'] }})
+  \begin{itemize}
+  {% for test in testcycles[cycle]['items'] %}
+    \item Test case {{ test.test_case_key }}: {{ test.user }} ({{ test.user_id }})
+  {% endfor %}
+  \end{itemize}
+{% endfor %}
+\end{itemize}
+\item Additional Test Personel involved: None
+\end{itemize}
+
+\newpage
+\section{Planned Test Activities}
+\label{sect:plannedtestactivities}
+
+{% for cycle in testcycles %}
+
+\subsection{{ '{' }}Test Cycle {{ testcycles[cycle]['key']}}{{ '}' }}
+
+{{ testcycles[cycle]['name'] }}
+
+{{ testcycles[cycle]['description'] }}
+
+{% for test in testcycles[cycle]['items'] %}
+
+\subsubsection{{ '{' }}{{ test.test_case_key }}{{ '}' }}
+
+{% set tc = testcases[test.test_case_key] %}
+{{ tc['objective'] }}
+{{ testcases[test.test_case_key]['objective'] }}
+
+{% endfor %}
+
+{% endfor %}
+
+
+\end{document}
