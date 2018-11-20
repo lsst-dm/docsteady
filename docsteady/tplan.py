@@ -22,12 +22,11 @@
 Code for Test Report (Run) Model Generation
 """
 import requests
-from marshmallow import Schema, fields, pre_load, post_load
+from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
 from docsteady.spec import Issue, TestCase
-from docsteady.utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField
+from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField
 from .config import Config
 
 
@@ -113,38 +112,6 @@ class TestPlan(Schema):
         data["cycles"] = [cycle["key"] for cycle in data["testRuns"]]
         return data
 
-
-#def render(field):
-#    words = field.split(' ')
-#    i = 0
-#    for word in words:
-#        if 'LDM-' in word:
-#            print(i, '> ', word)
-#            sw = word.split('LDM-')
-#            print('    ', sw[1]) 
-#            #check that they are not milestones
-#            checkm = sw[1].split('-')
-#            if len(checkm) == 1:
-#                print('........', checkm[0][:3])
-#                words[i] = sw[0] + '\citeds(\{LDM-' + checkm[0][:3] + '}' + checkm[0][3:]
-#        i += 1
-#    rendered = ' '.join(map(str, words))
-#    print('R: ', rendered)
-#    return rendered
-
-
-#def cite_docs(element):
-#    docs = []
-#    l = 0
-#    for field in element:
-#        print(l)
-#        if field not in ('custom_fields', 'cycles'):
-#            print('--field: ', field)
-#            if isinstance(element[field], str):
-#                print('i-> ', element[field])
-#                element[l] = render(element[field])
-#        l += 1
-#    return element
 
 def build_tpr_model(tplan_id):
     resp = requests.get(Config.TESTPLAN_URL.format(testplan=tplan_id),
