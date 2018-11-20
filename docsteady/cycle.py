@@ -43,7 +43,7 @@ class TestCycleItem(Schema):
 class TestCycle(Schema):
     key = fields.String(required=True)
     name = fields.String(required=True)
-    description = fields.String(required=True)
+    description = HtmlPandocField()
     status = fields.String(required=True)
     execution_time = fields.Integer(required=True, load_from="executionTime")
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
