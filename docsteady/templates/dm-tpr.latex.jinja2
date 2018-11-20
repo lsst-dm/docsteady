@@ -110,7 +110,7 @@ Following personnel is involved in the test activity:
 \item Test Cycles:
 \begin{itemize}
 {% for cycle in testcycles %}
-  \item {{ cycle_key }}: {{ cycle['owner'] }} ({{ cycle['owner_id'] }})
+  \item {{ cycle.key }}: {{ cycle.owner }} ({{ cycle.owner_id }})
   \begin{itemize}
   {% for test_item in cycle.test_items %}
     \item Test case {{ test_item.test_case_key }}: {{ test_item.user }} ({{ test_item.user_id }})
