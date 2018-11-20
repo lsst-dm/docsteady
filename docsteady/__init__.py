@@ -27,12 +27,13 @@ import arrow
 import click
 import pandoc
 from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, FileSystemLoader
-from .spec import build_spec_model
+from pkg_resources import get_distribution, DistributionNotFound
+
 from .config import Config
 from .formatters import alphanum_key
+from .spec import build_spec_model
 from .tplan import build_tpr_model
 
-from pkg_resources import get_distribution, DistributionNotFound
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
@@ -142,15 +143,14 @@ def generate_spec(format, username, password, folder, path):
     print(_as_output_format(appendix_text), file=appendix_file)
 
 
-
 @cli.command("generate-tpr")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
-@click.argument('tplan')
+@click.argument('plan')
 @click.argument('path', required=False, type=click.Path())
-def generate_cycle(format, username, password, tplan, path):
+def generate_report(format, username, password, plan, path):
     """Read in a Test Plan and related cycles from Adaptavist Test management.
     If specified, PATH is the resulting output.
     """
@@ -160,19 +160,14 @@ def generate_cycle(format, username, password, tplan, path):
     target = "tpr"
 
     Config.output = TemporaryFile(mode="r+")
-    #test_plan,test_cycles, test_results = build_tpr_model(tplan)
-    tpr = build_tpr_model(tplan)
-    print(tpr['tplan']['key'])
 
-    for cycle in tpr['test_cycles']:
-        print(cycle)
-    #    #print(tpr['test_cycles'][cycle])
-        for test in tpr['test_cycles'][cycle]['items']:
-            #print(tpr['test_cases'][test['test_case_key']])
-            print(test)
+    plan_dict = build_tpr_model(plan)
+    testplan = plan_dict['tplan']
+    testcycles_map = plan_dict['test_cycles_map']
+    testresults_map = plan_dict['test_results_map']
+    testcases_map = plan_dict['test_cases_map']
 
-    # there should be no need to sort the test result
-    #sorted(test_results, key=lambda item: alphanum_key(item['test_case_key']))
+    testcycles = sorted(testcycles_map.values(), key=lambda item: alphanum_key(item["key"]))
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -189,14 +184,11 @@ def generate_cycle(format, username, password, tplan, path):
     metadata["template"] = template.filename
 
     text = template.render(metadata=metadata,
-                           milestone=tpr['milestone'],
-                           testplan=tpr['tplan'],
-                           product=tpr['product'],
-                           testcycles=tpr['test_cycles'],
-                           testresults=tpr['test_results'],
-                           testcases=tpr['test_cases'],
-                           testcases_map=Config.CACHED_TESTCASES)
-
+                           testplan=testplan,
+                           testcycles=testcycles,
+                           testcycles_map=testcycles_map,
+                           testresults_map=testresults_map,
+                           testcases_map=testcases_map)
 
     file = open(path, "w") if path else sys.stdout
     print(_as_output_format(text), file=file or sys.stdout)
@@ -210,10 +202,14 @@ def generate_cycle(format, username, password, tplan, path):
     metadata["template"] = appendix_template.filename
     appendix_file = _get_appendix_output(path)
 
-    appendix_text = appendix_template.render(metadata=metadata,
-                                             testcycle=test_cycle,
-                                             testresults=test_results,
-                                             testcases_map=Config.CACHED_TESTCASES)
+    appendix_text = appendix_template.render(
+        metadata=metadata,
+        testplan=testplan,
+        testcycles=testcycles,
+        testcycles_map=testcycles_map,
+        testresults_map=testresults_map,
+        testcases_map=testcases_map)
+
     print(_as_output_format(appendix_text), file=appendix_file)
 
 

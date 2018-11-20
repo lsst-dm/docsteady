@@ -22,128 +22,19 @@
 Code for Test Report (Run) Model Generation
 """
 import requests
-import sys
 from marshmallow import Schema, fields, pre_load, post_load
 
+from docsteady.cycle import TestCycle, TestResult
 from docsteady.spec import Issue, TestCase
 from docsteady.utils import owner_for_id, test_case_for_key, as_arrow, HtmlPandocField, \
     MarkdownableHtmlPandocField
 from .config import Config
 
 
-class TestCycleItem(Schema):
-    id = fields.Integer(required=True)
-    test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
-                                    load_from='testCaseKey', required=True)
-    user_id = fields.String(load_from="userKey")
-    user = fields.Function(deserialize=lambda obj: owner_for_id(obj["userKey"]))
-    execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
-    status = fields.String(required=True)
-
-
-class TestCycle(Schema):
-    key = fields.String(required=True)
-    name = fields.String(required=True)
-    description = fields.String(required=True)
-    status = fields.String(required=True)
-    execution_time = fields.Integer(required=True, load_from="executionTime")
-    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
-    updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
-    planned_start_date = fields.Function(deserialize=lambda o: as_arrow(o['plannedStartDate']))
-    owner_id = fields.String(load_from="owner", required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
-    custom_fields = fields.Dict(load_from="customFields")
-    items = fields.Nested(TestCycleItem, many=True)
-
-    # custom fields
-    name = HtmlPandocField()
-    description = HtmlPandocField()
-    software_version = HtmlPandocField()
-    configuration = HtmlPandocField()
-
-    @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
-        custom_fields = data["customFields"]
-
-        def _set_if(target_field, custom_field):
-            if custom_field in custom_fields:
-                data[target_field] = custom_fields[custom_field]
-
-        _set_if("software_version", "Software Version / Baseline")
-        return data
-
-
-class ScriptResult(Schema):
-    index = fields.Integer(load_from='index')
-    expected_result = MarkdownableHtmlPandocField(load_from='expectedResult')
-    execution_date = fields.String(load_from='executionDate')
-    description = MarkdownableHtmlPandocField(load_from='description')
-    comment = MarkdownableHtmlPandocField(load_from='comment')
-    status = fields.String(load_from='status')
-
-
-class TestIssue(Schema):
-    key = fields.String()
-    jira_url = fields.String()
-
-
-class TestResult(Schema):
-    id = fields.Integer(required=True)
-    key = fields.String(required=True)
-    automated = fields.Boolean(required=True)
-    environment = fields.String()
-    comment = fields.String()
-    execution_time = fields.Integer(load_from='executionTime', required=True)
-    test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
-                                    load_from='testCaseKey', required=True)
-    execution_date = fields.Function(deserialize=lambda o: as_arrow(o), required=True,
-                                     load_from='executionDate')
-    script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
-                                   required=True)
-    issues = fields.Nested(Issue, many=True)
-    issue_links = fields.List(fields.String(), load_from="issueLinks")
-    user_id = fields.String(load_from="userKey")
-    user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
-    status = fields.String(load_from='status', required=True)
-
-    @post_load
-    def postprocess(self, data):
-        # Need to do this here because we need issue_links _and_ key
-        data['issues'] = self.process_issues(data)
-        return data
-
-    def process_issues(self, data):
-        issues = []
-        if "issue_links" in data:
-            # Build list of requirements
-            for issue_key in data["issue_links"]:
-                issue = Config.CACHED_ISSUES.get(issue_key, None)
-                if not issue:
-                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
-                    resp.raise_for_status()
-                    issue_resp = resp.json()
-                    issue, errors = Issue().load(issue_resp)
-                    if errors:
-                        raise Exception("Unable to Process Requirement: " + str(errors))
-                    Config.CACHED_ISSUES[issue_key] = issue
-                Config.ISSUES_TO_TESTRESULTS.setdefault(issue_key, []).append(data['key'])
-                issues.append(issue)
-        return issues
-
-class TestCycleId(Schema):
-    #
-    # Apparantly the TestCycle class do not return the related test cases
-    # when called from the TestPlan class
-    # So I populate the TestPlan with just the TestCycle IDs and
-    # extract the full TestCycle details in a second moment
-    #
-    key = fields.String(required=True)
-
 class TestPlan(Schema):
     key = fields.String(required=True)
     name = fields.String(required=True)
-    objective = fields.String(required=True)
+    objective = HtmlPandocField()
     status = fields.String(required=True)
     folder = fields.String(required=True)
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
@@ -152,11 +43,17 @@ class TestPlan(Schema):
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
     custom_fields = fields.Dict(load_from="customFields")
-    tcycles_id = fields.Nested(TestCycle, many=True, load_from="testRuns")
+
+    # See preprocess_plan function for this. It's really nested, but we
+    # pull out the keys and ignore ``testRuns``
+    cycles = fields.List(fields.String())
+
+    # Derived fields
+    milestone_id = fields.String()
+    milestone_name = fields.String()
+    product = fields.String()
 
     # custom fields
-    name = HtmlPandocField()
-    objective = HtmlPandocField()
     system_overview = HtmlPandocField()
     verification_environment = HtmlPandocField()
     entry_criteria = HtmlPandocField()
@@ -166,10 +63,21 @@ class TestPlan(Schema):
     observing_required = fields.Boolean()
     overall_assessment = HtmlPandocField()
     recommended_improvements = HtmlPandocField()
-    product = fields.String()
+    # Note: Add More custom fields above here (and don't forget preprocess_plan)
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def preprocess_plan(self, data):
+        """
+        During pre_load, we modify the input dictionary to make it look like
+        extra data was in the request information. This means that we "pull up"
+        custom fields in from the ``customFields`` dict, and we also, for the
+        test plan, extract milestone information from the folrder information.
+
+        Marshmallow will see the modified input dictionary and use the
+        schema definition appropriately.
+        """
+
+        # Handle custom fields first
         custom_fields = data["customFields"]
 
         def _set_if(target_field, custom_field):
@@ -185,7 +93,26 @@ class TestPlan(Schema):
         _set_if("verification_artifacts", "Verification Artifacts")
         _set_if("overall_assessment", "Overall Assessment")
         _set_if("recommended_improvements", "Recommended Improvements")
+        # Note: Add More custom fields above here
+
+        # Derived fields
+        # Extract milestone information
+        sname = data['name'].split(" ")
+        namekey = sname[0][:3]
+        if namekey == '503':
+            data['milestone_id'] = sname[0]
+            data['milestone_name'] = data['name'].replace(sname[0], '').strip().capitalize()
+        else:
+            data['milestone_id'] = data['key']
+            data['milestone_name'] = data['key'].capitalize()
+
+        # Product
+        data['product'] = data['folder'].split('/')[-1]
+
+        # Flatten out testRuns
+        data["cycles"] = [cycle["key"] for cycle in data["testRuns"]]
         return data
+
 
 #def render(field):
 #    words = field.split(' ')
@@ -211,7 +138,7 @@ class TestPlan(Schema):
 #    l = 0
 #    for field in element:
 #        print(l)
-#        if field not in ('custom_fields', 'tcycles_id'):
+#        if field not in ('custom_fields', 'cycles'):
 #            print('--field: ', field)
 #            if isinstance(element[field], str):
 #                print('i-> ', element[field])
@@ -225,51 +152,34 @@ def build_tpr_model(tplan_id):
     resp.raise_for_status()
     testplan, errors = TestPlan().load(resp.json())
 
-    # gret the milestone info
-    milestone = {}
-    sname = testplan['name'].split(" ")
-    namekey = sname[0][:3]
-    if namekey == '503':
-       milestone['id'] = sname[0]
-       milestone['name'] = testplan['name'].replace(sname[0],'').strip().capitalize()
-    else:
-       milestone['id'] = testplan['key']
-       milestone['name'] = testplan['key'].capitalize()
-
-    # get last part pf the folder: the product
-    sfolder = testplan['folder'].split('/')
-    #print(sfolder[len(sfolder)-1])
-    product = sfolder[len(sfolder)-1]
-
     # get a list of extra fields
     # not possible now.
 
-    test_cycles = {}
-    test_results = {}
-    test_cases = {}
-    for tcycle in testplan['tcycles_id']:
-        resp = requests.get(Config.TESTCYCLE_URL.format(testrun=tcycle['key']),
-                            auth=Config.AUTH)
-        testschema, error = TestCycle().load(resp.json())
-        test_cycles[tcycle['key']] = testschema
-        resp = requests.get(Config.TESTRESULTS_URL.format(testrun=tcycle['key']),
-                            auth=Config.AUTH)
+    test_cycles_map = {}
+    test_results_map = {}
+    test_cases_map = {}
+
+    for cycle_key in testplan['cycles']:
+        resp = requests.get(Config.TESTCYCLE_URL.format(testrun=cycle_key), auth=Config.AUTH)
+        test_cycle, error = TestCycle().load(resp.json())
+        test_cycles_map[cycle_key] = test_cycle
+
+        resp = requests.get(Config.TESTRESULTS_URL.format(testrun=cycle_key), auth=Config.AUTH)
         resp.raise_for_status()
         testresult, errors = TestResult().load(resp.json(), many=True)
-        test_results[tcycle['key']] = testresult 
-        for item in testschema['items']:
-            resp = requests.get(Config.TESTCASE_URL.format(testcase=item['test_case_key']),
-                               auth=Config.AUTH)
-            tcase = TestCase().load(resp.json())
-            test_cases[item['test_case_key']] = tcase
+        test_results_map[cycle_key] = testresult
+
+        # Get all the test cases from the test items
+        for test_item in test_cycle['test_items']:
+            resp = requests.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']),
+                                auth=Config.AUTH)
+            testcase, errors = TestCase().load(resp.json())
+            test_cases_map[test_item['test_case_key']] = testcase
 
     tpr = {}
     tpr['tplan'] = testplan
-    tpr['milestone'] = milestone
-    tpr['product'] = product
-    tpr['test_cycles'] = test_cycles
-    tpr['test_results'] = test_results
-    tpr['test_cases'] = test_cases
+    tpr['test_cycles_map'] = test_cycles_map
+    tpr['test_results_map'] = test_results_map
+    tpr['test_cases_map'] = test_cases_map
 
-    #return testplan, test_cycles, test_results
     return tpr
