@@ -53,7 +53,8 @@ class TestCycle(Schema):
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
     custom_fields = fields.Dict(load_from="customFields")
-    items = fields.Nested(TestCycleItem, many=True)
+    # Renamed to prevent Jinja collision
+    test_items = fields.Nested(TestCycleItem, many=True, load_from="items")
 
     # custom fields
     software_version = HtmlPandocField()
