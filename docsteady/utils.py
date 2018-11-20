@@ -41,32 +41,14 @@ class HtmlPandocField(fields.String):
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
             if Config.TEMPLATE_LANGUAGE == 'latex':
-                value = render(value)
+                value = cite_docushare_handles(value)
         return value
 
 
-def render(field):
-    docs = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS']
-    content = field
-    for doc in docs:
-        doc = doc + '-'
-        #print(doc, end=" ")
-        words = content.split(' ')
-        i = 0
-        for word in words:
-            if doc in word:
-                #print('> ',doc , ' ', word)
-                sw = word.split(doc)
-                #print('- ', sw[1])
-                #check that they are not milestones (503-5)
-                # this check may need to be extended/adjusted
-                checkm = sw[1].split('-')
-                if len(checkm) == 1:
-                    #print('-> ', word)
-                    words[i] = sw[0] + '\citeds{' + doc + checkm[0][:3] + '}' + checkm[0][3:]
-            i += 1  
-        content = ' '.join(map(str, words))
-    return content
+def cite_docushare_handles(text):
+    """This will find matching docushare handles and replace
+    the text with the ``\citeds{text}``."""
+    return Config.DOCUSHARE_DOC_PATTERN.sub(r"\citeds{\1\2}\3", text)
 
 
 class MarkdownableHtmlPandocField(fields.String):
