@@ -50,9 +50,8 @@ class TestCycle(Schema):
     updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
     planned_start_date = fields.Function(deserialize=lambda o: as_arrow(o['plannedStartDate']))
     created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
-    # Unofficial, but translate these to creator to owner for simplicity
-    owner_id = fields.String(load_from="createdBy", required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
+    owner_id = fields.String(load_from="owner", required=True)
+    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     custom_fields = fields.Dict(load_from="customFields")
     # Renamed to prevent Jinja collision
     test_items = fields.Nested(TestCycleItem, many=True, load_from="items")
