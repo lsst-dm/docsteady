@@ -57,6 +57,7 @@ class TestCycle(Schema):
 
     # custom fields
     software_version = HtmlPandocField()
+    configuration = HtmlPandocField()
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
@@ -67,6 +68,7 @@ class TestCycle(Schema):
                 data[target_field] = custom_fields[custom_field]
 
         _set_if("software_version", "Software Version / Baseline")
+        _set_if("configuration", "Configuration")
         return data
 
 
@@ -128,12 +130,12 @@ class TestResult(Schema):
         return issues
 
 
-def build_results_model(testrun_id):
-    resp = requests.get(Config.TESTRUN_URL.format(testrun=testrun_id),
+def build_results_model(testcycle_id):
+    resp = requests.get(Config.TESTCYCLE_URL.format(testrun=testcycle_id),
                         auth=Config.AUTH)
     resp.raise_for_status()
     testcycle, errors = TestCycle().load(resp.json())
-    resp = requests.get(Config.TESTRESULTS_URL.format(testrun=testrun_id),
+    resp = requests.get(Config.TESTRESULTS_URL.format(testrun=testcycle_id),
                         auth=Config.AUTH)
     resp.raise_for_status()
     testresults, errors = TestResult().load(resp.json(), many=True)
