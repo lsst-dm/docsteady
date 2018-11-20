@@ -44,6 +44,7 @@ class HtmlPandocField(fields.String):
                 value = render(value)
         return value
 
+
 def render(field):
     docs = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS']
     content = field
@@ -66,6 +67,7 @@ def render(field):
             i += 1  
         content = ' '.join(map(str, words))
     return content
+
 
 class MarkdownableHtmlPandocField(fields.String):
     """
