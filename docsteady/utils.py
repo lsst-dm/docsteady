@@ -22,6 +22,7 @@
 Code for Test Specification Model Generation
 """
 import re
+from collections import OrderedDict
 
 import arrow
 from bs4 import BeautifulSoup
@@ -38,6 +39,26 @@ class HtmlPandocField(fields.String):
     """
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            Config.DOC.html = value.encode("utf-8")
+            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+            if Config.TEMPLATE_LANGUAGE == 'latex':
+                value = cite_docushare_handles(value)
+        return value
+
+
+class SubsectionableHtmlPandocField(fields.String):
+    """
+    A field that originates as HTML but is normalized to a template
+    language.
+    """
+
+    def __init__(self, *args, extractable=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.extractable = extractable or []
+
+    def _deserialize(self, value, attr, data):
+        if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            value = rewrite_strong_to_subsection(value, self.extractable)
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
             if Config.TEMPLATE_LANGUAGE == 'latex':
@@ -108,3 +129,50 @@ def test_case_for_key(test_case_key):
         Config.CACHED_TESTCASES[test_case_key] = testcase
         cached_testcase_resp = testcase
     return cached_testcase_resp
+
+
+def rewrite_strong_to_subsection(content, extractable):
+    """
+    Extract specific "strong" elements and rewrite them to headings so
+    they appear as subsections in Latex
+    :param extractable: List of names that are extractable
+    :param content: HTML to parse
+    :return: New HTML
+    """
+    # The default is to preserve order,
+    preserve_order = True
+    soup = BeautifulSoup(content, "html.parser")
+    element_neighbor_text = ""
+    seen_name = None
+    shelved = []
+    new_order = shelved if preserve_order else []
+    found_items = OrderedDict()
+    for elem in soup.children:
+        if "strong" == elem.name:
+            if seen_name:
+                found_items[seen_name] = element_neighbor_text
+                new_order.append(element_neighbor_text)
+                seen_name = None
+            else:
+                shelved.append(element_neighbor_text)
+
+            element_neighbor_text = ""
+            element_name = elem.text.lower().replace(" ", "_")
+            if element_name in extractable:
+                seen_name = element_name
+                # h2 appears as subsection in latex via pandoc
+                elem.name = "h2"
+
+        element_neighbor_text += str(elem) + "\n"
+
+    if seen_name:
+        found_items[seen_name] = element_neighbor_text
+        new_order.append(element_neighbor_text)
+    else:
+        shelved.append(element_neighbor_text)
+
+    # Note: Could sort according to found_items.keys()
+    # if not preserve_order:
+    #     new_order = list(found_items.values())
+    #     new_order.extend(shelved)
+    return "".join(new_order)

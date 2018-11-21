@@ -26,14 +26,14 @@ from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
 from docsteady.spec import Issue, TestCase
-from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField
+from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField
 from .config import Config
 
 
 class TestPlan(Schema):
     key = fields.String(required=True)
     name = fields.String(required=True)
-    objective = HtmlPandocField()
+    objective = SubsectionableHtmlPandocField(extractable=["scope"])
     status = fields.String(required=True)
     folder = fields.String(required=True)
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
