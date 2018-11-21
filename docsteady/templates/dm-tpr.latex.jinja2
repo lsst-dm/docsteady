@@ -38,10 +38,18 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 \section{Introduction}
 \label{sect:intro}
 
+
 \subsection{Objectives}
 \label{sect:objectives}
 
 {{ testplan['objective'] }}
+
+{% for extraField in testplan['objective']['extraFields'] %}
+
+\subsubsection{ {{ extraField['name']}} }
+{{ extraField['content'] }}
+
+{% endfor %}
 
 \subsection{System Overview}
 \label{sect:systemoverview}
@@ -134,7 +142,7 @@ Following personnel is involved in the test activity:
 
 \subsubsection{{ '{' }}{{ cycle_item.test_case_key }}{{ '}' }}
 
-{{ testcases_map.objective }}
+{{ testcases_map[cycle_item.test_case_key].objective }}
 
 \begin{longtable}[]{p{1.3cm}p{15cm}}
 %\toprule
