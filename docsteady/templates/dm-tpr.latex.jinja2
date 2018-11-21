@@ -50,7 +50,6 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 
 \subsection{References}
 \label{sect:references}
-
 \renewcommand{\refname}{}
 \bibliography{lsst,refs,books,refs_ads}
 
@@ -67,7 +66,6 @@ Section \ref{sect:testresults} is filled after the test activity is completed.
 Its includes  an overview of the resulta in \ref{sect:overview}
 while \ref{sect:detailedtestresults} provides more detailed results from each individual test case.
 
-\newpage
 \section{Test Configuration}
 \label{sect:configuration}
 
@@ -99,7 +97,6 @@ Observing is not required for this test campaign.
 {{ testplan.pmcs_activity }}
 {% endif %}
 
-\newpage
 \section{Personnel}
 \label{sect:personnel}
 
@@ -137,8 +134,27 @@ Following personnel is involved in the test activity:
 
 \subsubsection{{ '{' }}{{ cycle_item.test_case_key }}{{ '}' }}
 
-{% set testcase = testcases_map[cycle_item.test_case_key] %}
-{{ testcase.objective }}
+{{ testcases_map.objective }}
+
+\begin{longtable}[]{p{1.3cm}p{15cm}}
+%\toprule
+Step & {Description} \\ \toprule
+\endhead
+
+{% set step_id = namespace(a=1) %}
+
+{% for step in testcases_map[cycle_item.test_case_key]['test_script'] %}
+\multirow{1}{*}{ {{ step_id.a }} } &
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ step['description'] }}
+\vspace{\dp0}
+} \end{minipage} \\
+\\ \midrule
+{% set step_id.a = step_id.a + 1 %}
+{% endfor %}
+
+\end{longtable}
+
 
 {% endfor %}
 
