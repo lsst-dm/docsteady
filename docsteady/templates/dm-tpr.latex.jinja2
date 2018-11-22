@@ -61,18 +61,39 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 \renewcommand{\refname}{}
 \bibliography{lsst,refs,books,refs_ads}
 
-\subsection{Document Overview}
+\subsection{Document Overview and Procedure}
 \label{sect:docoverview}
 
-The following planning sections are completed before the start of the test activity.
-Section \ref{sect:configuration} of this document provides details of the \product{} baseline used for this test, including relevant hardware and software configurations.
-Section \ref{sect:personnel} lists the individuals involved in performing the tests.
-Section \ref{sect:plannedtestactivities} provides a descriptive list of planned test cases.
-Once the above sections are completed, this document can be reviewd in order to ensure that the test activity can start.
+This document is generated from Jira, obtaining the relevant information from the 
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
+~Jira Test Plan and related Test Cycles (
+{% for cycle in testcycles %}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCycle/{{ cycle.key }}{{ '}' }}{{ '{' }}{{ cycle.key }}{{ '}' }}
+{% endfor %}
+).
 
-Section \ref{sect:testresults} is filled after the test activity is completed.
-Its includes  an overview of the resulta in \ref{sect:overview}
-while \ref{sect:detailedtestresults} provides more detailed results from each individual test case.
+The following general sections are completed before the start of the test activity.
+
+Section \ref{sect:intro} provides an overview of the test campaing, the system under test (\product{}), the documentation, and explains how this document is organized.
+Section \ref{sect:configuration}  describes the configuration used for this test.
+Section \ref{sect:personnel} lists all people and roles involved.
+Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant informatino that fully describe the the test campaign.
+The content provided by the above sections shall be sufficient to prove that that the test campaign is ready to start.
+
+Once the above sections are completed, this document can be reviewed by the product leader, the involved opersonel (section \ref{sect:personnel} and by who requested the test campaign.
+If everybody agree that the test is ready to start, the Jira Test Plan shall be set to {\bf Approved} by the \product{} product leader.
+A first issue of this document can be uploaded in docushare for record.
+
+Section \ref{sect:testresults} is filled after the test activity is completed and the Jira Test Cycles involved have been set to {\bf Done}.
+The first subsection \ref{sect:overview} provides a summary view of the results, in table \ref{table:summary}, 
+an overall assessment statement and suggestions on possible improvements.
+The subsection \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+
+When completed, this document has to be approved by who requested the test activity and
+the final issued uploaded in docushate. 
+The status of the Jira Test Plan shall then be set to {\bf Completed}.
+
+The actual status of the Jira test plan {{ testplan['key'] }} is {{ testplan['status'] }}.
 
 \section{Test Configuration}
 \label{sect:configuration}
@@ -82,7 +103,6 @@ Observing is required for this test campaign.
 {% else %}
 Observing is not required for this test campaign.
 {% endif %}
-
 
 \subsection{Verification Environment}
 \label{sect:hwconf}
@@ -115,10 +135,15 @@ Following personnel is involved in the test activity:
 \item Test Cycles:
 \begin{itemize}
 {% for cycle in testcycles %}
-  \item {{ cycle.key }}: {{ cycle.owner }} ({{ cycle.owner_id }})
+  \item {{ cycle.key }} owner: 
+{% if cycle.owner %}
+{{ cycle.owner }} ({{ cycle.owner_id }})
+{% else %}
+Undefined
+{% endif %}
   \begin{itemize}
   {% for test_item in cycle.test_items %}
-    \item Test case {{ test_item.test_case_key }}: {{ test_item.user }} ({{ test_item.user_id }})
+    \item Test case {{ test_item.test_case_key }} tester: {{ test_item.user }} ({{ test_item.user_id }})
   {% endfor %}
   \end{itemize}
 {% endfor %}
@@ -134,7 +159,9 @@ Following personnel is involved in the test activity:
 
 \subsection{{ '{' }}Test Cycle {{ cycle.key }}{{ '}' }}
 
-{{ cycle.name }}
+{{ cycle.name }}\\
+Status: {{cycle.status }}
+
 
 {{ cycle.description }}
 
@@ -160,7 +187,6 @@ Step & {Description} \\ \toprule
 \\ \midrule
 {% set step_id.a = step_id.a + 1 %}
 {% endfor %}
-
 \end{longtable}
 
 
@@ -189,6 +215,8 @@ Step & {Description} \\ \toprule
 {{ test_item['test_case_key'] }} & {{ test_item['status'] }} & {{ test_item['comment'] }} \\\hline
 {% endfor %}
 {% endfor %}
+\caption{Test Results Summary Table}
+\label{table:summary}
 \end{longtable}
 
 \subsubsection{Overall Assessment}
