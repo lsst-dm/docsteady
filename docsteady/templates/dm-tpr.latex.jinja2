@@ -165,6 +165,22 @@ Status: {{cycle.status }}
 
 {{ cycle.description }}
 
+\subsection{Cycle additional Information}
+
+\subsubsection{Software Version/Baseline}
+{% if cycle.software_version %}
+{{cycle.software_version}}
+{% else %}
+Not provided.
+{% endif %}
+
+\subsubsection{Configuration}
+{% if cycle.configuration %}
+{{ cycle.configuration }}
+{% else %}
+Not provided.
+{% endif %}
+
 {% for cycle_item in cycle.test_items %}
 
 \subsubsection{{ '{' }}{{ cycle_item.test_case_key }} Test Case{{ '}' }}
@@ -208,11 +224,11 @@ Step & {Description} \\ \toprule
 
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
 \toprule
-{% for cycle in testcycles %}
-\multicolumn{3}{c}{ Test Cycle {\bf {{ cycle['key'] }}: {{ cycle['name'] }} }} \\\hline
+{% for cycle in test_results_map %}
+\multicolumn{3}{c}{ Test Cycle {\bf {{ cycle }}: {{ testcycles.cycle['name'] }} }} \\\hline
 {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
-{% for test_item in cycle.test_items %}
-{{ test_item['test_case_key'] }} & {{ test_item['status'] }} & {{ test_item['comment'] }} \\\hline
+{% for test_result in test_results_map[key] %}
+{{ test_resutl['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }} \\\hline
 {% endfor %}
 {% endfor %}
 \caption{Test Results Summary Table}

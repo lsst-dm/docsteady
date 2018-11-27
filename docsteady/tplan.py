@@ -54,7 +54,7 @@ class TestPlan(Schema):
 
     # custom fields
     #system_overview = HtmlPandocField()
-    system_overview = SubsectionableHtmlPandocField(extractable=["applicable documents"])
+    system_overview = SubsectionableHtmlPandocField(extractable=["applicable_documents"])
     verification_environment = HtmlPandocField()
     entry_criteria = HtmlPandocField()
     exit_criteria = HtmlPandocField()
@@ -144,6 +144,11 @@ def build_tpr_model(tplan_id):
                                 auth=Config.AUTH)
             testcase, errors = TestCase().load(resp.json())
             test_cases_map[test_item['test_case_key']] = testcase
+
+    #for cycle in test_results_map:
+    #    for test_result in test_results_map[cycle]:
+    #        print(test_result['test_case_key'])
+    #        print(test_result['comment'])
 
     tpr = {}
     tpr['tplan'] = testplan
