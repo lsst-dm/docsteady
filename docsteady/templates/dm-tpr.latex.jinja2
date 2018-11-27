@@ -224,13 +224,15 @@ Step & {Description} \\ \toprule
 
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
 \toprule
-{% for cycle in test_results_map %}
-\multicolumn{3}{c}{ Test Cycle {\bf {{ cycle }}: {{ testcycles.cycle['name'] }} }} \\\hline
+{% for cycle in testcycles %}
+\multicolumn{3}{c}{ Test Cycle {\bf {{ cycle['key'] }}: {{ cycle['name'] }} }} \\\hline
 {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
-{% for test_result in test_results_map[key] %}
-{{ test_resutl['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }} \\\hline
+{% for test_result in testresults_map[cycle.key] %}
+{{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
+    \\\hline
 {% endfor %}
 {% endfor %}
+
 \caption{Test Results Summary Table}
 \label{table:summary}
 \end{longtable}
