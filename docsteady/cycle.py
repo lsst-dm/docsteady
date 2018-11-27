@@ -92,7 +92,7 @@ class TestResult(Schema):
     key = fields.String(required=True)
     automated = fields.Boolean(required=True)
     environment = fields.String()
-    comment = fields.String()
+    comment = HtmlPandocField()
     execution_time = fields.Integer(load_from='executionTime', required=True)
     test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
                                     load_from='testCaseKey', required=True)
