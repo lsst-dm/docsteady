@@ -111,6 +111,8 @@ class TestResult(Schema):
     def postprocess(self, data):
         # Need to do this here because we need issue_links _and_ key
         data['issues'] = self.process_issues(data)
+        # Force Sort script results after loading
+        data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
         return data
 
     def process_issues(self, data):
