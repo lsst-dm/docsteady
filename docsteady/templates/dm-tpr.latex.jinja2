@@ -249,12 +249,11 @@ Following personnel are involved in this test activity:
     \begin{longtable}{p{1cm}p{2cm}p{13cm}}
     \hline
     {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
-    {% set step_id = namespace(a=1) %}
-    {% for result in test_result['script_results'] %}
-      {{ step_id.a }}({{ result['index'] }}) & Description &
+    {% for script_result in test_result['script_results'] %}
+      {{ loop.index }}({{ script_result['index'] }}) & Description &
 
       \begin{minipage}[t]{13cm}{\footnotesize
-      {{ result['description'] }}
+      {{ script_result['description'] }}
       \vspace{\dp0}
       } \end{minipage} \\
       \\ \cdashline{2-3}
@@ -262,21 +261,20 @@ Following personnel are involved in this test activity:
       & Expected Result & 
 
       \begin{minipage}[t]{13cm}{\footnotesize
-      {{ result['expected_result'] }}
+      {{ script_result['expected_result'] }}
       \vspace{\dp0}
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
       & Actual Result   & 
       \begin{minipage}[t]{13cm}{\footnotesize
-      {{ result['comment'] }}
+      {{ script_result['comment'] }}
       \vspace{\dp0}
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      & Status          & {{ result['status'] }} \\ \hline
+      & Status          & {{ script_result['status'] }} \\ \hline
 
-      {% set step_id.a = step_id.a + 1 %}
     {% endfor %}
     \end{longtable}
 
