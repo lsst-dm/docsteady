@@ -158,89 +158,14 @@ Following personnel are involved in this test activity:
 \end{itemize}
 
 \newpage
-\section{Planned Test Activities}
-\label{sect:plannedtestactivities}
-
-{% for cycle in testcycles.values() %}
-
-  \subsection{{ '{' }}Test Cycle {{ cycle.key }}{{ '}' }}
-
-  {{ cycle.name }}\\
-  Status: {{cycle.status }}
-
-
-  {{ cycle.description }}
-
-  \subsubsection{Test Cycle {{ cycle.key }} Additional Information}
-
-  \subsubsection{Software Version/Baseline}
-  {% if cycle.software_version %}
-    {{cycle.software_version}}
-  {% else %}
-    Not provided.
-  {% endif %}
-
-  \subsubsection{Configuration}
-  {% if cycle.configuration %}
-    {{ cycle.configuration }}
-  {% else %}
-    Not provided.
-  {% endif %}
-
-  \subsubsection{Test Cycle {{ cycle.key }} Test Cases}
-
-  {% for cycle_item in cycle.test_items %}
-
-    \paragraph{{ '{' }}{{ cycle_item.test_case_key }} Test Case{{ '}' }}\mbox{}\\
-
-    {{ testcases_map[cycle_item.test_case_key].objective }}
-
-    \begin{longtable}[]{p{1.3cm}p{15cm}}
-    %\toprule
-    Step & {Description} \\ \toprule
-    \endhead
-    {% set step_id = namespace(a=1) %}
-    {% for step in testcases_map[cycle_item.test_case_key]['test_script'] %}
-      {% set rowloop = loop %}
-      {% if step.test_case_key %}
-        {% set step_testcase = testcases_map[step.test_case_key] %}
-        {% for substep in step_testcase.test_script %}
-
-           \multirow{1}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
-           {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
-           {{ curlies(step_testcase.key) }} } } } &
-
-           \begin{minipage}[t]{13cm}{\scriptsize
-           {{ substep.description }}
-           \vspace{\dp0}
-           } \end{minipage} 
-           \\ \hdashline
-
-        {% endfor %}
-
-      {% else %}
-
-        \multirow{1}{*}{ {{ loop.index }} } &
-        \begin{minipage}[t]{13cm}{\footnotesize
-        {{ step['description'] }}
-        \vspace{\dp0}
-        } \end{minipage} \\
-        \\ \hdashline
-      {% endif %}
-    {% endfor %}
-    \end{longtable}
-
-  {% endfor %}
-
-{% endfor %}
-
-\newpage
 
 \section{Test Results}
 \label{sect:testresults}
 
--\subsection{Overview of the Test Results}
--\label{sect:overview}
+
+
+\subsection{Overview of the Test Results}
+\label{sect:overview}
 
 \subsubsection{Summary Table}
 \label{sect:summarytable}
@@ -270,18 +195,43 @@ Following personnel are involved in this test activity:
 
 {{ testplan.recommended_improvements }}
 
-\subsection{Detailed Test Results}
+\section{Detailed Test Results}
 \label{sect:detailedtestresults}
 
 {% for cycle in testcycles.values() %}
 
-  \subsubsection{Test results for cycle {{ cycle.key }} test cases}
+  \subsection{Test Cycle {{ cycle.key }} }
+
+  {{ cycle.name }}\\
+  Status: {{cycle.status }}
+
+  {{ cycle.description }}
+
+  \subsubsection{Test Cycle Additional Information}
+
+  \subsubsection{Software Version/Baseline}
+  {% if cycle.software_version %}
+    {{cycle.software_version}}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Configuration}
+  {% if cycle.configuration %}
+    {{ cycle.configuration }}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
   {% for test_result in testresults_map[cycle.key] %}
 
-    \paragraph{Test Case {{ test_result['test_case_key'] }} Results}\mbox{}\\
+    \paragraph{Test Case {{ test_result['test_case_key'] }}}\mbox{}\\
 
-    Final comment: {{ test_result['comment'] }}
+    Test case objective:\\{{  testcases_map[test_result['test_case_key']['objective']] }}
+
+    Final comment:\\{{ test_result['comment'] }}
 
     {% if test_result['issues'] %}
       Issues found during the execution of {{ test_result['test_case_key'] }} test case:
@@ -296,12 +246,20 @@ Following personnel are involved in this test activity:
 
     Detailed step results:
 
-    \begin{longtable}{p{2cm}p{2cm}p{12cm}}
+    \begin{longtable}{p{1cm}p{2cm}p{13cm}}
     \hline
-    {Step} & \multicolumn{2}{c}{Results and Status}\\ \hline
+    {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
     {% set step_id = namespace(a=1) %}
     {% for result in test_result['script_results'] %}
-      {{ step_id.a }} & Expected Result & 
+      {{ step_id.a }}({{ result['index'] }}) & Description &
+
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ result['description'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Expected Result & 
 
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ result['expected_result'] }}
