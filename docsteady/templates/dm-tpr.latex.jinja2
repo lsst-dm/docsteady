@@ -67,7 +67,7 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 \renewcommand{\refname}{}
 \bibliography{lsst,refs,books,refs_ads}
 
-\subsection{Document Overview and Procedure}
+\subsection{Document Overview}
 \label{sect:docoverview}
 
 This document is generated from Jira, obtaining the relevant information from the 
@@ -78,26 +78,26 @@ This document is generated from Jira, obtaining the relevant information from th
 {% endfor %}
 ).
 
-The following general sections are completed before the start of the test activity.
+%The following general sections are completed before the start of the test activity.
 
 Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
 Section \ref{sect:personnel} lists all people and roles involved.
 Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
-The content provided by the above sections shall be sufficient to prove that the test campaign is ready to start.
+%The content provided by the above sections shall be sufficient to prove that the test campaign is ready to start.
 
-Once the above sections are completed, this document can be reviewed by the product leader, the involved personnel (section \ref{sect:personnel}), and the test campaign requester.
-Once all stakeholders agree that the test pre-requisites have been satisfied, testing can begin and the Jira Test Plan shall be set to {\bf Approved} by the \product{} product leader.
-A first issue of this document can be uploaded to docushare for the record.
+%Once the above sections are completed, this document can be reviewed by the product leader, the involved personnel (section \ref{sect:personnel}), and the test campaign requester.
+%Once all stakeholders agree that the test pre-requisites have been satisfied, testing can begin and the Jira Test Plan shall be set to {\bf Approved} by the \product{} product leader.
+%A first issue of this document can be uploaded to docushare for the record.
 
-Section \ref{sect:testresults} is filled in after the test activity is completed and all Jira Test Cycles have been set to {\bf Done}.
-The first subsection \ref{sect:overview} provides a summary view of the results, in table \ref{table:summary}, 
+%Section \ref{sect:testresults} is filled in after the test activity is completed and all Jira Test Cycles have been set to {\bf Done}.
+Section \ref{sect:overview} provides a summary view of the results, in table \ref{table:summary}, 
 an overall assessment statement and suggestions on possible improvements.
-The subsection \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+The section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
-When completed, this document must be approved by the requester of the test activity and
-the final issued report uploaded to docushate. 
-The status of the Jira Test Plan shall then be set to {\bf Completed}.
+%When completed, this document must be approved by the requester of the test activity and
+%the final issued report uploaded to docushate. 
+%The status of the Jira Test Plan shall then be set to {\bf Completed}.
 
 The actual status of the Jira test plan {{ testplan['key'] }} is {{ testplan['status'] }}.
 
@@ -137,7 +137,7 @@ The actual status of the Jira test plan {{ testplan['key'] }} is {{ testplan['st
 Following personnel are involved in this test activity:
 
 \begin{itemize}
-\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }} ({{ testplan.owner_id }})
+\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
 \item Test Cycles:
 \begin{itemize}
 {% for cycle in testcycles %}
@@ -159,15 +159,10 @@ Following personnel are involved in this test activity:
 
 \newpage
 
-\section{Test Results}
-\label{sect:testresults}
-
-
-
-\subsection{Overview of the Test Results}
+\section{Overview of the Test Results}
 \label{sect:overview}
 
-\subsubsection{Summary Table}
+\subsection{Summary Table}
 \label{sect:summarytable}
 
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
@@ -185,16 +180,17 @@ Following personnel are involved in this test activity:
 \label{table:summary}
 \end{longtable}
 
-\subsubsection{Overall Assessment}
+\subsection{Overall Assessment}
 \label{sect:overallassessment}
 
 {{ testplan.overall_assessment }}
 
-\subsubsection{Recommended Improvements}
+\subsection{Recommended Improvements}
 \label{sect:recommendations}
 
 {{ testplan.recommended_improvements }}
 
+\newpage
 \section{Detailed Test Results}
 \label{sect:detailedtestresults}
 
@@ -206,8 +202,6 @@ Following personnel are involved in this test activity:
   Status: {{cycle.status }}
 
   {{ cycle.description }}
-
-  \subsubsection{Test Cycle Additional Information}
 
   \subsubsection{Software Version/Baseline}
   {% if cycle.software_version %}
@@ -229,7 +223,9 @@ Following personnel are involved in this test activity:
 
     \paragraph{Test Case {{ test_result['test_case_key'] }}}\mbox{}\\
 
-    Test case objective:\\{{  testcases_map[test_result['test_case_key']]['objective'] }}
+    {{  testcases_map[test_result['test_case_key']]['objective'] }}
+
+    Execution status: {\bf {{  test_result['status'] }} }
 
     Final comment:\\{{ test_result['comment'] }}
 
@@ -250,7 +246,7 @@ Following personnel are involved in this test activity:
     \hline
     {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
     {% for script_result in test_result['script_results'] %}
-      {{ loop.index }}({{ script_result['index'] }}) & Description &
+      {{ loop.index }} & Description &
 
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ script_result['description'] }}
@@ -266,7 +262,7 @@ Following personnel are involved in this test activity:
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      & Actual Result   & 
+      & \begin{minipage}[t]{2cm}{Actual\\ Result}\end{minipage}   & 
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ script_result['comment'] }}
       \vspace{\dp0}
