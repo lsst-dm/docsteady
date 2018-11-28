@@ -1,3 +1,7 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
@@ -5,6 +9,8 @@
 \documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
+\usepackage{enumitem}
+\usepackage{arydshln}
 
 \input meta.tex
 
@@ -46,8 +52,8 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 
 {% for extraField in testplan['objective']['extraFields'] %}
 
-\subsubsection{ {{ extraField['name']}} }
-{{ extraField['content'] }}
+  \subsubsection{ {{ extraField['name']}} }
+  {{ extraField['content'] }}
 
 {% endfor %}
 
@@ -68,7 +74,7 @@ This document is generated from Jira, obtaining the relevant information from th
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
 ~Jira Test Plan and related Test Cycles (
 {% for cycle in testcycles %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCycle/{{ cycle.key }}{{ '}' }}{{ '{' }}{{ cycle.key }}{{ '}' }}
+  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCycle/{{ cycle.key }}{{ '}' }}{{ '{' }}{{ cycle.key }}{{ '}' }}
 {% endfor %}
 ).
 
@@ -99,30 +105,30 @@ The actual status of the Jira test plan {{ testplan['key'] }} is {{ testplan['st
 \label{sect:configuration}
 
 {% if testplan.observing_required %}
-Observing is required for this test campaign.
+  Observing is required for this test campaign.
 {% else %}
-Observing is not required for this test campaign.
+  Observing is not required for this test campaign.
 {% endif %}
 
 \subsection{Verification Environment}
 \label{sect:hwconf}
 {% if testplan.verification_environment %}
-{{ testplan.verification_environment }}
+  {{ testplan.verification_environment }}
 {% endif %}
 
 {% if testplan.entry_criteria %}
-\subsection{Entry Criteria}
-{{ testplan.entry_criteria }}
+  \subsection{Entry Criteria}
+  {{ testplan.entry_criteria }}
 {% endif %}
 
 {% if testplan.exit_criteria %}
-\subsection{Exit Criteria}
-{{ testplan.exit_criteria }}
+  \subsection{Exit Criteria}
+  {{ testplan.exit_criteria }}
 {% endif %}
 
 {% if testplan.pmcs_activity %}
-\subsection{PMCS Activity}
-{{ testplan.pmcs_activity }}
+  \subsection{PMCS Activity}
+  {{ testplan.pmcs_activity }}
 {% endif %}
 
 \section{Personnel}
@@ -134,16 +140,16 @@ Following personnel are involved in this test activity:
 \item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }} ({{ testplan.owner_id }})
 \item Test Cycles:
 \begin{itemize}
-{% for cycle in testcycles %}
+{% for cycle in testcycles.values() %}
   \item {{ cycle.key }} owner: 
-{% if cycle.owner %}
-{{ cycle.owner }} ({{ cycle.owner_id }})
-{% else %}
-Undefined
-{% endif %}
+  {% if cycle.owner %}
+    {{ cycle.owner }}
+  {% else %}
+    Undefined
+  {% endif %}
   \begin{itemize}
   {% for test_item in cycle.test_items %}
-    \item Test case {{ test_item.test_case_key }} tester: {{ test_item.user }} ({{ test_item.user_id }})
+    \item Test case {{ test_item.test_case_key }} tester: {{ test_item.user }}
   {% endfor %}
   \end{itemize}
 {% endfor %}
@@ -155,58 +161,76 @@ Undefined
 \section{Planned Test Activities}
 \label{sect:plannedtestactivities}
 
-{% for cycle in testcycles %}
+{% for cycle in testcycles.values() %}
 
-\subsection{{ '{' }}Test Cycle {{ cycle.key }}{{ '}' }}
+  \subsection{{ '{' }}Test Cycle {{ cycle.key }}{{ '}' }}
 
-{{ cycle.name }}\\
-Status: {{cycle.status }}
-
-
-{{ cycle.description }}
-
-\subsection{Cycle additional Information}
-
-\subsubsection{Software Version/Baseline}
-{% if cycle.software_version %}
-{{cycle.software_version}}
-{% else %}
-Not provided.
-{% endif %}
-
-\subsubsection{Configuration}
-{% if cycle.configuration %}
-{{ cycle.configuration }}
-{% else %}
-Not provided.
-{% endif %}
-
-{% for cycle_item in cycle.test_items %}
-
-\subsubsection{{ '{' }}{{ cycle_item.test_case_key }} Test Case{{ '}' }}
-
-{{ testcases_map[cycle_item.test_case_key].objective }}
-
-\begin{longtable}[]{p{1.3cm}p{15cm}}
-%\toprule
-Step & {Description} \\ \toprule
-\endhead
-
-{% set step_id = namespace(a=1) %}
-
-{% for step in testcases_map[cycle_item.test_case_key]['test_script'] %}
-\multirow{1}{*}{ {{ step_id.a }} } &
-\begin{minipage}[t]{13cm}{\footnotesize
-{{ step['description'] }}
-\vspace{\dp0}
-} \end{minipage} \\
-\\ \midrule
-{% set step_id.a = step_id.a + 1 %}
-{% endfor %}
-\end{longtable}
+  {{ cycle.name }}\\
+  Status: {{cycle.status }}
 
 
-{% endfor %}
+  {{ cycle.description }}
+
+  \subsubsection{Test Cycle {{ cycle.key }} Additional Information}
+
+  \subsubsection{Software Version/Baseline}
+  {% if cycle.software_version %}
+    {{cycle.software_version}}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Configuration}
+  {% if cycle.configuration %}
+    {{ cycle.configuration }}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Test Cycle {{ cycle.key }} Test Cases}
+
+  {% for cycle_item in cycle.test_items %}
+
+    \paragraph{{ '{' }}{{ cycle_item.test_case_key }} Test Case{{ '}' }}\mbox{}\\
+
+    {{ testcases_map[cycle_item.test_case_key].objective }}
+
+    \begin{longtable}[]{p{1.3cm}p{15cm}}
+    %\toprule
+    Step & {Description} \\ \toprule
+    \endhead
+    {% set step_id = namespace(a=1) %}
+    {% for step in testcases_map[cycle_item.test_case_key]['test_script'] %}
+      {% set rowloop = loop %}
+      {% if step.test_case_key %}
+        {% set step_testcase = testcases_map[step.test_case_key] %}
+        {% for substep in step_testcase.test_script %}
+
+           \multirow{1}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
+           {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
+           {{ curlies(step_testcase.key) }} } } } &
+
+           \begin{minipage}[t]{13cm}{\scriptsize
+           {{ substep.description }}
+           \vspace{\dp0}
+           } \end{minipage} 
+           \\ \hdashline
+
+        {% endfor %}
+
+      {% else %}
+
+        \multirow{1}{*}{ {{ loop.index }} } &
+        \begin{minipage}[t]{13cm}{\footnotesize
+        {{ step['description'] }}
+        \vspace{\dp0}
+        } \end{minipage} \\
+        \\ \hdashline
+      {% endif %}
+    {% endfor %}
+    \end{longtable}
+
+  {% endfor %}
 
 {% endfor %}
 
@@ -215,22 +239,21 @@ Step & {Description} \\ \toprule
 \section{Test Results}
 \label{sect:testresults}
 
-\subsection{Overview of the Test Results}
-\label{sect:overview}
+-\subsection{Overview of the Test Results}
+-\label{sect:overview}
 
 \subsubsection{Summary Table}
 \label{sect:summarytable}
 
-
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
 \toprule
-{% for cycle in testcycles %}
-\multicolumn{3}{c}{ Test Cycle {\bf {{ cycle['key'] }}: {{ cycle['name'] }} }} \\\hline
-{\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
-{% for test_result in testresults_map[cycle.key] %}
-{{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
+{% for cycle in testcycles.values() %}
+  \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
+  {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+  {% for test_result in testresults_map[cycle.key] %}
+    {{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
     \\\hline
-{% endfor %}
+  {% endfor %}
 {% endfor %}
 
 \caption{Test Results Summary Table}
@@ -240,11 +263,67 @@ Step & {Description} \\ \toprule
 \subsubsection{Overall Assessment}
 \label{sect:overallassessment}
 
+{{ testplan.overall_assessment }}
 
 \subsubsection{Recommended Improvements}
 \label{sect:recommendations}
 
+{{ testplan.recommended_improvements }}
+
 \subsection{Detailed Test Results}
 \label{sect:detailedtestresults}
 
+{% for cycle in testcycles.values() %}
+
+  \subsubsection{Test results for cycle {{ cycle.key }} test cases}
+
+  {% for test_result in testresults_map[cycle.key] %}
+
+    \paragraph{Test Case {{ test_result['test_case_key'] }} Results}\mbox{}\\
+
+    Final comment: {{ test_result['comment'] }}
+
+    {% if test_result['issues'] %}
+      Issues found during the execution of {{ test_result['test_case_key'] }} test case:
+
+      \begin{itemize}
+      {% for issue in test_result['issues'] %}
+        \item {{ issue['id'] }}: {{ issue['summary'] }}
+      {% endfor %}
+      \end{itemize}
+
+    {% endif %}
+
+    Detailed step results:
+
+    \begin{longtable}{p{2cm}p{2cm}p{12cm}}
+    \hline
+    {Step} & \multicolumn{2}{c}{Results and Status}\\ \hline
+    {% set step_id = namespace(a=1) %}
+    {% for result in test_result['script_results'] %}
+      {{ step_id.a }} & Expected Result & 
+
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ result['expected_result'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Actual Result   & 
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ result['comment'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Status          & {{ result['status'] }} \\ \hline
+
+      {% set step_id.a = step_id.a + 1 %}
+    {% endfor %}
+    \end{longtable}
+
+  {% endfor %}
+{% endfor %}
+
+\input{appendix.tex}
 \end{document}

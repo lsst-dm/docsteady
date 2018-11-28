@@ -145,11 +145,6 @@ def build_tpr_model(tplan_id):
             testcase, errors = TestCase().load(resp.json())
             test_cases_map[test_item['test_case_key']] = testcase
 
-    #for cycle in test_results_map:
-    #    for test_result in test_results_map[cycle]:
-    #        print(test_result['test_case_key'])
-    #        print(test_result['comment'])
-
     tpr = {}
     tpr['tplan'] = testplan
     tpr['test_cycles_map'] = test_cycles_map

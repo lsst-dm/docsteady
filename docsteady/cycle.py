@@ -84,6 +84,7 @@ class ScriptResult(Schema):
 
 class TestIssue(Schema):
     key = fields.String()
+    summary = fields.String()
     jira_url = fields.String()
 
 

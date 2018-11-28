@@ -163,11 +163,11 @@ def generate_report(format, username, password, plan, path):
 
     plan_dict = build_tpr_model(plan)
     testplan = plan_dict['tplan']
-    testcycles_map = plan_dict['test_cycles_map']
+    testcycles = plan_dict['test_cycles_map']
     testresults_map = plan_dict['test_results_map']
     testcases_map = plan_dict['test_cases_map']
 
-    testcycles = sorted(testcycles_map.values(), key=lambda item: alphanum_key(item["key"]))
+    #testcycles = sorted(testcycles_map.values(), key=lambda item: alphanum_key(item["key"]))
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -186,7 +186,6 @@ def generate_report(format, username, password, plan, path):
     text = template.render(metadata=metadata,
                            testplan=testplan,
                            testcycles=testcycles,
-                           testcycles_map=testcycles_map,
                            testresults_map=testresults_map,
                            testcases_map=testcases_map)
 
