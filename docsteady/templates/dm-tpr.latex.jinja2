@@ -140,7 +140,7 @@ Following personnel are involved in this test activity:
 \item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }} ({{ testplan.owner_id }})
 \item Test Cycles:
 \begin{itemize}
-{% for cycle in testcycles.values() %}
+{% for cycle in testcycles %}
   \item {{ cycle.key }} owner: 
   {% if cycle.owner %}
     {{ cycle.owner }}
@@ -172,7 +172,7 @@ Following personnel are involved in this test activity:
 
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
 \toprule
-{% for cycle in testcycles.values() %}
+{% for cycle in testcycles %}
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
   {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
@@ -198,7 +198,7 @@ Following personnel are involved in this test activity:
 \section{Detailed Test Results}
 \label{sect:detailedtestresults}
 
-{% for cycle in testcycles.values() %}
+{% for cycle in testcycles %}
 
   \subsection{Test Cycle {{ cycle.key }} }
 
@@ -229,7 +229,7 @@ Following personnel are involved in this test activity:
 
     \paragraph{Test Case {{ test_result['test_case_key'] }}}\mbox{}\\
 
-    Test case objective:\\{{  testcases_map[test_result['test_case_key']['objective']] }}
+    Test case objective:\\{{  testcases_map[test_result['test_case_key']]['objective'] }}
 
     Final comment:\\{{ test_result['comment'] }}
 

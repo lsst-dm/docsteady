@@ -30,7 +30,7 @@ from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, F
 from pkg_resources import get_distribution, DistributionNotFound
 
 from .config import Config
-from .formatters import alphanum_key
+from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
 
@@ -163,11 +163,15 @@ def generate_report(format, username, password, plan, path):
 
     plan_dict = build_tpr_model(plan)
     testplan = plan_dict['tplan']
-    testcycles = plan_dict['test_cycles_map']
+
+    testcycles_map = plan_dict['test_cycles_map']
     testresults_map = plan_dict['test_results_map']
     testcases_map = plan_dict['test_cases_map']
 
-    #testcycles = sorted(testcycles_map.values(), key=lambda item: alphanum_key(item["key"]))
+    # Sort maps by keys
+    testcycles_map = alphanum_map_sort(testcycles_map)
+    testresults_map = alphanum_map_sort(testresults_map)
+    testcases_map = alphanum_map_sort(testcases_map)
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -185,7 +189,9 @@ def generate_report(format, username, password, plan, path):
 
     text = template.render(metadata=metadata,
                            testplan=testplan,
-                           testcycles=testcycles,
+                           testcycles=list(testcycles_map.values()),  # For convenience (sorted)
+                           testcycles_map=testcycles_map,
+                           testresults=list(testresults_map.values()),  # For convenience (sorted)
                            testresults_map=testresults_map,
                            testcases_map=testcases_map)
 
@@ -204,8 +210,9 @@ def generate_report(format, username, password, plan, path):
     appendix_text = appendix_template.render(
         metadata=metadata,
         testplan=testplan,
-        testcycles=testcycles,
+        testcycles=list(testcycles_map.values()),  # For convenience (sorted by item key)
         testcycles_map=testcycles_map,
+        testresults=list(testresults_map.values()),  # For convenience (sorted by item key)
         testresults_map=testresults_map,
         testcases_map=testcases_map)
 
