@@ -35,7 +35,7 @@
 
 
 \setDocAbstract{
-This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST DM level 1 milestone pertaining to the \product{}.
+This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST level 2 milestone pertaining to the \product{} Subsystem.
 }
 
 
@@ -62,11 +62,6 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 
 {{ testplan['system_overview'] }}
 
-\subsection{References}
-\label{sect:references}
-\renewcommand{\refname}{}
-\bibliography{lsst,refs,books,refs_ads}
-
 \subsection{Document Overview}
 \label{sect:docoverview}
 
@@ -80,9 +75,9 @@ This document is generated from Jira, obtaining the relevant information from th
 
 %The following general sections are completed before the start of the test activity.
 
-Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the documentation, and explains how this document is organized.
+Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
-Section \ref{sect:personnel} lists all people and roles involved.
+Section \ref{sect:personnel} lists all the individuals involved and describes their roles.
 Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
 %The content provided by the above sections shall be sufficient to prove that the test campaign is ready to start.
 
@@ -91,18 +86,23 @@ Section \ref{sect:plannedtestactivities} provides the list of planned test cycle
 %A first issue of this document can be uploaded to docushare for the record.
 
 %Section \ref{sect:testresults} is filled in after the test activity is completed and all Jira Test Cycles have been set to {\bf Done}.
-Section \ref{sect:overview} provides a summary view of the results, in table \ref{table:summary}, 
-an overall assessment statement and suggestions on possible improvements.
-The section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+Section \ref{sect:overview} provides a summary of the test results, with Table \ref{table:summary} an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
 %When completed, this document must be approved by the requester of the test activity and
-%the final issued report uploaded to docushate. 
+%the final issued report uploaded to docushare. 
 %The status of the Jira Test Plan shall then be set to {\bf Completed}.
 
-The actual status of the Jira test plan {{ testplan['key'] }} is {{ testplan['status'] }}.
+The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['status'] }}.
 
+\subsection{References}
+\label{sect:references}
+\renewcommand{\refname}{}
+\bibliography{lsst,refs,books,refs_ads}
 \section{Test Configuration}
 \label{sect:configuration}
+
+\subsections{Data Collection}
 
 {% if testplan.observing_required %}
   Observing is required for this test campaign.
@@ -162,21 +162,21 @@ Following personnel are involved in this test activity:
 \section{Overview of the Test Results}
 \label{sect:overview}
 
-\subsection{Summary Table}
+\subsection{Summary}
 \label{sect:summarytable}
 
 \begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
 \toprule
 {% for cycle in testcycles %}
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
-  {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
     {{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
     \\\hline
   {% endfor %}
 {% endfor %}
 
-\caption{Test Results Summary Table}
+\caption{Test Results Summary}
 \label{table:summary}
 \end{longtable}
 
