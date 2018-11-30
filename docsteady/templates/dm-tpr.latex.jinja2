@@ -170,7 +170,7 @@ Following personnel are involved in this test activity:
 \toprule
 {% for cycle in testcycles %}
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
-  {\bf \footnotesize test case id} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
     {{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
     \\\hline
