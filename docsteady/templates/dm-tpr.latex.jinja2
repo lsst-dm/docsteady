@@ -78,20 +78,10 @@ This document is generated from Jira, obtaining the relevant information from th
 Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
 Section \ref{sect:personnel} lists all the individuals involved and describes their roles.
-Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
-%The content provided by the above sections shall be sufficient to prove that the test campaign is ready to start.
+%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
 
-%Once the above sections are completed, this document can be reviewed by the product leader, the involved personnel (section \ref{sect:personnel}), and the test campaign requester.
-%Once all stakeholders agree that the test pre-requisites have been satisfied, testing can begin and the Jira Test Plan shall be set to {\bf Approved} by the \product{} product leader.
-%A first issue of this document can be uploaded to docushare for the record.
-
-%Section \ref{sect:testresults} is filled in after the test activity is completed and all Jira Test Cycles have been set to {\bf Done}.
-Section \ref{sect:overview} provides a summary of the test results, with Table \ref{table:summary} an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:overview} provides a summary of the test results, including in an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
 Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
-
-%When completed, this document must be approved by the requester of the test activity and
-%the final issued report uploaded to docushare. 
-%The status of the Jira Test Plan shall then be set to {\bf Completed}.
 
 The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['status'] }}.
 
@@ -102,7 +92,7 @@ The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['st
 \section{Test Configuration}
 \label{sect:configuration}
 
-\subsections{Data Collection}
+\subsection{Data Collection}
 
 {% if testplan.observing_required %}
   Observing is required for this test campaign.
@@ -171,7 +161,8 @@ Following personnel are involved in this test activity:
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
-    {{ test_result['test_case_key'] }} & {{ test_result['status'] }} & {{ test_result['comment'] }}
+    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
+    & {{ test_result['status'] }} & {{ test_result['comment'] }}
     \\\hline
   {% endfor %}
 {% endfor %}
@@ -183,12 +174,20 @@ Following personnel are involved in this test activity:
 \subsection{Overall Assessment}
 \label{sect:overallassessment}
 
+{% if testplan.overall_assessment %}
 {{ testplan.overall_assessment }}
+{% else %}
+Not yet available.
+{% endif %}
 
 \subsection{Recommended Improvements}
 \label{sect:recommendations}
 
+{% if testplan.recommended_improvements %}
 {{ testplan.recommended_improvements }}
+{% else %}
+Not yet available.
+{% endif %}
 
 \newpage
 \section{Detailed Test Results}
@@ -197,6 +196,8 @@ Following personnel are involved in this test activity:
 {% for cycle in testcycles %}
 
   \subsection{Test Cycle {{ cycle.key }} }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
 
   {{ cycle.name }}\\
   Status: {{cycle.status }}
@@ -221,9 +222,14 @@ Following personnel are involved in this test activity:
 
   {% for test_result in testresults_map[cycle.key] %}
 
-    \paragraph{Test Case {{ test_result['test_case_key'] }}}\mbox{}\\
+    \paragraph{Test Case {{ test_result['test_case_key'] }} }\mbox{}\\
+
+Open \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{test case} in Jira.
 
     {{  testcases_map[test_result['test_case_key']]['objective'] }}
+
+    {\bf Preconditions}:\\
+    {{ testcases_map[test_result['test_case_key']]['precondition'] }}
 
     Execution status: {\bf {{  test_result['status'] }} }
 
