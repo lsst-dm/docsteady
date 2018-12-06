@@ -1,0 +1,287 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+\documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
+\usepackage{geometry}
+\usepackage{longtable,booktabs}
+\usepackage{enumitem}
+\usepackage{arydshln}
+
+\input meta.tex
+
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\begin{document}
+
+\def\milestoneName{{ '{' }}{{ testplan.milestone_name }}{{ '}' }}
+\def\milestoneId{{ '{' }}{{ testplan.milestone_id }}{{ '}' }}
+\def\product{{ '{' }}{{ testplan.product }}{{ '}' }}
+
+\setDocCompact{true}
+
+\title[\milestoneId{}~Test Report]{\milestoneId{} (\milestoneName{})~Test Plan and Report}
+\setDocRef{\lsstDocType-\lsstDocNum}
+\setDocDate{\vcsdate}
+\setDocUpstreamLocation{\url{https://github.com/lsst/lsst-texmf/examples}}
+\author{ {{ testplan['owner'] }} }
+
+\input history_and_info.tex
+
+
+\setDocAbstract{
+This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST level 2 milestone pertaining to the \product{} Subsystem.
+}
+
+
+\maketitle
+
+\section{Introduction}
+\label{sect:intro}
+
+
+\subsection{Objectives}
+\label{sect:objectives}
+
+{{ testplan['objective'] }}
+
+{% for extraField in testplan['objective']['extraFields'] %}
+
+  \subsubsection{ {{ extraField['name']}} }
+  {{ extraField['content'] }}
+
+{% endfor %}
+
+\subsection{System Overview}
+\label{sect:systemoverview}
+
+{{ testplan['system_overview'] }}
+
+\subsection{Document Overview}
+\label{sect:docoverview}
+
+This document is generated from Jira, obtaining the relevant information from the 
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
+~Jira Test Plan and related Test Cycles (
+{% for cycle in testcycles %}
+  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCycle/{{ cycle.key }}{{ '}' }}{{ '{' }}{{ cycle.key }}{{ '}' }}
+{% endfor %}
+).
+
+%The following general sections are completed before the start of the test activity.
+
+Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
+Section \ref{sect:configuration}  describes the configuration used for this test.
+Section \ref{sect:personnel} lists all the individuals involved and describes their roles.
+%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
+
+Section \ref{sect:overview} provides a summary of the test results, including in an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+
+The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['status'] }}.
+
+\subsection{References}
+\label{sect:references}
+\renewcommand{\refname}{}
+\bibliography{lsst,refs,books,refs_ads}
+\section{Test Configuration}
+\label{sect:configuration}
+
+\subsection{Data Collection}
+
+{% if testplan.observing_required %}
+  Observing is required for this test campaign.
+{% else %}
+  Observing is not required for this test campaign.
+{% endif %}
+
+\subsection{Verification Environment}
+\label{sect:hwconf}
+{% if testplan.verification_environment %}
+  {{ testplan.verification_environment }}
+{% endif %}
+
+{% if testplan.entry_criteria %}
+  \subsection{Entry Criteria}
+  {{ testplan.entry_criteria }}
+{% endif %}
+
+{% if testplan.exit_criteria %}
+  \subsection{Exit Criteria}
+  {{ testplan.exit_criteria }}
+{% endif %}
+
+{% if testplan.pmcs_activity %}
+  \subsection{PMCS Activity}
+  {{ testplan.pmcs_activity }}
+{% endif %}
+
+\section{Personnel}
+\label{sect:personnel}
+
+Following personnel are involved in this test activity:
+
+\begin{itemize}
+\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
+\item Test Cycles:
+\begin{itemize}
+{% for cycle in testcycles %}
+  \item {{ cycle.key }} owner: 
+  {% if cycle.owner %}
+    {{ cycle.owner }}
+  {% else %}
+    Undefined
+  {% endif %}
+  \begin{itemize}
+  {% for test_item in cycle.test_items %}
+    \item Test case {{ test_item.test_case_key }} tester: {{ test_item.user }}
+  {% endfor %}
+  \end{itemize}
+{% endfor %}
+\end{itemize}
+\item Additional Test Personnel involved: None
+\end{itemize}
+
+\newpage
+
+\section{Overview of the Test Results}
+\label{sect:overview}
+
+\subsection{Summary}
+\label{sect:summarytable}
+
+\begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
+\toprule
+{% for cycle in testcycles %}
+  \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
+  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+  {% for test_result in testresults_map[cycle.key] %}
+    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
+    & {{ test_result['status'] }} & {{ test_result['comment'] }}
+    \\\hline
+  {% endfor %}
+{% endfor %}
+
+\caption{Test Results Summary}
+\label{table:summary}
+\end{longtable}
+
+\subsection{Overall Assessment}
+\label{sect:overallassessment}
+
+{% if testplan.overall_assessment %}
+{{ testplan.overall_assessment }}
+{% else %}
+Not yet available.
+{% endif %}
+
+\subsection{Recommended Improvements}
+\label{sect:recommendations}
+
+{% if testplan.recommended_improvements %}
+{{ testplan.recommended_improvements }}
+{% else %}
+Not yet available.
+{% endif %}
+
+\newpage
+\section{Detailed Test Results}
+\label{sect:detailedtestresults}
+
+{% for cycle in testcycles %}
+
+  \subsection{Test Cycle {{ cycle.key }} }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
+
+  {{ cycle.name }}\\
+  Status: {{cycle.status }}
+
+  {{ cycle.description }}
+
+  \subsubsection{Software Version/Baseline}
+  {% if cycle.software_version %}
+    {{cycle.software_version}}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Configuration}
+  {% if cycle.configuration %}
+    {{ cycle.configuration }}
+  {% else %}
+    Not provided.
+  {% endif %}
+
+  \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
+
+  {% for test_result in testresults_map[cycle.key] %}
+
+    \paragraph{Test Case {{ test_result['test_case_key'] }} }\mbox{}\\
+
+Open  {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{test case} } in Jira.
+
+    {{  testcases_map[test_result['test_case_key']]['objective'] }}
+
+    {\bf Preconditions}:\\
+    {{ testcases_map[test_result['test_case_key']]['precondition'] }}
+
+    Execution status: {\bf {{  test_result['status'] }} }
+
+    Final comment:\\{{ test_result['comment'] }}
+
+    {% if test_result['issues'] %}
+      Issues found during the execution of {{ test_result['test_case_key'] }} test case:
+
+      \begin{itemize}
+      {% for issue in test_result['issues'] %}
+        \item {{ issue['id'] }}: {{ issue['summary'] }}
+      {% endfor %}
+      \end{itemize}
+
+    {% endif %}
+
+    Detailed step results:
+
+    \begin{longtable}{p{1cm}p{2cm}p{13cm}}
+    \hline
+    {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
+    {% for script_result in test_result['script_results'] %}
+      {{ loop.index }} & Description &
+
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ script_result['description'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Expected Result & 
+
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ script_result['expected_result'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & \begin{minipage}[t]{2cm}{Actual\\ Result}\end{minipage}   & 
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ script_result['comment'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Status          & {{ script_result['status'] }} \\ \hline
+
+    {% endfor %}
+    \end{longtable}
+
+  {% endfor %}
+{% endfor %}
+
+\input{appendix.tex}
+\end{document}

@@ -19,6 +19,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
 import os
+import re
 
 
 class Config:
@@ -31,7 +32,8 @@ class Config:
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
     TESTCASE_UI_URL = f"{JIRA_INSTANCE}/secure/Tests.jspa#/testCase/{{testcase}}"
     TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
-    TESTRUN_URL = f"{ATM_API}/testrun/{{testrun}}"
+    TESTCYCLE_URL = f"{ATM_API}/testrun/{{testrun}}"
+    TESTPLAN_URL = f"{ATM_API}/testplan/{{testplan}}"
     TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
     PANDOC_TYPE = None
     AUTH = None
@@ -48,3 +50,10 @@ class Config:
     ISSUES_TO_TESTRESULTS = {}
     TEMPLATE_LANGUAGE = "latex"
     TEMPLATE_DIRECTORY = os.curdir
+
+    # Regexes for LSST things
+    DOC_NAMES = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS']
+    doc_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+)([\s\.])"
+    DOCUSHARE_DOC_PATTERN = re.compile(doc_pattern_text)
+    milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
+    MILESTONE_PATTERN = re.compile(milestone_pattern_text)

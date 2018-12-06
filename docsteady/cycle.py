@@ -35,7 +35,7 @@ class TestCycleItem(Schema):
     test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
                                     load_from='testCaseKey', required=True)
     user_id = fields.String(load_from="userKey")
-    user = fields.Function(deserialize=lambda obj: owner_for_id(obj["userKey"]))
+    user = fields.Function(load_from="userKey", deserialize=lambda obj: owner_for_id(obj))
     execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
     status = fields.String(required=True)
 
@@ -43,20 +43,22 @@ class TestCycleItem(Schema):
 class TestCycle(Schema):
     key = fields.String(required=True)
     name = fields.String(required=True)
-    description = fields.String(required=True)
+    description = HtmlPandocField()
     status = fields.String(required=True)
     execution_time = fields.Integer(required=True, load_from="executionTime")
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
     updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
     planned_start_date = fields.Function(deserialize=lambda o: as_arrow(o['plannedStartDate']))
+    created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
     owner_id = fields.String(load_from="owner", required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
     custom_fields = fields.Dict(load_from="customFields")
-    items = fields.Nested(TestCycleItem, many=True)
+    # Renamed to prevent Jinja collision
+    test_items = fields.Nested(TestCycleItem, many=True, load_from="items")
 
     # custom fields
     software_version = HtmlPandocField()
+    configuration = HtmlPandocField()
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
@@ -67,6 +69,7 @@ class TestCycle(Schema):
                 data[target_field] = custom_fields[custom_field]
 
         _set_if("software_version", "Software Version / Baseline")
+        _set_if("configuration", "Configuration")
         return data
 
 
@@ -81,6 +84,7 @@ class ScriptResult(Schema):
 
 class TestIssue(Schema):
     key = fields.String()
+    summary = fields.String()
     jira_url = fields.String()
 
 
@@ -89,7 +93,7 @@ class TestResult(Schema):
     key = fields.String(required=True)
     automated = fields.Boolean(required=True)
     environment = fields.String()
-    comment = fields.String()
+    comment = HtmlPandocField()
     execution_time = fields.Integer(load_from='executionTime', required=True)
     test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
                                     load_from='testCaseKey', required=True)
@@ -107,6 +111,8 @@ class TestResult(Schema):
     def postprocess(self, data):
         # Need to do this here because we need issue_links _and_ key
         data['issues'] = self.process_issues(data)
+        # Force Sort script results after loading
+        data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
         return data
 
     def process_issues(self, data):
@@ -128,12 +134,12 @@ class TestResult(Schema):
         return issues
 
 
-def build_results_model(testrun_id):
-    resp = requests.get(Config.TESTRUN_URL.format(testrun=testrun_id),
+def build_results_model(testcycle_id):
+    resp = requests.get(Config.TESTCYCLE_URL.format(testrun=testcycle_id),
                         auth=Config.AUTH)
     resp.raise_for_status()
     testcycle, errors = TestCycle().load(resp.json())
-    resp = requests.get(Config.TESTRESULTS_URL.format(testrun=testrun_id),
+    resp = requests.get(Config.TESTRESULTS_URL.format(testrun=testcycle_id),
                         auth=Config.AUTH)
     resp.raise_for_status()
     testresults, errors = TestResult().load(resp.json(), many=True)
