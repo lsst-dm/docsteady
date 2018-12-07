@@ -124,7 +124,7 @@ The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['st
 \section{Personnel}
 \label{sect:personnel}
 
-Following personnel are involved in this test activity:
+The following personnel are involved in this test activity:
 
 \begin{itemize}
 \item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
@@ -224,7 +224,8 @@ Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/
 
     \paragraph{Test Case {{ test_result['test_case_key'] }} }\mbox{}\\
 
-Open  {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{test case} } in Jira.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{\textit{ {{ test_result['test_case_key'] }} } }
+test case in Jira.
 
     {{  testcases_map[test_result['test_case_key']]['objective'] }}
 
