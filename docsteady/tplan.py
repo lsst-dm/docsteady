@@ -102,7 +102,7 @@ class TestPlan(Schema):
         namekey1 = sname[0][:7]
         if namekey == '503' or namekey1 == 'LDM-503':
             data['milestone_id'] = sname[0]
-            data['milestone_name'] = data['name'].replace(sname[0], '').strip().capitalize()
+            data['milestone_name'] = data['name'].replace(sname[0], '').strip()
         else:
             data['milestone_id'] = data['key']
             data['milestone_name'] = data['name'].capitalize()
