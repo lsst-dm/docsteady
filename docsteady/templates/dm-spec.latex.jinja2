@@ -19,8 +19,6 @@
 
 \section{Test Cases Summary}\label{test-cases-summary}
 
-Follows the list of test cases documented in this specification.
-
 \begin{longtable}[]{p{3cm}p{13cm}}
 \toprule
 Test Id & Test Name\tabularnewline
@@ -43,14 +41,14 @@ Test Id & Test Name\tabularnewline
 
 \begin{longtable}[]{llllll}
 \toprule
-Version & Status & Priority & Verification Type & Critical Event & Owner
+Version & Status & Priority & Verification Type & Owner
 \\\midrule
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
-{{ testcase.verification_type }} & {{ testcase.critical_event }} & {{ testcase.owner }}
+{{ testcase.verification_type }} & {{ testcase.owner }}
 \\\bottomrule
 \end{longtable}
 
-\subsubsection{Requirements}
+\subsubsection{Verification Elements}
 {% if testcase.requirements %}
 \begin{itemize}
 {% for item in testcase.requirements %}
@@ -73,7 +71,7 @@ Version & Status & Priority & Verification Type & Critical Event & Owner
 {% endfor %}
 {% endif %}
 
-\subsubsection{Intercase Dependencies}
+\subsubsection{Predecessors}
 {% if testcase.predecessors %}
 {{ testcase.predecessors }}
 {% endif %}
