@@ -35,7 +35,8 @@ from .utils import owner_for_id, as_arrow, HtmlPandocField, \
 
 class Issue(Schema):
     key = fields.String(required=True)
-    summary = fields.String()
+    #summary = fields.String()
+    summary = MarkdownableHtmlPandocField()
     jira_url = fields.String()
 
     @pre_load(pass_many=False)

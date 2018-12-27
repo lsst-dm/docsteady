@@ -137,6 +137,8 @@ def build_tpr_model(tplan_id):
         resp.raise_for_status()
         testresult, errors = TestResult().load(resp.json(), many=True)
         test_results_map[cycle_key] = testresult
+        #print("---------")
+        #print(testresult)
 
         # Get all the test cases from the test items
         for test_item in test_cycle['test_items']:

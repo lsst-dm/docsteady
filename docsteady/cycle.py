@@ -42,7 +42,8 @@ class TestCycleItem(Schema):
 
 class TestCycle(Schema):
     key = fields.String(required=True)
-    name = fields.String(required=True)
+    #name = fields.String(required=True)
+    name = HtmlPandocField()
     description = HtmlPandocField()
     status = fields.String(required=True)
     execution_time = fields.Integer(required=True, load_from="executionTime")
@@ -62,15 +63,21 @@ class TestCycle(Schema):
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
-        custom_fields = data["customFields"]
+        if "customFields" in data.keys():
+            custom_fields = data["customFields"]
 
-        def _set_if(target_field, custom_field):
-            if custom_field in custom_fields:
-                data[target_field] = custom_fields[custom_field]
+            def _set_if(target_field, custom_field):
+                if custom_field in custom_fields:
+                    data[target_field] = custom_fields[custom_field]
 
-        _set_if("software_version", "Software Version / Baseline")
-        _set_if("configuration", "Configuration")
+            _set_if("software_version", "Software Version / Baseline")
+            _set_if("configuration", "Configuration")
         return data
+
+class TestIssue(Schema):
+    key = fields.String()
+    summary = fields.String()
+    jira_url = fields.String()
 
 
 class ScriptResult(Schema):
@@ -80,12 +87,32 @@ class ScriptResult(Schema):
     description = MarkdownableHtmlPandocField(load_from='description')
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
+    result_issues = fields.List(fields.String(), load_from="issueLinks")
+    res_issues_items = fields.Nested(Issue, many=True)
 
+    @post_load
+    def postprocess(self, data):
+        # Need to do this here because we need issue_links _and_ key
+        data['res_issues_items'] = self.process_res_issues_items(data)
+        return data
 
-class TestIssue(Schema):
-    key = fields.String()
-    summary = fields.String()
-    jira_url = fields.String()
+    def process_res_issues_items(self, data):
+        issues = []
+        if "result_issues" in data:
+            # Build list of issues
+            for issue_key in data["result_issues"]:
+                issue = Config.CACHED_ISSUES.get(issue_key, None)
+                if not issue:
+                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
+                    resp.raise_for_status()
+                    issue_resp = resp.json()
+                    issue, errors = Issue().load(issue_resp)
+                    if errors:
+                        raise Exception("Unable to Process Linked Issue: " + str(errors))
+                    Config.CACHED_ISSUES[issue_key] = issue
+                issues.append(issue)
+        return issues
+
 
 
 class TestResult(Schema):
