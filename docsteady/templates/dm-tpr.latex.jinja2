@@ -153,14 +153,17 @@ The following personnel are involved in this test activity:
 \subsection{Summary}
 \label{sect:summarytable}
 
-\begin{longtable} {p{0.2\textwidth}p{0.2\textwidth}p{0.6\textwidth}}
+\begin{longtable}{p{0.12\textwidth}p{0.2\textwidth}p{0.56\textwidth}p{0.12\textwidth}}
 \toprule
 {% for cycle in testcycles %}
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
-  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} \\\toprule
+  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
     \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
-    & {{ test_result['status'] }} & {{ test_result['comment'] }}
+    & {{ test_result['status'] }} & {{ test_result['comment'] }} &
+    {% for issue in test_result['issue_links'] %}
+      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue }}{{ "}" }}{{ "{" }}{{ issue }}{{ "}" }}
+    {% endfor %}
     \\\hline
   {% endfor %}
 {% endfor %}
@@ -273,6 +276,17 @@ test case in Jira.
       \vspace{\dp0}
       } \end{minipage} \\
       \\ \cdashline{2-3}
+
+      {% if script_result['res_issues_items'] %}
+        & Issues        &
+        \begin{minipage}[t]{13cm}{\footnotesize
+        {% for issue in script_result['res_issues_items'] %}
+          \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
+        {% endfor %}
+        \vspace{\dp0}
+        } \end{minipage} \\
+        \\ \cdashline{2-3}
+      {% endif %}
 
       & Status          & {{ script_result['status'] }} \\ \hline
 

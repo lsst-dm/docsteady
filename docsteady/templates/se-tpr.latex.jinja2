@@ -65,7 +65,7 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 \subsection{Document Overview}
 \label{sect:docoverview}
 
-This document is generated from Jira, obtaining the relevant information from the 
+This document was generated from Jira, obtaining the relevant information from the 
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
 ~Jira Test Plan and related Test Cycles (
 {% for cycle in testcycles %}
@@ -73,14 +73,12 @@ This document is generated from Jira, obtaining the relevant information from th
 {% endfor %}
 ).
 
-%The following general sections are completed before the start of the test activity.
-
 Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
-Section \ref{sect:personnel} lists all the individuals involved and describes their roles.
+Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
 %Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
 
-Section \ref{sect:overview} provides a summary of the test results, including in an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
 Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
 The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['status'] }}.
@@ -124,7 +122,7 @@ The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['st
 \section{Personnel}
 \label{sect:personnel}
 
-Following personnel are involved in this test activity:
+The following personnel are involved in this test activity:
 
 \begin{itemize}
 \item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
@@ -227,7 +225,8 @@ Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/
 
     \paragraph{Test Case {{ test_result['test_case_key'] }} }\mbox{}\\
 
-Open  {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{test case} } in Jira.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{\textit{ {{ test_result['test_case_key'] }} } }
+test case in Jira.
 
     {{  testcases_map[test_result['test_case_key']]['objective'] }}
 
