@@ -53,7 +53,7 @@ class Config:
 
     # Regexes for LSST things
     DOC_NAMES = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS', 'LPM']
-    doc_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+)([\s\.])"
+    doc_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+)\b(?!-)"
     DOCUSHARE_DOC_PATTERN = re.compile(doc_pattern_text)
     milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
