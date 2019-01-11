@@ -42,7 +42,7 @@ class TestCycleItem(Schema):
 
 class TestCycle(Schema):
     key = fields.String(required=True)
-    name = fields.String(required=True)
+    name = HtmlPandocField(required=True)
     description = HtmlPandocField()
     status = fields.String(required=True)
     execution_time = fields.Integer(required=True, load_from="executionTime")
@@ -62,14 +62,15 @@ class TestCycle(Schema):
 
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
-        custom_fields = data["customFields"]
+        if "customFields" in data.keys():
+            custom_fields = data["customFields"]
 
-        def _set_if(target_field, custom_field):
-            if custom_field in custom_fields:
-                data[target_field] = custom_fields[custom_field]
+            def _set_if(target_field, custom_field):
+                if custom_field in custom_fields:
+                    data[target_field] = custom_fields[custom_field]
 
-        _set_if("software_version", "Software Version / Baseline")
-        _set_if("configuration", "Configuration")
+            _set_if("software_version", "Software Version / Baseline")
+            _set_if("configuration", "Configuration")
         return data
 
 
@@ -80,12 +81,32 @@ class ScriptResult(Schema):
     description = MarkdownableHtmlPandocField(load_from='description')
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
+    # result_issue_keys are actually jira issue keys (not HTTP links)
+    result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    result_issues = fields.Nested(Issue, many=True)
 
+    @post_load
+    def postprocess(self, data):
+        # Need to do this here because we need result_issue_keys _and_ key
+        data['result_issues'] = self.process_result_issues(data)
+        return data
 
-class TestIssue(Schema):
-    key = fields.String()
-    summary = fields.String()
-    jira_url = fields.String()
+    def process_result_issues(self, data):
+        issues = []
+        if "result_issue_keys" in data:
+            # Build list of issues
+            for issue_key in data["result_issue_keys"]:
+                issue = Config.CACHED_ISSUES.get(issue_key, None)
+                if not issue:
+                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
+                    resp.raise_for_status()
+                    issue_resp = resp.json()
+                    issue, errors = Issue().load(issue_resp)
+                    if errors:
+                        raise Exception("Unable to Process Linked Issue: " + str(errors))
+                    Config.CACHED_ISSUES[issue_key] = issue
+                issues.append(issue)
+        return issues
 
 
 class TestResult(Schema):
@@ -109,7 +130,7 @@ class TestResult(Schema):
 
     @post_load
     def postprocess(self, data):
-        # Need to do this here because we need issue_links _and_ key
+        # Need to do this here because we need result_issue_keys _and_ key
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
         data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
@@ -117,9 +138,9 @@ class TestResult(Schema):
 
     def process_issues(self, data):
         issues = []
-        if "issue_links" in data:
+        if "result_issue_keys" in data:
             # Build list of requirements
-            for issue_key in data["issue_links"]:
+            for issue_key in data["result_issue_keys"]:
                 issue = Config.CACHED_ISSUES.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)

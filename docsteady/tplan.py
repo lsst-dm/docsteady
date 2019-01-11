@@ -53,7 +53,6 @@ class TestPlan(Schema):
     product = fields.String()
 
     # custom fields
-    #system_overview = HtmlPandocField()
     system_overview = SubsectionableHtmlPandocField(extractable=["applicable_documents"])
     verification_environment = HtmlPandocField()
     entry_criteria = HtmlPandocField()

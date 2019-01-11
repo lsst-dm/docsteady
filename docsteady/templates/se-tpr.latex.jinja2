@@ -6,7 +6,7 @@
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
 
-\documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
+\documentclass[SE,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
 \usepackage{enumitem}
@@ -35,7 +35,7 @@
 
 
 \setDocAbstract{
-This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST level 2 milestone pertaining to the Data Management Subsystem.
+This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST milestone pertaining to the System Engineering Subsystem.
 }
 
 
@@ -153,7 +153,7 @@ The following personnel are involved in this test activity:
 \subsection{Summary}
 \label{sect:summarytable}
 
-\begin{longtable}{p{0.12\textwidth}p{0.2\textwidth}p{0.56\textwidth}p{0.12\textwidth}}
+\begin{longtable} {p{0.12\textwidth}p{0.2\textwidth}p{0.56\textwidth}p{0.12\textwidth}}
 \toprule
 {% for cycle in testcycles %}
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
@@ -161,8 +161,8 @@ The following personnel are involved in this test activity:
   {% for test_result in testresults_map[cycle.key] %}
     \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
     & {{ test_result['status'] }} & {{ test_result['comment'] }} &
-    {% for issue_key in test_result['result_issue_keys'] %}
-      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+    {% for issue in test_result['result_issue_keys'] %}
+      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue }}{{ "}" }}{{ "{" }}{{ issue }}{{ "}" }}
     {% endfor %}
     \\\hline
   {% endfor %}

@@ -35,7 +35,7 @@ from .utils import owner_for_id, as_arrow, HtmlPandocField, \
 
 class Issue(Schema):
     key = fields.String(required=True)
-    summary = fields.String()
+    summary = MarkdownableHtmlPandocField()
     jira_url = fields.String()
 
     @pre_load(pass_many=False)
@@ -69,7 +69,7 @@ class TestCase(Schema):
     priority = fields.String(required=True)
     labels = fields.List(fields.String(), missing=list())
     test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
-    issue_links = fields.List(fields.String(), load_from="issueLinks")
+    requirement_issue_keys = fields.List(fields.String(), load_from="issueLinks")
 
     # Just in case it's necessary - these aren't guaranteed to be correct
     custom_fields = fields.Dict(load_from="customFields")
@@ -119,15 +119,15 @@ class TestCase(Schema):
 
     @post_load
     def postprocess(self, data):
-        # Need to do this here because we need issue_links _and_ key
+        # Need to do this here because we need requirement_issue_keys _and_ key
         data['requirements'] = self.process_requirements(data)
         return data
 
     def process_requirements(self, data):
         issues = []
-        if "issue_links" in data:
+        if "requirement_issue_keys" in data:
             # Build list of requirements
-            for issue_key in data["issue_links"]:
+            for issue_key in data["requirement_issue_keys"]:
                 issue = Config.CACHED_REQUIREMENTS.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
