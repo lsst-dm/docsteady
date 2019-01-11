@@ -42,8 +42,7 @@ class TestCycleItem(Schema):
 
 class TestCycle(Schema):
     key = fields.String(required=True)
-    #name = fields.String(required=True)
-    name = HtmlPandocField()
+    name = HtmlPandocField(required=True)
     description = HtmlPandocField()
     status = fields.String(required=True)
     execution_time = fields.Integer(required=True, load_from="executionTime")
@@ -73,6 +72,7 @@ class TestCycle(Schema):
             _set_if("software_version", "Software Version / Baseline")
             _set_if("configuration", "Configuration")
         return data
+
 
 class TestIssue(Schema):
     key = fields.String()
@@ -112,7 +112,6 @@ class ScriptResult(Schema):
                     Config.CACHED_ISSUES[issue_key] = issue
                 issues.append(issue)
         return issues
-
 
 
 class TestResult(Schema):
