@@ -161,8 +161,8 @@ The following personnel are involved in this test activity:
   {% for test_result in testresults_map[cycle.key] %}
     \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
     & {{ test_result['status'] }} & {{ test_result['comment'] }} &
-    {% for issue in test_result['issue_links'] %}
-      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue }}{{ "}" }}{{ "{" }}{{ issue }}{{ "}" }}
+    {% for issue_key in test_result['result_issue_keys'] %}
+      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
     {% endfor %}
     \\\hline
   {% endfor %}
@@ -277,10 +277,10 @@ test case in Jira.
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      {% if script_result['res_issues_items'] %}
+      {% if script_result['result_issues'] %}
         & Issues        &
         \begin{minipage}[t]{13cm}{\footnotesize
-        {% for issue in script_result['res_issues_items'] %}
+        {% for issue in script_result['result_issues'] %}
           \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
         {% endfor %}
         \vspace{\dp0}

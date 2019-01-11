@@ -74,12 +74,6 @@ class TestCycle(Schema):
         return data
 
 
-class TestIssue(Schema):
-    key = fields.String()
-    summary = fields.String()
-    jira_url = fields.String()
-
-
 class ScriptResult(Schema):
     index = fields.Integer(load_from='index')
     expected_result = MarkdownableHtmlPandocField(load_from='expectedResult')
@@ -87,20 +81,21 @@ class ScriptResult(Schema):
     description = MarkdownableHtmlPandocField(load_from='description')
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
-    result_issues = fields.List(fields.String(), load_from="issueLinks")
-    res_issues_items = fields.Nested(Issue, many=True)
+    # result_issue_keys are actually jira issue keys (not HTTP links)
+    result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    result_issues = fields.Nested(Issue, many=True)
 
     @post_load
     def postprocess(self, data):
-        # Need to do this here because we need issue_links _and_ key
-        data['res_issues_items'] = self.process_res_issues_items(data)
+        # Need to do this here because we need result_issue_keys _and_ key
+        data['result_issues'] = self.process_result_issues(data)
         return data
 
-    def process_res_issues_items(self, data):
+    def process_result_issues(self, data):
         issues = []
-        if "result_issues" in data:
+        if "result_issue_keys" in data:
             # Build list of issues
-            for issue_key in data["result_issues"]:
+            for issue_key in data["result_issue_keys"]:
                 issue = Config.CACHED_ISSUES.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
@@ -135,7 +130,7 @@ class TestResult(Schema):
 
     @post_load
     def postprocess(self, data):
-        # Need to do this here because we need issue_links _and_ key
+        # Need to do this here because we need result_issue_keys _and_ key
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
         data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
@@ -143,9 +138,9 @@ class TestResult(Schema):
 
     def process_issues(self, data):
         issues = []
-        if "issue_links" in data:
+        if "result_issue_keys" in data:
             # Build list of requirements
-            for issue_key in data["issue_links"]:
+            for issue_key in data["result_issue_keys"]:
                 issue = Config.CACHED_ISSUES.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
