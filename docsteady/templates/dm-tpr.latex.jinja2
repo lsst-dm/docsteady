@@ -137,7 +137,7 @@ The following personnel are involved in this test activity:
   {% endif %}
   \begin{itemize}
   {% for test_item in cycle.test_items %}
-    \item Test case {{ test_item.test_case_key }} tester: {{ test_item.user }}
+    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }} tester: {{ test_item.user }}
   {% endfor %}
   \end{itemize}
 {% endfor %}
