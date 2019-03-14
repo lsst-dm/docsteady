@@ -153,6 +153,13 @@ Version & Status & Priority & Verification Type & Owner
                 \vspace{\dp0}
             {% endif %}
             } \end{minipage} \\ \cline{2-3}
+            {% if step.example_code %}
+                & Example Code &
+                \begin{minipage}[t]{13cm}{\footnotesize
+                \texttt{ {{ step.example_code }} }
+                \vspace{\dp0}
+                } \end{minipage} \\ \cline{2-3}
+            {% endif %}
             & Expected Result &
             {% if step.expected_result %}
                 \begin{minipage}[t]{13cm}{\footnotesize
