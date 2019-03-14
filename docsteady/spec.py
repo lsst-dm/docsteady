@@ -52,6 +52,20 @@ class TestStep(Schema):
     description = MarkdownableHtmlPandocField()
     expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
     test_data = MarkdownableHtmlPandocField(load_from="testData")
+    custom_field_values = fields.List(fields.Dict(), load_from="customFieldValues")
+
+    # Custom fields
+    example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data):
+        # Custom fields
+        custom_field_values = data.get("customFieldValues", list())
+        for custom_field in custom_field_values:
+            string_value = custom_field["stringValue"]
+            name = custom_field["customField"]["name"]
+            name = name.lower().replace(" ", "_")
+            data[name] = string_value
 
 
 class TestCase(Schema):
