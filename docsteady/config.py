@@ -35,6 +35,8 @@ class Config:
     TESTCYCLE_URL = f"{ATM_API}/testrun/{{testrun}}"
     TESTPLAN_URL = f"{ATM_API}/testplan/{{testplan}}"
     TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
+    # FIXME: Using undocumented API
+    FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"

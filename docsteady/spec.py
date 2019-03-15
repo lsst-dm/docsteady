@@ -30,7 +30,7 @@ from marshmallow import Schema, fields, post_load, pre_load
 from .config import Config
 from .formatters import as_anchor, alphanum_key
 from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField, test_case_for_key
+    MarkdownableHtmlPandocField, test_case_for_key, get_folders
 
 
 class Issue(Schema):
@@ -167,8 +167,19 @@ class TestCase(Schema):
 
 
 def build_spec_model(folder):
-    query = f'folder = "{folder}"'
-    resp = requests.get(Config.TESTCASE_SEARCH_URL, params=dict(query=query), auth=Config.AUTH)
+    # query = f'folder = "{folder}"'
+    # FIXME: use the previous query if they fix the ATM testcases/search API
+    folders = get_folders(folder)
+    folders_quoted = [f'"{folder}"' for folder in folders]
+    folders_inside = ", ".join(folders_quoted)
+    query = f"folder IN ({folders_inside})"
+
+    max_tests = 2000
+    resp = requests.get(
+        Config.TESTCASE_SEARCH_URL,
+        params=dict(query=query, maxResults=max_tests),
+        auth=Config.AUTH
+    )
 
     if resp.status_code != 200:
         print("Unable to download")
@@ -185,4 +196,8 @@ def build_spec_model(folder):
         if testcase["key"] not in Config.CACHED_TESTCASES:
             Config.CACHED_TESTCASES["key"] = testcase
         testcases.append(testcase)
+
+    if max_tests == len(testcases):
+        print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
+
     return testcases
