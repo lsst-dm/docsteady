@@ -197,6 +197,6 @@ def get_folders(target_folder):
     collect_children(foldertree_json["children"], "", folders)
     target_folders = []
     for folder in folders:
-        if target_folder in folder:
+        if folder.startswith(target_folder):
             target_folders.append(folder)
     return target_folders
