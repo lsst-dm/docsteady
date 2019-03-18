@@ -176,3 +176,27 @@ def rewrite_strong_to_subsection(content, extractable):
     #     new_order = list(found_items.values())
     #     new_order.extend(shelved)
     return "".join(new_order)
+
+
+# FIXME: This can be removed ATM API testcases/search API is fixed
+def get_folders(target_folder):
+    """
+    Get all folders that that have the target folder in their string
+    """
+    def collect_children(children, path, folders):
+        """Recursively collection children"""
+        for child in children:
+            child_path = path + f"/{child['name']}"
+            folders.append(child_path)
+            if len(child["children"]):
+                collect_children(child["children"], child_path, folders)
+    resp = requests.get(Config.FOLDERTREE_API, auth=Config.AUTH)
+    foldertree_json = resp.json()
+
+    folders = []
+    collect_children(foldertree_json["children"], "", folders)
+    target_folders = []
+    for folder in folders:
+        if folder.startswith(target_folder):
+            target_folders.append(folder)
+    return target_folders
