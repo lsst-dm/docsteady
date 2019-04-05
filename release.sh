@@ -26,7 +26,7 @@ printf "Push tag, containers\n"
 
 # If you haven't already...
 # docker login
-docker push lsstdm/docsteady:${PYTHON_VERSION
+docker push lsstdm/docsteady:${PYTHON_VERSION}
 docker push lsstdm/docsteady:latest
 
 printf "Pushing Tag"
