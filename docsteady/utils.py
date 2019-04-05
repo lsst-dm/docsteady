@@ -85,7 +85,7 @@ class MarkdownableHtmlPandocField(fields.String):
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
             # matches `[markdown]: #` at the top of description
-            if re.match("\[markdown\].*:.*#(.*)", description_txt.splitlines()[0]):
+            if re.match("\\[markdown\\].*:.*#(.*)", description_txt.splitlines()[0]):
                 # Assume github-flavored markdown
                 Config.DOC.gfm = description_txt.encode("utf-8")
             else:
