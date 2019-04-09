@@ -33,6 +33,7 @@ from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
+from .vcd import build_vcd_model
 
 try:
     __version__ = get_distribution(__name__).version
@@ -253,6 +254,27 @@ def _metadata():
         docsteady_version=__version__,
         project="LVV"
     )
+
+
+
+@cli.command("generate-vcd")
+@click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
+@click.option('--password', prompt="Jira Password", hide_input=True,
+              envvar="JIRA_PASSWORD", help="Jira Password")
+@click.argument('component')
+@click.argument('path', required=False, type=click.Path())
+def generate_vcd(format, username, password, component, path):
+    """Given a specific subsystem, it build the VCD.
+    If specified, PATH is the resulting output.
+    """
+    global OUTPUT_FORMAT
+    OUTPUT_FORMAT = format
+    Config.AUTH = (username, password)
+    target = "vcd"
+
+    vcd_dict = build_vcd_model(component)
+
 
 
 if __name__ == '__main__':

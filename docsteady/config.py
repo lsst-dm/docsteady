@@ -35,8 +35,11 @@ class Config:
     TESTCYCLE_URL = f"{ATM_API}/testrun/{{testrun}}"
     TESTPLAN_URL = f"{ATM_API}/testplan/{{testplan}}"
     TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
+    ISSUETCASES_URL = f"{ATM_API}/issuelink/{{issuekey}}/testcases"
+    TESTCASERESULT_URL = f"{ATM_API}/testcase/{{tcid}}/testresult/latest"
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
+    VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511,customfield_13513,customfield_12002,customfield_12206,customfield_13703&maxResults={{maxR}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
