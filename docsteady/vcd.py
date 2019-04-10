@@ -43,7 +43,20 @@ class VerificationE(Schema):
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
         return data
 
-
+def runstatus(trs):
+    if trs == "Pass":
+        status = 'passed'
+    elif trs == "Conditional Pass":
+        status = 'cndpass'
+    elif trs == "Fail":
+        status = 'failed'
+    elif trs == "In Progress":
+        status = 'inprog'
+    elif trs == "Blocked":
+        status = 'blocked'
+    else:
+        status = 'notexec'
+    return(status)
 
 def build_vcd_model(component):
     # build the vcd. Only Verification Issues are considered. 
@@ -117,25 +130,26 @@ def build_vcd_model(component):
         tcrawj = tcraw.json()
         tmp['tc'] = []
         for tc in tcrawj:
-            tmp['tc'].append(tc['key'])
-            #print('     - ',tc['key'])
-            if tc['key'] not in tcases.keys():
-                tctmp = {}
-                if tc['owner']:
-                    tctmp['owner'] = tc['owner']
-                else:
-                    tctmp['owner'] = ""
-                tctmp['critical'] = tc['customFields']['Critical Event?']
-                tctmp['vtype'] = tc['customFields']['Verification Type']
-                if 'objective' in tc.keys():
-                    tctmp['objective'] = tc['objective']
-                else:
-                    tctmp['objective'] = ""
-                tctmp['name'] = tc['name']
-                tctmp['status'] = tc['status']
-                tctmp['folder'] = tc['folder']
-                tctmp['tspec'] = get_tspec(tc['folder'])
-                tcases[ tc['key'] ] = tctmp
+            if tc['key'] not in tmp['tc']:
+                tmp['tc'].append(tc['key'])
+                #print('     - ',tc['key'])
+                if tc['key'] not in tcases.keys():
+                    tctmp = {}
+                    if tc['owner']:
+                        tctmp['owner'] = tc['owner']
+                    else:
+                        tctmp['owner'] = ""
+                    tctmp['critical'] = tc['customFields']['Critical Event?']
+                    tctmp['vtype'] = tc['customFields']['Verification Type']
+                    if 'objective' in tc.keys():
+                        tctmp['objective'] = tc['objective']
+                    else:
+                        tctmp['objective'] = ""
+                    tctmp['name'] = tc['name']
+                    tctmp['status'] = tc['status']
+                    tctmp['folder'] = tc['folder']
+                    tctmp['tspec'] = get_tspec(tc['folder'])
+                    tcases[ tc['key'] ] = tctmp
         #print(f"[{{i}} {{ve}} {{veId}} {{vlevel}} ({{ntc}})]  ".format(i=i,ve=tmp['key'], veId=ves[0], vlevel=tmp['vlevel'], ntc=len(tmp['tc'])))
         velem[ ves[0] ] = tmp
 
@@ -151,18 +165,7 @@ def build_vcd_model(component):
         else:
             tcdj = tcd.json()
             tmpr = {}
-            if tcdj['status'] == "Pass":
-                tmpr['status'] = 'passed'
-            elif tcdj['status'] == "Conditional Pass":
-                tmpr['status'] = 'cndpass'
-            elif tcdj['status'] == "Fail":
-                tmpr['status'] = 'failed'
-            elif tcdj['status'] == "In Progress":
-                tmpr['status'] = 'inprog'
-            elif tcdj['status'] == "Blocked":
-                tmpr['status'] = 'blocked'
-            else:
-                tmpr['status'] = 'notexec'
+            tmpr['status'] = runstatus(tcdj['status'])
             #print('(', tcdj['status'],')', end="")
             tmpr['date'] = tcdj['executionDate'][0:10]
             tmpr['tester'] = tcdj['executedBy']
@@ -171,6 +174,24 @@ def build_vcd_model(component):
                 tmpr['comment'] = tcdj['comment']
             else:
                 tmpr['comment'] = ""
+            #print(Config.TESTPLANCYCLE_URL.format(trk=tcdj['key']))
+            tctp = rs.get(Config.TESTPLANCYCLE_URL.format(trk=tcdj['key']),
+                     auth=Config.AUTH)
+            tctpj = tctp.json()
+            if 'testRun' in tctpj.keys():
+                tmpr['tcycle'] = tctpj['testRun']['key']
+                if 'testPlan' in tctpj['testRun'].keys():
+                    tmpr['tplan'] = tctpj['testRun']['testPlan']['key']
+                    tpl = rs.get(Config.TPLANCF_URL.format(tpk=tmpr['tplan']))
+                    tplj = tpl.json()
+                    tmpr['TPR'] = tplj['customFields']['Verification Artifacts']
+                else:
+                    tmpr['tplan'] = "NA"
+                    tmpr['TPR'] = "NA"
+            else:
+                tmpr['tcycle'] = "NA"
+                tmpr['TPR'] = "NA"
+                tmpr['tplan'] = "NA"
             tcases[ tck ]['lastResult'] = tmpr
     #print(" -")
 
@@ -225,16 +246,21 @@ def build_vcd_model(component):
                 l = 0
                 for tc in velem[ve]['tc']:
                     l = l + 1
-                    if l == 1:
-                        print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ {\\footnotesize ", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
-                    else:
-                        print(" && \\begin{tabular}{@{}l@{}}", tc, " \\\\ {\\footnotesize", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
-                        #print(f" && {{tc}} &".format(tc=tc), file=fout)
+                    if l != 1:
+                        print(" && ", file=fout, end='')
+                    print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
+                    #else:
+                    #    print(" && \\begin{tabular}{@{}l@{}}", tc, " \\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
+                    #    #print(f" && {{tc}} &".format(tc=tc), file=fout)
                     print(f"    _ {{tc}}({{tcs}}) in {{tspec}} test specification".format(tc=tc,tcs=tcases[tc]['status'],tspec=tcases[tc]['tspec']))
                     if 'lastResult' in tcases[tc].keys():
-                        print(f" {{date}} & \\{{result}} \\\\".format(date=tcases[tc]['lastResult']['date'],result=tcases[tc]['lastResult']['status']),
-                              file=fout)
-                        print(f"       Execution date {{date}}  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],result=tcases[tc]['lastResult']['status']))
+                        print("\\begin{tabular}{@{}l@{}}", tcases[tc]['lastResult']['date'], " \\\\ ", file=fout, end='')
+                        print("\\vcdJiraRef{", tcases[tc]['lastResult']['TPR'], tcases[tc]['lastResult']['tcycle'], "}\end{tabular} &", file=fout, end='')
+                        #print("\\vcdJiraRef{", tcases[tc]['lastResult']['tplan'], tcases[tc]['lastResult']['tcycle'], "}\end{tabular} &", file=fout, end='')
+                        print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastResult']['status']), file=fout)
+                        #print(f" {{date}} & \\{{result}} \\\\".format(date=tcases[tc]['lastResult']['date'],result=tcases[tc]['lastResult']['status']),
+                        #      file=fout)
+                        print(f"       Execution date {{date}} ({{doc}})  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],doc=tcases[tc]['lastResult']['tplan'],result=tcases[tc]['lastResult']['status']))
                     else:
                         print(" & \\notexec{} \\\\", file=fout)
                         print("        Not run")
