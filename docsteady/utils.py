@@ -69,7 +69,7 @@ class SubsectionableHtmlPandocField(fields.String):
 def cite_docushare_handles(text):
     """This will find matching docushare handles and replace
     the text with the ``\citeds{text}``."""
-    return Config.DOCUSHARE_DOC_PATTERN.sub(r"\citeds{\1\2}", text)
+    return Config.DOCUSHARE_DOC_PATTERN.sub(r"\\citeds{\1\2}", text)
 
 
 class MarkdownableHtmlPandocField(fields.String):
