@@ -184,7 +184,7 @@ def build_vcd_model(component):
                     tmpr['tplan'] = tctpj['testRun']['testPlan']['key']
                     tpl = rs.get(Config.TPLANCF_URL.format(tpk=tmpr['tplan']))
                     tplj = tpl.json()
-                    tmpr['TPR'] = tplj['customFields']['Verification Artifacts']
+                    tmpr['TPR'] = tplj['customFields']['Document ID']
                 else:
                     tmpr['tplan'] = "NA"
                     tmpr['TPR'] = "NA"
@@ -217,28 +217,33 @@ def build_vcd_model(component):
     print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
 
     print('\\begin{longtable}{lllll}', file=fout)
-    print('\\caption{', file=fout)
-    print('VCD Table.}', file=fout)
-    print('\\label{tab:dmvcd}', file=fout)
+    print("\\caption{", component, "VCD Table.}", file=fout)
 
     print('\\\\\n\\toprule', file=fout)
     print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & \\textbf{Last Run} & \\textbf{Test Status} \\\\\n',
           file=fout)
     print('\\toprule\n\\endhead', file=fout)
 
+    bt = '\\begin{tabular}{@{}l@{}}'
+    nl = '\\\\'
+    njr = '\\vcdJiraRef{'
+    ndr = '\\vcdDocRef{'
+    ocb = '{'
+    ccb = '}'
+    et = '\\end{tabular}'
+    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
+    scr = '{\\scriptsize '
     for req in reqs.keys():
-        print("\\begin{tabular}{@{}l@{}}", req, "\\\\ {\\footnotesize ", reqs[req]['reqDoc'], "}\end{tabular} &", file=fout)
-        #print(f"{{req}} ({{doc}})".format(req=req,doc=reqs[req]['reqDoc']))
+        print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et+" &", file=fout)
+        #print("\\begin{tabular}{@{}l@{}}", req, f"\\\\ {\\scriptsize{{doc}} }\end{tabular} &".format(doc=reqs[req]['reqDoc']), file=fout)
         nve = len(reqs[req]['VEs'])
         i = 0
         for ve in reqs[req]['VEs']:
             i = i + 1
-            if i == 1:
-                print("\\begin{tabular}{@{}l@{}}", ve, "\\\\ \\vcdJiraRef{", velem[ve]['key'], "}\end{tabular} &", file=fout)
-            else:
-                print(" & \\begin{tabular}{@{}l@{}}",ve,"\\\\ \\vcdJiraRef{", velem[ve]['key'], "}\end{tabular} &", file=fout)
-                #print(f"& {{ve}} &".format(ve=ve), file=fout)
-            #print(f"  > {{ve}} ({{lvv}})".format(ve=ve,lvv=velem[ve]['key']))
+            if i != 1:
+                print(" & ", file=fout, end='')
+            print(bt, f"{ve} {nl} {njr}{velem[ve]['key']}{ccb}", et+" &", file=fout)
+            #print("\\begin{tabular}{@{}l@{}}", ve, "\\\\ \\vcdJiraRef{", velem[ve]['key'], "}\\end{tabular} &", file=fout)
             ntc = len(velem[ve]['tc'])
             if ntc == 0:
                 print(" && \\\\", file = fout)
@@ -248,30 +253,33 @@ def build_vcd_model(component):
                     l = l + 1
                     if l != 1:
                         print(" && ", file=fout, end='')
-                    print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
-                    #else:
-                    #    print(" && \\begin{tabular}{@{}l@{}}", tc, " \\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\end{tabular} &", file=fout)
-                    #    #print(f" && {{tc}} &".format(tc=tc), file=fout)
-                    print(f"    _ {{tc}}({{tcs}}) in {{tspec}} test specification".format(tc=tc,tcs=tcases[tc]['status'],tspec=tcases[tc]['tspec']))
+                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} {ndr}{tcases[tc]['tspec']}{ccb}", et+" &", file=fout)
+                    #print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\\end{tabular} &", file=fout)
+                    #print(f"    _ {{tc}}({{tcs}}) in {{tspec}} test specification".format(tc=tc,tcs=tcases[tc]['status'],tspec=tcases[tc]['tspec']))
                     if 'lastResult' in tcases[tc].keys():
-                        print("\\begin{tabular}{@{}l@{}}", tcases[tc]['lastResult']['date'], " \\\\ ", file=fout, end='')
-                        print("\\vcdJiraRef{", tcases[tc]['lastResult']['TPR'], tcases[tc]['lastResult']['tcycle'], "}\end{tabular} &", file=fout, end='')
-                        #print("\\vcdJiraRef{", tcases[tc]['lastResult']['tplan'], tcases[tc]['lastResult']['tcycle'], "}\end{tabular} &", file=fout, end='')
+                        print(bt, tcases[tc]['lastResult']['date'], nl, file=fout, end='')
+                        #print("\\begin{tabular}{@{}l@{}}", tcases[tc]['lastResult']['date'], " \\\\ ", file=fout, end='')
+                        tcy = tcases[tc]['lastResult']['tcycle']
+                        if tcases[tc]['lastResult']['TPR'] != "NA":
+                            print(f"{ndr}{tcases[tc]['lastResult']['TPR']}{ccb} {scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
+                        else:
+                            print(f"{scr}NA {atm}{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
+                        #    print("\\vcdDocRef{", tcases[tc]['lastResult']['TPR'], "} \\vcdJiraRef{", tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
+                        #    print("{\\scriptsize ", tcases[tc]['lastResult']['TPR'], tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
                         print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastResult']['status']), file=fout)
-                        #print(f" {{date}} & \\{{result}} \\\\".format(date=tcases[tc]['lastResult']['date'],result=tcases[tc]['lastResult']['status']),
-                        #      file=fout)
-                        print(f"       Execution date {{date}} ({{doc}})  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],doc=tcases[tc]['lastResult']['tplan'],result=tcases[tc]['lastResult']['status']))
+                        #print(f"       Execution date {{date}} ({{doc}})  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],doc=tcases[tc]['lastResult']['tplan'],result=tcases[tc]['lastResult']['status']))
                     else:
                         print(" & \\notexec{} \\\\", file=fout)
-                        print("        Not run")
+                        #print("        Not run")
                     if l != ntc:
                         print("\\cmidrule{3-5}", file=fout)
             if i != nve:
                 print("\\cmidrule{2-5}", file=fout)
         print("\\midrule", file=fout)
 
-    print('\\end{longtable}{lllll}', file=fout)
-    print('\\setlength{\\LTcapwidth}{\\LTcapwidthold}', file=fout)
+    print('\\label{tab:dmvcd}', file=fout)
+    print('\\end{longtable}', file=fout)
+    #print('\\setlength{\\LTcapwidth}{\\LTcapwidthold}', file=fout)
     #print('\\end{landscape}', file=fout)
     print('}\n}', file=fout)
     fout.close()
