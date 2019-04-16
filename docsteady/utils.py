@@ -31,6 +31,8 @@ from marshmallow import fields
 from .config import Config
 import requests
 
+jhost = "140.252.32.64"
+jdb = "jira"
 
 class HtmlPandocField(fields.String):
     """
@@ -208,3 +210,5 @@ def get_tspec(folder):
         if len(sd) == 2:
             return(sd[1])
     return("")
+
+

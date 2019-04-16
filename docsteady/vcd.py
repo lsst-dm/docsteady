@@ -22,6 +22,7 @@
 Code for VCD
 """
 import requests
+import pymysql
 from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
@@ -29,6 +30,7 @@ from docsteady.spec import Issue, TestCase
 from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField, \
     MarkdownableHtmlPandocField, get_tspec
 from .config import Config
+from .utils import jhost, jdb
 
 
 class VerificationE(Schema):
@@ -283,3 +285,161 @@ def build_vcd_model(component):
     #print('\\end{landscape}', file=fout)
     print('}\n}', file=fout)
     fout.close()
+
+
+#
+# returns query result in a 2dim matrix 
+#
+def db_get(jc, dbquery):
+    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb)
+    cursor = db.cursor()
+    cursor.execute(dbquery)
+    data = cursor.fetchall()
+    db.close()
+
+    res = []
+
+    for row in data:
+        #print(row)
+        tmp = []
+        for col in row:
+            #print(str(col)+" ", end='')
+            tmp.append(col)
+        #print("")
+        res.append(tmp)
+
+    return(res)
+
+#
+#  initialize jst containing the statuses from Jira
+#
+def initJiraStatus(jc):
+    global jst
+    jst = {}
+    query = ("select id, pname from issuestatus")
+    rawst = db_get(jc, query)
+    for st in rawst:
+        jst[ st[0] ] = st[1] 
+
+
+#
+# for a given VE (id) return the related test cases
+#
+def get_tcs(jc, veid):
+    query = ("select tc.key from AO_4D28DD_TEST_CASE tc "
+             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
+             "inner join jiraissue ji on il.issue_id = ji.id "
+             "where ji.id = " + str(veid))
+    rawtc = db_get(jc, query)
+    tcs = []
+    for tc in rawtc:
+        if tc[0] not in tcs:
+            tcs.append(tc[0])
+    return(tcs)
+
+
+#
+# gets information for all Verification Elementes for a Component
+# it returns also the reqs and test cases related to them
+#
+def get_ves(comp, jc):
+    global jst
+    velements = {}
+    reqs = {}
+    tclist = []
+    tcases = {}
+    rawVes = []
+    query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
+             "inner join nodeassociation na ON ji.id = na.source_node_id "
+             "inner join component c on na.`SINK_NODE_ID`=c.id " 
+             " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='"+comp+"'")
+    rawVes = db_get(jc, query)
+
+    for ve in rawVes:
+       tmpve = {}
+       tmpve['jkey'] = 'LVV-'+str(ve[0])
+       ves = ve[2].split(':')
+       tmpve['status'] = jst[ ve[3] ]
+       query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
+                "inner join customfield cf on cvf.customfield = cf.id "
+                "inner join jiraissue ji on cvf.issue = ji.id "
+                "where ji.id = "+str(ve[1])+" "
+                "and cf.id in (13511, 13703)")
+       rawCfs = db_get(jc, query)
+       for cf in rawCfs:
+           tmpve[ cf[1] ] = cf[2]
+       if tmpve['Requirement ID'] not in reqs.keys():
+            #print(tmpve['Requirement ID'])
+            rtmp = {}
+            rtmp['reqDoc'] = tmpve['Requirement Specification']
+            rtmp['VEs'] = []
+            rtmp['VEs'].append(ves[0])
+            reqs[ tmpve['Requirement ID'] ] = rtmp
+       else:
+            reqs[ tmpve['Requirement ID'] ]['VEs'].append(ves[0])
+       tmpve['tcs'] = []
+       tmpve['tcs'] = get_tcs(jc, ve[1])
+       #print(tmpve['jkey'], tmpve['tcs'])
+       for tc in tmpve['tcs']:
+           if tc not in tclist:
+               tclist.append(tc)
+               
+       velements[ ves[0] ] = tmpve
+
+    return(velements, reqs, tclist)
+
+#
+# recursivelly browse the folders until findind the test spec of the root (NULL)
+#
+def get_tspec_R(jc, fid):
+    query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
+    dbres = db_get(jc, query)
+    tspec = get_tspec(dbres[0][0])
+    if tspec == "":
+        if dbres[0][1] != None:
+            tspec = get_tspec_R(jc, dbres[0][1])
+    return(tspec)
+
+
+#
+# return last execution result, is available
+#
+def get_tcDets(jc, tclist):
+    
+    for tc in tclist:
+        query = ("select FOLDER_ID, LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc where tc.key = '" + tc + "'")
+        tcr = db_get(jc, query)
+        tspec = get_tspec_R(jc, tcr[0][0])
+        print(tc, "       ----", tspec)
+        if tcr[0][1] != None:
+            query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
+                 "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
+                 "join AO_4D28DD_TEST_RESULT tr on tc.`ID` = tr.`TEST_CASE_ID` "
+                 "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
+                 "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
+                 "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
+                 "join AO_4D28DD_RESULT_STATUS rs on tc.`LAST_TEST_RESULT_STATUS_ID` = rs.id "
+                 "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
+                 "where tc.key = '" + tc +"' and cfv.`CUSTOM_FIELD_ID`=66 ")
+            trdet = db_get(jc, query)
+            print("    -    ", trdet)
+
+
+def vcdsql(comp, usr, pwd):
+    global jst
+
+    print(f"Looking for VEs in {comp}...") 
+    jcon = {"usr": usr,
+            "pwd": pwd}
+    initJiraStatus(jcon)
+
+    VEs = {}
+    reqs = {}
+    tclist = [] 
+
+    VEs, reqs, tclist = get_ves(comp, jcon)
+
+    print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".format(nve=len(VEs),
+          nr=len(reqs),ntc=len(tclist)))
+
+    get_tcDets(jcon, tclist)

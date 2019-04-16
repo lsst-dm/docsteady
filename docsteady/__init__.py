@@ -33,7 +33,7 @@ from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
-from .vcd import build_vcd_model
+from .vcd import build_vcd_model, vcdsql
 
 try:
     __version__ = get_distribution(__name__).version
@@ -262,9 +262,10 @@ def _metadata():
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
+@click.option('--sql', required=False, default=False)
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, username, password, component, path):
+def generate_vcd(format, username, password, sql, component, path):
     """Given a specific subsystem, it build the VCD.
     If specified, PATH is the resulting output.
     """
@@ -273,7 +274,11 @@ def generate_vcd(format, username, password, component, path):
     Config.AUTH = (username, password)
     target = "vcd"
 
-    vcd_dict = build_vcd_model(component)
+    if sql:
+        print('Building model using direct SQL access')
+        vcd_dict = vcdsql(component, username, password)
+    else:
+        vcd_dict = build_vcd_model(component)
 
 
 
