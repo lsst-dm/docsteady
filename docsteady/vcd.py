@@ -23,6 +23,7 @@ Code for VCD
 """
 import requests
 import pymysql
+import datetime
 from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
@@ -62,6 +63,7 @@ def runstatus(trs):
 
 def build_vcd_model(component):
     # build the vcd. Only Verification Issues are considered. 
+    global tcases
 
     fname = component.lower() + "_vcd.tex"
 
@@ -100,7 +102,7 @@ def build_vcd_model(component):
     for ve in veresp['issues']:
         i = i + 1
         tmp = {}
-        tmp['key'] = ve['key']
+        tmp['jkey'] = ve['key']
         #tmp['summary'] = ve['fields']['summary']
         ves = ve['fields']['summary'].split(':')
         #tmp['veId'] = ves[0]
@@ -127,14 +129,19 @@ def build_vcd_model(component):
             reqs[ tmp['reqId'] ]['VEs'].append(ves[0])
             
         #print(i, tmp)
-        tcraw = rs.get(Config.ISSUETCASES_URL.format(issuekey=tmp['key']),
+        tcraw = rs.get(Config.ISSUETCASES_URL.format(issuekey=tmp['jkey']),
                        auth=Config.AUTH)
         tcrawj = tcraw.json()
-        tmp['tc'] = []
+        tmp['tcs'] = {}
         for tc in tcrawj:
-            if tc['key'] not in tmp['tc']:
-                tmp['tc'].append(tc['key'])
-                #print('     - ',tc['key'])
+            if tc['key'] not in tmp['tcs'].keys():
+                tmp['tcs'][ tc['key'] ] = {}
+                #tmp['tcs'].append(tc['key'])
+                tmp['tcs'][ tc['key'] ]['tspec'] = get_tspec(tc['folder'])
+                if 'lastTestResultStatus' in tc.keys():
+                    tmp['tcs'][ tc['key'] ]['lastR'] = tc['lastTestResultStatus']
+                else:
+                    tmp['tcs'][ tc['key'] ]['lastR'] = None
                 if tc['key'] not in tcases.keys():
                     tctmp = {}
                     if tc['owner']:
@@ -162,14 +169,15 @@ def build_vcd_model(component):
         tcd = rs.get(Config.TESTCASERESULT_URL.format(tcid=tck),
                      auth=Config.AUTH)
         if tcd.status_code == 404:
-            #print('(NR)', end="")
+            #print('Error on -------> ', tck)
+            #print(Config.TESTCASERESULT_URL.format(tcid=tck))
             continue
         else:
             tcdj = tcd.json()
             tmpr = {}
             tmpr['status'] = runstatus(tcdj['status'])
             #print('(', tcdj['status'],')', end="")
-            tmpr['date'] = tcdj['executionDate'][0:10]
+            tmpr['exdate'] = tcdj['executionDate'][0:10]
             tmpr['tester'] = tcdj['executedBy']
             tmpr['key'] = tcdj['key']
             if 'comment' in tcdj.keys():
@@ -186,15 +194,15 @@ def build_vcd_model(component):
                     tmpr['tplan'] = tctpj['testRun']['testPlan']['key']
                     tpl = rs.get(Config.TPLANCF_URL.format(tpk=tmpr['tplan']))
                     tplj = tpl.json()
-                    tmpr['TPR'] = tplj['customFields']['Document ID']
+                    tmpr['dmtr'] = tplj['customFields']['Document ID']
                 else:
                     tmpr['tplan'] = "NA"
-                    tmpr['TPR'] = "NA"
+                    tmpr['dmtr'] = "NA"
             else:
                 tmpr['tcycle'] = "NA"
-                tmpr['TPR'] = "NA"
+                tmpr['dmtr'] = "NA"
                 tmpr['tplan'] = "NA"
-            tcases[ tck ]['lastResult'] = tmpr
+            tcases[ tck ]['lastR'] = tmpr
     #print(" -")
 
     fsum = open("summary.tex", 'w')
@@ -206,86 +214,88 @@ def build_vcd_model(component):
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
-    fout = open(fname, 'w')
+    printVCD(velem, reqs, component)
 
-    print('\\section{VCD}', file=fout)    
-    print('\\afterpage{', file=fout)
-    #print('\\begin{landscape}\n', file=fout)
-    #print('% Ugly hack for centering on page\n\\null\n\\vspace{1.0cm}', file=fout)
-
-    print('{\small', file=fout)
-    print('\\newlength{\\LTcapwidthold}', file=fout)
-    print('\\setlength{\\LTcapwidthold}{\\LTcapwidth}', file=fout)
-    print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
-
-    print('\\begin{longtable}{lllll}', file=fout)
-    print("\\caption{", component, "VCD Table.}", file=fout)
-
-    print('\\\\\n\\toprule', file=fout)
-    print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & \\textbf{Last Run} & \\textbf{Test Status} \\\\\n',
-          file=fout)
-    print('\\toprule\n\\endhead', file=fout)
-
-    bt = '\\begin{tabular}{@{}l@{}}'
-    nl = '\\\\'
-    njr = '\\vcdJiraRef{'
-    ndr = '\\vcdDocRef{'
-    ocb = '{'
-    ccb = '}'
-    et = '\\end{tabular}'
-    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
-    scr = '{\\scriptsize '
-    for req in reqs.keys():
-        print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et+" &", file=fout)
-        #print("\\begin{tabular}{@{}l@{}}", req, f"\\\\ {\\scriptsize{{doc}} }\end{tabular} &".format(doc=reqs[req]['reqDoc']), file=fout)
-        nve = len(reqs[req]['VEs'])
-        i = 0
-        for ve in reqs[req]['VEs']:
-            i = i + 1
-            if i != 1:
-                print(" & ", file=fout, end='')
-            print(bt, f"{ve} {nl} {njr}{velem[ve]['key']}{ccb}", et+" &", file=fout)
-            #print("\\begin{tabular}{@{}l@{}}", ve, "\\\\ \\vcdJiraRef{", velem[ve]['key'], "}\\end{tabular} &", file=fout)
-            ntc = len(velem[ve]['tc'])
-            if ntc == 0:
-                print(" && \\\\", file = fout)
-            else:
-                l = 0
-                for tc in velem[ve]['tc']:
-                    l = l + 1
-                    if l != 1:
-                        print(" && ", file=fout, end='')
-                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} {ndr}{tcases[tc]['tspec']}{ccb}", et+" &", file=fout)
-                    #print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\\end{tabular} &", file=fout)
-                    #print(f"    _ {{tc}}({{tcs}}) in {{tspec}} test specification".format(tc=tc,tcs=tcases[tc]['status'],tspec=tcases[tc]['tspec']))
-                    if 'lastResult' in tcases[tc].keys():
-                        print(bt, tcases[tc]['lastResult']['date'], nl, file=fout, end='')
-                        #print("\\begin{tabular}{@{}l@{}}", tcases[tc]['lastResult']['date'], " \\\\ ", file=fout, end='')
-                        tcy = tcases[tc]['lastResult']['tcycle']
-                        if tcases[tc]['lastResult']['TPR'] != "NA":
-                            print(f"{ndr}{tcases[tc]['lastResult']['TPR']}{ccb} {scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
-                        else:
-                            print(f"{scr}NA {atm}{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
-                        #    print("\\vcdDocRef{", tcases[tc]['lastResult']['TPR'], "} \\vcdJiraRef{", tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
-                        #    print("{\\scriptsize ", tcases[tc]['lastResult']['TPR'], tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
-                        print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastResult']['status']), file=fout)
-                        #print(f"       Execution date {{date}} ({{doc}})  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],doc=tcases[tc]['lastResult']['tplan'],result=tcases[tc]['lastResult']['status']))
-                    else:
-                        print(" & \\notexec{} \\\\", file=fout)
-                        #print("        Not run")
-                    if l != ntc:
-                        print("\\cmidrule{3-5}", file=fout)
-            if i != nve:
-                print("\\cmidrule{2-5}", file=fout)
-        print("\\midrule", file=fout)
-
-    print('\\label{tab:dmvcd}', file=fout)
-    print('\\end{longtable}', file=fout)
-    #print('\\setlength{\\LTcapwidth}{\\LTcapwidthold}', file=fout)
-    #print('\\end{landscape}', file=fout)
-    print('}\n}', file=fout)
-    fout.close()
-
+    #fout = open(fname, 'w')
+#
+    #print('\\section{VCD}', file=fout)    
+    #print('\\afterpage{', file=fout)
+    ##print('\\begin{landscape}\n', file=fout)
+    ##print('% Ugly hack for centering on page\n\\null\n\\vspace{1.0cm}', file=fout)
+#
+    #print('{\small', file=fout)
+    #print('\\newlength{\\LTcapwidthold}', file=fout)
+    #print('\\setlength{\\LTcapwidthold}{\\LTcapwidth}', file=fout)
+    #print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
+#
+    #print('\\begin{longtable}{lllll}', file=fout)
+    #print("\\caption{", component, "VCD Table.}", file=fout)
+#
+    #print('\\\\\n\\toprule', file=fout)
+    #print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & \\textbf{Last Run} & \\textbf{Test Status} \\\\\n',
+          #file=fout)
+    #print('\\toprule\n\\endhead', file=fout)
+#
+    #bt = '\\begin{tabular}{@{}l@{}}'
+    #nl = '\\\\'
+    #njr = '\\vcdJiraRef{'
+    #ndr = '\\vcdDocRef{'
+    #ocb = '{'
+    #ccb = '}'
+    #et = '\\end{tabular}'
+    #atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
+    #scr = '{\\scriptsize '
+    #for req in reqs.keys():
+        #print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et+" &", file=fout)
+        ##print("\\begin{tabular}{@{}l@{}}", req, f"\\\\ {\\scriptsize{{doc}} }\end{tabular} &".format(doc=reqs[req]['reqDoc']), file=fout)
+        #nve = len(reqs[req]['VEs'])
+        #i = 0
+        #for ve in reqs[req]['VEs']:
+            #i = i + 1
+            #if i != 1:
+                #print(" & ", file=fout, end='')
+            #print(bt, f"{ve} {nl} {njr}{velem[ve]['key']}{ccb}", et+" &", file=fout)
+            ##print("\\begin{tabular}{@{}l@{}}", ve, "\\\\ \\vcdJiraRef{", velem[ve]['key'], "}\\end{tabular} &", file=fout)
+            #ntc = len(velem[ve]['tc'])
+            #if ntc == 0:
+                #print(" && \\\\", file = fout)
+            #else:
+                #l = 0
+                #for tc in velem[ve]['tc']:
+                    #l = l + 1
+                    #if l != 1:
+                        #print(" && ", file=fout, end='')
+                    #print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} {ndr}{tcases[tc]['tspec']}{ccb}", et+" &", file=fout)
+                    ##print("\\begin{tabular}{@{}l@{}}", tc, "\\\\ \\vcdDocRef{", tcases[tc]['tspec'], "}\\end{tabular} &", file=fout)
+                    ##print(f"    _ {{tc}}({{tcs}}) in {{tspec}} test specification".format(tc=tc,tcs=tcases[tc]['status'],tspec=tcases[tc]['tspec']))
+                    #if 'lastResult' in tcases[tc].keys():
+                        #print(bt, tcases[tc]['lastResult']['date'], nl, file=fout, end='')
+                        ##print("\\begin{tabular}{@{}l@{}}", tcases[tc]['lastResult']['date'], " \\\\ ", file=fout, end='')
+                        #tcy = tcases[tc]['lastResult']['tcycle']
+                        #if tcases[tc]['lastResult']['TPR'] != "NA":
+                            #print(f"{ndr}{tcases[tc]['lastResult']['TPR']}{ccb} {scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
+                        #else:
+                            #print(f"{scr}NA {atm}{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
+                        ##    print("\\vcdDocRef{", tcases[tc]['lastResult']['TPR'], "} \\vcdJiraRef{", tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
+                        ##    print("{\\scriptsize ", tcases[tc]['lastResult']['TPR'], tcases[tc]['lastResult']['tcycle'], "}\\end{tabular} &", file=fout, end='')
+                        #print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastResult']['status']), file=fout)
+                        ##print(f"       Execution date {{date}} ({{doc}})  result: {{result}}".format(date=tcases[tc]['lastResult']['date'],doc=tcases[tc]['lastResult']['tplan'],result=tcases[tc]['lastResult']['status']))
+                    #else:
+                        #print(" & \\notexec{} \\\\", file=fout)
+                        ##print("        Not run")
+                    #if l != ntc:
+                        #print("\\cmidrule{3-5}", file=fout)
+            #if i != nve:
+                #print("\\cmidrule{2-5}", file=fout)
+        #print("\\midrule", file=fout)
+#
+    #print('\\label{tab:dmvcd}', file=fout)
+    #print('\\end{longtable}', file=fout)
+    ##print('\\setlength{\\LTcapwidth}{\\LTcapwidthold}', file=fout)
+    ##print('\\end{landscape}', file=fout)
+    #print('}\n}', file=fout)
+    #fout.close()
+#
 
 #
 # returns query result in a 2dim matrix 
@@ -323,18 +333,57 @@ def initJiraStatus(jc):
 
 
 #
+# return last execution result
+#
+def get_tcRes(jc, tc):
+    R = {}
+    query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
+             "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
+             "join AO_4D28DD_TEST_RESULT tr on tc.`ID` = tr.`TEST_CASE_ID` "
+             "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
+             "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
+             "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
+             "join AO_4D28DD_RESULT_STATUS rs on tc.`LAST_TEST_RESULT_STATUS_ID` = rs.id "
+             "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
+             "where tc.key = '" + tc +"' and cfv.`CUSTOM_FIELD_ID`=66 ")
+    trdet = db_get(jc, query)
+    R['status'] = runstatus(trdet[0][0])
+    R['tplan'] = trdet[0][1]
+    R['tcycle'] = trdet[0][2]
+    if trdet[0][3] != None:
+        R['exdate'] = trdet[0][3].strftime('%Y-%m-%d')
+    else:
+        R['exdate'] = None
+    R['dmtr'] = trdet[0][4]
+    #print("    -    ", tc, R)
+    return(R)
+
+
+#
 # for a given VE (id) return the related test cases
+#   and populate in parallel the global tcases
 #
 def get_tcs(jc, veid):
-    query = ("select tc.key from AO_4D28DD_TEST_CASE tc "
+    global tcases
+    query = ("select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc "
              "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
              "inner join jiraissue ji on il.issue_id = ji.id "
              "where ji.id = " + str(veid))
     rawtc = db_get(jc, query)
-    tcs = []
+    tcs = {}
     for tc in rawtc:
         if tc[0] not in tcs:
-            tcs.append(tc[0])
+            #tcs.append(tc[0])
+            if tc[0] in tcases.keys():
+                tcs[ tc[0] ] = tcases[ tc[0] ]
+            else:
+                tcs[ tc[0] ] = {}
+                tcs[ tc[0] ]['tspec'] = get_tspec_R(jc, tc[1])
+                if tc[2] != None:
+                    tcs[ tc[0] ]['lastR'] = get_tcRes(jc, tc[0])
+                else:
+                    tcs[ tc[0] ]['lastR'] = None
+                tcases[ tc[0] ] = tcs[ tc[0] ]
     return(tcs)
 
 
@@ -346,8 +395,6 @@ def get_ves(comp, jc):
     global jst
     velements = {}
     reqs = {}
-    tclist = []
-    tcases = {}
     rawVes = []
     query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
@@ -380,13 +427,9 @@ def get_ves(comp, jc):
        tmpve['tcs'] = []
        tmpve['tcs'] = get_tcs(jc, ve[1])
        #print(tmpve['jkey'], tmpve['tcs'])
-       for tc in tmpve['tcs']:
-           if tc not in tclist:
-               tclist.append(tc)
-               
        velements[ ves[0] ] = tmpve
 
-    return(velements, reqs, tclist)
+    return(velements, reqs)
 
 #
 # recursivelly browse the folders until findind the test spec of the root (NULL)
@@ -402,31 +445,110 @@ def get_tspec_R(jc, fid):
 
 
 #
-# return last execution result, is available
+# generate and print summary information
 #
-def get_tcDets(jc, tclist):
-    
-    for tc in tclist:
-        query = ("select FOLDER_ID, LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc where tc.key = '" + tc + "'")
-        tcr = db_get(jc, query)
-        tspec = get_tspec_R(jc, tcr[0][0])
-        print(tc, "       ----", tspec)
-        if tcr[0][1] != None:
-            query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
-                 "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
-                 "join AO_4D28DD_TEST_RESULT tr on tc.`ID` = tr.`TEST_CASE_ID` "
-                 "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
-                 "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
-                 "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
-                 "join AO_4D28DD_RESULT_STATUS rs on tc.`LAST_TEST_RESULT_STATUS_ID` = rs.id "
-                 "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
-                 "where tc.key = '" + tc +"' and cfv.`CUSTOM_FIELD_ID`=66 ")
-            trdet = db_get(jc, query)
-            print("    -    ", trdet)
+def summary(VEs, reqs, comp):
+    global tcases
+    print(f"{{nr}} requirements covered by {{nv}} verification elements.".format(nr=len(reqs),nv=len(VEs)))
+
+    print("Verification Elements:", len(VEs))
+     
 
 
+#
+#  print VCD
+#
+def printVCD(VEs, reqs, comp):
+    global tcases
+    rtype = []
+
+    fname = comp.lower() + "_vcd.tex"
+    fout = open(fname, 'w')
+    print('\\section{VCD}', file=fout)
+    print('\\afterpage{', file=fout)
+    print('{\\small', file=fout)
+    print('\\newlength{\\LTcapwidthold}', file=fout)
+    print('\\setlength{\\LTcapwidthold}{\\LTcapwidth}', file=fout)
+    print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
+    print('\\begin{longtable}{lllll}', file=fout)
+    print("\\caption{", comp, "VCD Table.}", file=fout)
+    print('\\\\\n\\toprule', file=fout)
+    print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & \\textbf{Last Run} & \\textbf{Test Status} \\\\\n',
+          file=fout)
+    print('\\toprule\n\\endhead', file=fout)
+    bt = '\\begin{tabular}{@{}l@{}}'
+    nl = '\\\\'
+    njr = '\\vcdJiraRef{'
+    ndr = '\\vcdDocRef{'
+    ocb = '{'
+    ccb = '}'
+    et = '\\end{tabular}'
+    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
+    scr = '{\\scriptsize '
+    r = 0
+    for req in reqs.keys():
+        r = r + 1
+        tmptype = req[:-5]
+        if tmptype not in rtype:
+            rtype.append(tmptype)
+        #print(r, req, reqs[req]['reqDoc'])
+        print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et+" &", file=fout)
+        nve = len(reqs[req]['VEs'])
+        v = 0
+        for ve in reqs[req]['VEs']:
+            v = v + 1
+            #print("    ", v, ve, VEs[ve]['jkey'])
+            if v != 1:
+                print(" & ", file=fout, end='')
+            print(bt, f"{ve} {nl} {njr}{VEs[ve]['jkey']}{ccb}", et+" &", file=fout)
+            ntc = len(VEs[ve]['tcs'])
+            if ntc == 0:
+                print(" && \\\\", file = fout)
+            else:
+                t = 0
+                for tc in VEs[ve]['tcs']:
+                    t = t + 1
+                    #print("        ", t, tc, VEs[ve]['tcs'][tc]['tspec'])
+                    if t != 1:
+                        print(" && ", file=fout, end='')
+                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} {ndr}{VEs[ve]['tcs'][tc]['tspec']}{ccb}", et+" &", file=fout)
+                    if VEs[ve]['tcs'][tc]['lastR'] != None:
+                        if 'lastR' not in tcases[tc].keys():
+                            # in some cases the rest api do not return the test resusts
+                            print(" & \\notexec{} \\\\", file=fout)
+                            #print("            ",tc,tcases[tc])
+                            #print(VEs[ve]['tcs'][tc]['lastR'])
+                        else:
+                            print(bt, tcases[tc]['lastR']['exdate'], nl, file=fout, end='')
+                            tpl = tcases[tc]['lastR']['tplan']
+                            if tpl != "NA":
+                                print(f"{ndr}{tcases[tc]['lastR']['dmtr']}{ccb} {scr}{atm}testPlan/{tpl}{ccb}{ocb}{tpl}{ccb} {ccb}", et+" &", file=fout, end='')
+                            else:
+                                tcy = tcases[tc]['lastR']['tcycle']
+                                print(f"{scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
+                            print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastR']['status']), file=fout)
+                    else:
+                        print(" & \\notexec{} \\\\", file=fout)
+                    if t != ntc:
+                        print("\\cmidrule{3-5}", file=fout)
+            if v != nve:
+                print("\\cmidrule{2-5}", file=fout)
+        print("\\midrule", file=fout)
+    print('\\label{tab:dmvcd}', file=fout)
+    print('\\end{longtable}', file=fout)
+    print('}\n}', file=fout)
+    fout.close()
+
+    for rt in rtype:
+        print(rt)
+
+#
+# get VCD using direct SQL quiery
+# 
 def vcdsql(comp, usr, pwd):
     global jst
+    global tcases
+    tcases = {}
 
     print(f"Looking for VEs in {comp}...") 
     jcon = {"usr": usr,
@@ -435,11 +557,13 @@ def vcdsql(comp, usr, pwd):
 
     VEs = {}
     reqs = {}
-    tclist = [] 
+    #tclist = [] 
 
-    VEs, reqs, tclist = get_ves(comp, jcon)
+    VEs, reqs = get_ves(comp, jcon)
 
     print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".format(nve=len(VEs),
-          nr=len(reqs),ntc=len(tclist)))
+          nr=len(reqs),ntc=len(tcases)))
 
-    get_tcDets(jcon, tclist)
+    printVCD(VEs, reqs, comp)
+
+    summary(VEs, reqs, comp)
