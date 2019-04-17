@@ -466,8 +466,8 @@ def summary(jc, VEs, reqs, comp):
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='"+comp+"'")
-    rawres = db_get(jc, query)
-    for s in rawres:
+    veStatus = db_get(jc, query)
+    for s in veStatus:
         print(jst[ s[0] ], s[1])
     
     # get TC versus status
@@ -476,10 +476,23 @@ def summary(jc, VEs, reqs, comp):
 
     fsum = open(comp.lower() +"_summary.tex", 'w')
     print('\\newpage\n\\section{Summary Information}', file=fsum)
-    print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
-    print(f"Number of Requirements: & {mtrs['nr']} \\\\", file=fsum)
-    print(f"Number of Verification Elements: & {mtrs['nv']} \\\\", file=fsum)
-    print(f"Number of Test Cases: & {mtrs['nt']} \\\\", file=fsum)
+
+    #print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
+    print('\\begin{longtable}{rccc}\n\\toprule', file=fsum)
+    print(" & \\textbf{Requirements} & \\textbf{Verification Elements} & \\textbf{Test Cases} \\\\ \\hline", file=fsum)
+    print(f"N.& {mtrs['nr']} & {mtrs['nv']} & {mtrs['nt']} \\\\", file=fsum)
+    #print(f"Number of Requirements: & {mtrs['nr']} \\\\", file=fsum)
+    #print(f"Number of Verification Elements: & {mtrs['nv']} \\\\", file=fsum)
+    #print(f"Number of Test Cases: & {mtrs['nt']} \\\\", file=fsum)
+    print('\\bottomrule\n\\end{longtable}', file=fsum)
+
+    print('\\begin{longtable}{rl}\n\\toprule', file=fsum)
+    print("\\multicolumn{2}{c}{\\textbf{Verification Element Status}} \\\\ \\hline", file=fsum)
+    T = 0
+    for s in veStatus: 
+        T = T + s[1]
+        print(f" {jst[ s[0] ]} & {s[1]} \\\\", file=fsum)
+    print("\\hline\n\\textbf{subtotal} & ", f"{T} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
