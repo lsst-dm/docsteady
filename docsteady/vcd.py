@@ -402,10 +402,13 @@ def get_ves(comp, jc):
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='"+comp+"'")
     rawVes = db_get(jc, query)
 
+    v = 0
     for ve in rawVes:
+       v = v + 1
        tmpve = {}
        tmpve['jkey'] = 'LVV-'+str(ve[0])
        ves = ve[2].split(':')
+       #print(v, ves[0])
        tmpve['status'] = jst[ ve[3] ]
        query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
                 "inner join customfield cf on cvf.customfield = cf.id "
@@ -427,8 +430,11 @@ def get_ves(comp, jc):
        tmpve['tcs'] = []
        tmpve['tcs'] = get_tcs(jc, ve[1])
        #print(tmpve['jkey'], tmpve['tcs'])
-       velements[ ves[0] ] = tmpve
-
+       if ves[0] in velements.keys():
+           print("  Duplicated:", ves[ 0 ], tmpve['jkey'])
+           print("    existing:", velements[ ves[0] ]['jkey'])
+       else:
+           velements[ ves[0] ] = tmpve
     return(velements, reqs)
 
 #
@@ -447,12 +453,35 @@ def get_tspec_R(jc, fid):
 #
 # generate and print summary information
 #
-def summary(VEs, reqs, comp):
+def summary(jc, VEs, reqs, comp):
     global tcases
-    print(f"{{nr}} requirements covered by {{nv}} verification elements.".format(nr=len(reqs),nv=len(VEs)))
+    global jst
+    mtrs = {}
+    mtrs['nr'] = len(reqs)
+    mtrs['nv'] = len(VEs)
+    mtrs['nt'] = len(tcases)
 
-    print("Verification Elements:", len(VEs))
-     
+    # get VE versus status
+    query = ("select ji.issuestatus, count(*) from jiraissue ji "
+             "inner join nodeassociation na ON ji.id = na.source_node_id "
+             "inner join component c on na.`SINK_NODE_ID`=c.id "
+             " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='"+comp+"'")
+    rawres = db_get(jc, query)
+    for s in rawres:
+        print(jst[ s[0] ], s[1])
+    
+    # get TC versus status
+
+    # get TC result
+
+    fsum = open(comp.lower() +"_summary.tex", 'w')
+    print('\\newpage\n\\section{Summary Information}', file=fsum)
+    print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
+    print(f"Number of Requirements: & {mtrs['nr']} \\\\", file=fsum)
+    print(f"Number of Verification Elements: & {mtrs['nv']} \\\\", file=fsum)
+    print(f"Number of Test Cases: & {mtrs['nt']} \\\\", file=fsum)
+    print('\\bottomrule\n\\end{longtable}', file=fsum)
+    fsum.close()
 
 
 #
@@ -539,8 +568,10 @@ def printVCD(VEs, reqs, comp):
     print('}\n}', file=fout)
     fout.close()
 
+    print("Check that following strings are defined in myacronyms.tex")
     for rt in rtype:
-        print(rt)
+        print("   - ", rt)
+
 
 #
 # get VCD using direct SQL quiery
@@ -550,14 +581,13 @@ def vcdsql(comp, usr, pwd):
     global tcases
     tcases = {}
 
-    print(f"Looking for VEs in {comp}...") 
+    print(f"Looking for VEs in {comp} ...") 
     jcon = {"usr": usr,
             "pwd": pwd}
     initJiraStatus(jcon)
 
     VEs = {}
     reqs = {}
-    #tclist = [] 
 
     VEs, reqs = get_ves(comp, jcon)
 
@@ -566,4 +596,4 @@ def vcdsql(comp, usr, pwd):
 
     printVCD(VEs, reqs, comp)
 
-    summary(VEs, reqs, comp)
+    summary(jcon, VEs, reqs, comp)
