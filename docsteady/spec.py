@@ -166,6 +166,16 @@ class TestCase(Schema):
         return teststeps
 
 
+class VElement(Schema):
+    key = fields.String(required=True)
+    summary = fields.String(required=True)
+    assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+    assignee_id = fields.String(load_from="assignee")
+    jira_url = fields.String()
+    component = fields.String()
+
+
+
 def build_spec_model(folder):
     # query = f'folder = "{folder}"'
     # FIXME: use the previous query if they fix the ATM testcases/search API
@@ -201,3 +211,22 @@ def build_spec_model(folder):
         print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
     return testcases
+
+
+#
+# Get the VE details
+#
+def build_ve_model(vetrace):
+    v = 0
+    verificationelements = []
+    rs = requests.Session()
+    rs.auth = Config.AUTH
+    for ve in vetrace:
+        v = v + 1
+        print(v, ve, Config.ISSUE_URL.format(issue=ve))
+        veresp = rs.get(Config.ISSUE_URL.format(issue=ve))
+        verespj = veresp.json()
+        verificationelement = VElement().load(verespj)
+        #print(verespj)
+        print(verificationelement)
+ 

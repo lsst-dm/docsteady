@@ -31,7 +31,7 @@ from pkg_resources import get_distribution, DistributionNotFound
 
 from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
-from .spec import build_spec_model
+from .spec import build_spec_model, build_ve_model
 from .tplan import build_tpr_model
 
 try:
@@ -100,6 +100,9 @@ def generate_spec(format, username, password, folder, path):
     # Sort the dictionary
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
+
+    # Get VE information
+    ves = build_ve_model(requirements_to_testcases)
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
