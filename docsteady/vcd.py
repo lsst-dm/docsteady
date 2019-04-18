@@ -475,7 +475,7 @@ def summary(jc, VEs, reqs, comp):
     # get TC result
 
     fsum = open(comp.lower() +"_summary.tex", 'w')
-    print('\\newpage\n\\section{Summary Information}', file=fsum)
+    print('\\newpage\n\\section{Summary Information}\\label{sec:summary}', file=fsum)
 
     #print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
     print('\\begin{longtable}{rccc}\n\\toprule', file=fsum)
@@ -506,7 +506,7 @@ def printVCD(VEs, reqs, comp):
 
     fname = comp.lower() + "_vcd.tex"
     fout = open(fname, 'w')
-    print('\\section{VCD}', file=fout)
+    print('\\section{VCD}\\label{sec:vcd}', file=fout)
     print('\\afterpage{', file=fout)
     print('{\\small', file=fout)
     print('\\newlength{\\LTcapwidthold}', file=fout)
