@@ -166,14 +166,48 @@ class TestCase(Schema):
         return teststeps
 
 
-class VElement(Schema):
+class VerificationElementIssue(Schema):
     key = fields.String(required=True)
-    summary = fields.String(required=True)
-    assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    assignee_id = fields.String(load_from="assignee")
+    summary = MarkdownableHtmlPandocField()
+    description = MarkdownableHtmlPandocField()
+    component = MarkdownableHtmlPandocField()
     jira_url = fields.String()
-    component = fields.String()
+    assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+    assignee_id = fields.String(load_from="assignee", required=True)
+    requirement_id = fields.String()
 
+    # FIXME: Some of the following seem to be in Jira Markdown and not HTML
+    requirement_verification_siblings = MarkdownableHtmlPandocField()
+    requirement_text = MarkdownableHtmlPandocField()
+    requirement_discussion = MarkdownableHtmlPandocField()
+    higher_level_requirement = fields.String()  # See Below in extract_fields
+    verification_method = fields.String()
+    verification_level = fields.String()
+    percentage_passing = fields.Float()
+    success_criteria = MarkdownableHtmlPandocField()
+
+    @pre_load(pass_many=False)
+    def extract_fields(self, data):
+        data_fields = data["fields"]
+        data["summary"] = data_fields["summary"]
+        data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
+        data["requirement_id"] = data_fields["customfield_12001"]
+        data["requirement_verification_siblings"] = data_fields["customfield_14810"]
+        data["requirement_text"] = data_fields["customfield_13513"]
+        data["requirement_discussion"] = data_fields["customfield_13510"]
+        data["percentage_passing"] = data_fields["customfield_13002"]
+        data["success_criteria"] = data_fields["customfield_12204"]
+
+        # Simplify this so we elverage existing owner_for_id code
+        data["assignee"] = data_fields["assignee"]["key"]
+
+        # This one may need a regex, it seems to be in jira markdown
+        data["higher_level_requirement"] = data_fields["customfield_13515"]
+
+        # The following are not simple objects, but we just want the value
+        data["verification_method"] = data_fields["customfield_12002"]["value"]
+        data["verification_level"] = data_fields["customfield_12206"]["value"]
+        return data
 
 
 def build_spec_model(folder):
@@ -226,7 +260,7 @@ def build_ve_model(vetrace):
         print(v, ve, Config.ISSUE_URL.format(issue=ve))
         veresp = rs.get(Config.ISSUE_URL.format(issue=ve))
         verespj = veresp.json()
-        verificationelement = VElement().load(verespj)
+        verificationelement = VerificationElementIssue().load(verespj)
         #print(verespj)
         print(verificationelement)
  
