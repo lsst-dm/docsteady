@@ -14,20 +14,30 @@
 
 \section{Traceability}
 \scriptsize{
-\begin{longtable}[]{p{13cm}p{3cm}}
+\begin{longtable}[]{p{6cm}p{2cm}p{2cm}p{1.5cm}p{2cm}p{1.5cm}}
 \toprule
-Verification Elements & Test Cases\tabularnewline
+Verification Elements & VE Status & VE Assignee &Test Cases & TC Status & TC Owner \tabularnewline
 \midrule
 \endhead
 
 {% for requirement in requirements_map.values() -%}
     {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
     {% set testcases_list = requirements_to_testcases[requirement.key] -%}
-    & {
+    & {{ ves[requirement.key]['status'] }} & {{ ves[requirement.key]['assignee'] }}
+    {% set ntc = testcases_list|length %}
     {% for tc in testcases_list -%}
-        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }}
+        {% if loop.index > 1 %}
+            &&
+        {% endif %}
+        & 
+        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }} 
+        & {{ testcases_map[ tc ].status }} & {{ testcases_map[ tc ].owner }}
+        \\
+        {% if loop.index == ntc  %}
+            \hdashline
+        {% endif %}
     {% endfor -%}
-    } \\
+    
 {% endfor %}
 \tabularnewline
 \bottomrule

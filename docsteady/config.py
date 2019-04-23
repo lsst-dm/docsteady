@@ -46,6 +46,7 @@ class Config:
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
+    CACHED_VES = {} 
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_TESTCASES = {}

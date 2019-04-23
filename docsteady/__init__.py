@@ -142,6 +142,7 @@ def generate_spec(format, username, password, folder, path):
         testcases=testcases,
         requirements_to_testcases=requirements_to_testcases,
         requirements_map=Config.CACHED_REQUIREMENTS,
+        ves=ves,
         testcases_map=Config.CACHED_TESTCASES)
     print(_as_output_format(appendix_text), file=appendix_file)
 
