@@ -170,7 +170,7 @@ class VerificationElementIssue(Schema):
     key = fields.String(required=True)
     summary = MarkdownableHtmlPandocField()
     description = MarkdownableHtmlPandocField()
-    component = MarkdownableHtmlPandocField()
+    components = fields.List(fields.String())
     jira_url = fields.String()
     assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     assignee_id = fields.String(load_from="assignee", required=True)
@@ -190,6 +190,7 @@ class VerificationElementIssue(Schema):
     def extract_fields(self, data):
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
+        data["components"] = [component["name"] for component in data_fields["components"]]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
         data["requirement_id"] = data_fields["customfield_12001"]
         data["requirement_verification_siblings"] = data_fields["customfield_14810"]
