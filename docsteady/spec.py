@@ -208,7 +208,10 @@ class VerificationElementIssue(Schema):
 
         # The following are not simple objects, but we just want the value
         data["verification_method"] = data_fields["customfield_12002"]["value"]
-        data["verification_level"] = data_fields["customfield_12206"]["value"]
+        if data_fields["customfield_12206"]  == None:
+            data["verification_level"] = "NO Verification Level Provided!"
+        else:
+            data["verification_level"] = data_fields["customfield_12206"]["value"]
         data["status"] = data_fields["status"]["name"]
         return data
 
