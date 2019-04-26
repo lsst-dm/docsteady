@@ -12,7 +12,10 @@
 % using dosteady version {{ metadata.docsteady_version }}
 % Please do not edit -- update information in Jira instead
 
-\section{Traceability}
+\section{Traceability} \label{sec:trace}
+
+\subsection{Direct Traceability} \label{sec:directrace}
+
 \scriptsize{
 \begin{longtable}[]{rp{6cm}p{2cm}p{2cm}p{1.5cm}p{1.5cm}p{1.5cm}}
 \toprule
@@ -40,6 +43,32 @@
     {% endfor -%}
     
 {% endfor %}
+
+\tabularnewline
+\bottomrule
+\end{longtable}
+} % end scriptsize
+
+\subsection{Reverse Tracebility} \label{sec:revtrace}
+
+\scriptsize{
+\begin{longtable}[]{rp{3cm}p{10cm}}
+\toprule
+& Test Cases & Verification Elements \tabularnewline
+\midrule
+\endhead
+
+{% for tc in testcases_map %}
+    {{ loop.index }} &
+    \hyperref[{{ tc.lower() }}]{{ curlies(tc) }} & 
+    {% for ve in testcases_map[ tc ].requirement_issue_keys %}
+        {% if loop.index > 1 %}
+            &&
+        {% endif %}
+        {{ href(requirements_map[ ve ].jira_url, ve + " - " + requirements_map[ ve ].summary) }} \\
+    {% endfor %}
+{% endfor %}
+
 \tabularnewline
 \bottomrule
 \end{longtable}

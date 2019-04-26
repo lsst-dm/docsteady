@@ -32,7 +32,7 @@ Test Id & Test Name\tabularnewline
 
 \newpage
 
-\section{Test Cases}
+\section{Test Cases} \label{sec:tcs}
 {% for testcase in testcases %}
 
 \subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
@@ -174,4 +174,30 @@ Version & Status & Priority & Verification Type & Owner
 {% endif %}
 {% endfor %}
 
+
+\newpage
+\section{Verification Elements} \label{sec:ves}
+
+In this section are documented all Verification Elements related to the test cases
+in the above section \ref{sec:tcs}.
+
+{% for req in requirements_map.values() %}
+    \subsection{ {{ req.summary }} }
+
+    \begin{itemize}
+    \item Component: {{ ves[ req.key ].components }}
+    \item Assignee: {{ ves[ req.key ].assignee }}
+    \item Verification Methos: {{ ves[ req.key ].verification_method }}
+    \item Jira Issue: {{ ves[ req.key ].key }} ({{ ves[ req.key ].jira_url }})
+    \item Status: {{ ves[ req.key ].status }}
+    \item Verification Level: {{ ves[ req.key ].verification_level }}
+    \item Description: {{ ves[ req.key ].description }}
+    \item Requirement: {{ ves[ req.key ].requirement_id }}
+    \item Parent Requirement: {{ ves[ req.key ].higher_level_requirement }}
+    \end{itemize}
+
+{% endfor %}
+
+
+\newpage
 \appendix

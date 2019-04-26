@@ -181,7 +181,7 @@ class VerificationElementIssue(Schema):
     #requirement_verification_siblings = MarkdownableHtmlPandocField()
     #requirement_text = MarkdownableHtmlPandocField()
     #requirement_discussion = MarkdownableHtmlPandocField()
-    #higher_level_requirement = fields.String()  # See Below in extract_fields
+    higher_level_requirement = fields.String()  # See Below in extract_fields
     verification_method = fields.String()
     verification_level = fields.String()
     percentage_passing = fields.Float()
@@ -204,7 +204,7 @@ class VerificationElementIssue(Schema):
         data["assignee"] = data_fields["assignee"]["key"]
 
         # This one may need a regex, it seems to be in jira markdown
-        #data["higher_level_requirement"] = data_fields["customfield_13515"]
+        data["higher_level_requirement"] = data_fields["customfield_13515"]
 
         # The following are not simple objects, but we just want the value
         data["verification_method"] = data_fields["customfield_12002"]["value"]
