@@ -185,15 +185,29 @@ in the above section \ref{sec:tcs}.
     \subsection{ {{ req.summary }} }
 
     \begin{itemize}
-    \item Component: {{ ves[ req.key ].components }}
+    \item Component:
+    \begin{itemize}
+    {% for cmp in ves[ req.key ].components %}
+        \item {{ cmp }}
+    {% endfor %}
+    \end{itemize}
     \item Assignee: {{ ves[ req.key ].assignee }}
     \item Verification Methos: {{ ves[ req.key ].verification_method }}
     \item Jira Issue: {{ ves[ req.key ].key }} ({{ ves[ req.key ].jira_url }})
     \item Status: {{ ves[ req.key ].status }}
     \item Verification Level: {{ ves[ req.key ].verification_level }}
-    \item Description: {{ ves[ req.key ].description }}
+    \item \textbf{Description}: {{ ves[ req.key ].description }}
     \item Requirement: {{ ves[ req.key ].requirement_id }}
-    \item Parent Requirement: {{ ves[ req.key ].higher_level_requirement }}
+    \item Parent Requirements: 
+    \begin{itemize}
+    {% if ves[ req.key ].parent_requirements|length > 0 %}
+    {% for preq in ves[ req.key ].parent_requirements.keys() %}
+        \item {{ preq }}: {{ ves[ req.key ].parent_requirements[ preq ] }}
+    {% endfor %}
+    {% else %}
+        \item No parents specified
+    {% endif %}
+    \end{itemize}
     \end{itemize}
 
 {% endfor %}

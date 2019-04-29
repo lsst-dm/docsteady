@@ -52,7 +52,7 @@
 \subsection{Reverse Tracebility} \label{sec:revtrace}
 
 \scriptsize{
-\begin{longtable}[]{rp{3cm}p{10cm}}
+\begin{longtable}[]{rp{7cm}p{8cm}}
 \toprule
 & Test Cases & Verification Elements \tabularnewline
 \midrule
@@ -60,13 +60,17 @@
 
 {% for tc in testcases_map %}
     {{ loop.index }} &
-    \hyperref[{{ tc.lower() }}]{{ curlies(tc) }} & 
+    \hyperref[{{ tc.lower() }}]{{ curlies(tc) }} - {{ testcases_map[ tc ].name }}& 
+    {% if testcases_map[ tc ].requirement_issue_keys|length == 0 %}
+        No VE Found \\
+    {% else %}
     {% for ve in testcases_map[ tc ].requirement_issue_keys %}
         {% if loop.index > 1 %}
             &&
         {% endif %}
-        {{ href(requirements_map[ ve ].jira_url, ve + " - " + requirements_map[ ve ].summary) }} \\
+        {{ href(requirements_map[ ve ].jira_url, ve)}} - {{ requirements_map[ ve ].summary }} \\
     {% endfor %}
+    {% endif %}
 {% endfor %}
 
 \tabularnewline

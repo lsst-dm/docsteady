@@ -70,7 +70,8 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
-    name = fields.String(required=True)
+    #name = fields.String(required=True)
+    name = HtmlPandocField()
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner")
     jira_url = fields.String()
@@ -171,6 +172,7 @@ class VerificationElementIssue(Schema):
     summary = MarkdownableHtmlPandocField()
     status = fields.String()
     description = MarkdownableHtmlPandocField()
+    #description = HtmlPandocField()
     components = fields.List(fields.String())
     jira_url = fields.String()
     assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
@@ -181,7 +183,8 @@ class VerificationElementIssue(Schema):
     #requirement_verification_siblings = MarkdownableHtmlPandocField()
     #requirement_text = MarkdownableHtmlPandocField()
     #requirement_discussion = MarkdownableHtmlPandocField()
-    higher_level_requirement = fields.String()  # See Below in extract_fields
+    #higher_level_requirement = fields.String()  # See Below in extract_fields
+    parent_requirements = fields.Dict()
     verification_method = fields.String()
     verification_level = fields.String()
     percentage_passing = fields.Float()
@@ -191,9 +194,10 @@ class VerificationElementIssue(Schema):
     def extract_fields(self, data):
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
+        data["description"] = data_fields["description"]
         data["components"] = [component["name"] for component in data_fields["components"]]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
-        data["requirement_id"] = data_fields["customfield_12001"]
+        data["requirement_id"] = data_fields["customfield_13511"]
         #data["requirement_verification_siblings"] = data_fields["customfield_14810"]
         #data["requirement_text"] = data_fields["customfield_13513"]
         #data["requirement_discussion"] = data_fields["customfield_13510"]
@@ -204,7 +208,17 @@ class VerificationElementIssue(Schema):
         data["assignee"] = data_fields["assignee"]["key"]
 
         # This one may need a regex, it seems to be in jira markdown
-        data["higher_level_requirement"] = data_fields["customfield_13515"]
+        #data["higher_level_requirement"] = data_fields["customfield_13515"]
+        data["parent_requirements"] = {}
+        if data_fields['customfield_13515']:
+            parents=data_fields["customfield_13515"].split(', [')
+            for p in parents:
+                ps = p.split('|')
+                pkey = ps[0].strip('[')
+                ps1 = p.split(':')
+                psum = ps1[2].strip(']')
+                #print (pkey, psum)
+                data["parent_requirements"][pkey] = psum
 
         # The following are not simple objects, but we just want the value
         data["verification_method"] = data_fields["customfield_12002"]["value"]
@@ -268,8 +282,10 @@ def build_ve_model(vetrace):
         verespj = veresp.json()
         verificationelement, errors = VerificationElementIssue().load(verespj)
         #print(verificationelement['components'])
-        #print(verificationelement)
         #verificationelements.append(verificationelement)
+        #print(verificationelement)
+        #if 'parent_requirements' in verificationelement.keys():
+        #    print(ve, verificationelement['parent_requirements'])
         verificationelements[ verificationelement['key'] ] = verificationelement
     return(verificationelements)
  
