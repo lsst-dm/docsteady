@@ -266,6 +266,32 @@ def build_spec_model(folder):
 
     return testcases
 
+#
+# Get the list of VEs related to a Sub-Component
+#
+def get_subcomponents_ves(subcomp):
+    rs = requests.Session()
+    rs.auth = Config.AUTH
+    ves = []
+    mr = 100
+    response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]='{subcomp}'&fields=key&maxResults=0")
+    responsej = response.json()
+    sa = 0
+    total = responsej['total']
+    iv = 0
+    while total > sa:
+        response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]='{subcomp}'&fields=key&maxResults={mr}&startAt={sa}")
+        responsej = response.json()
+        sa = sa + mr
+        for i in responsej['issues']:
+            iv = iv + 1
+            ves.append(i['key'])
+            #print(iv, i['key'])
+    #if total != iv:
+    #    print(f"Verification elements mismatch: found {iv} VEs, expected {total}.")
+    #else:
+    #    print(f"Found {total} verification elements.")
+    return(ves)
 
 #
 # Get the VE details
@@ -283,7 +309,8 @@ def build_ve_model(vetrace):
         verificationelement, errors = VerificationElementIssue().load(verespj)
         #print(verificationelement['components'])
         #verificationelements.append(verificationelement)
-        #print(verificationelement)
+        #if ve == "LVV-1579":
+        #    print(verificationelement)
         #if 'parent_requirements' in verificationelement.keys():
         #    print(ve, verificationelement['parent_requirements'])
         verificationelements[ verificationelement['key'] ] = verificationelement

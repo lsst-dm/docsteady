@@ -23,7 +23,7 @@
 \midrule
 \endhead
 
-{% for requirement in requirements_map.values() -%}
+{% for requirement in ves.values() -%}
     {{ loop.index }} &
     {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
     {% set testcases_list = requirements_to_testcases[requirement.key] -%}
@@ -41,6 +41,9 @@
             \hdashline
         {% endif %}
     {% endfor -%}
+    {% if ntc == 0 %}
+        &&& \\ \hdashline
+    {% endif %}
     
 {% endfor %}
 

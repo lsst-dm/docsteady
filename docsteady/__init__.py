@@ -31,7 +31,7 @@ from pkg_resources import get_distribution, DistributionNotFound
 
 from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
-from .spec import build_spec_model, build_ve_model
+from .spec import build_spec_model, build_ve_model, get_subcomponents_ves
 from .tplan import build_tpr_model
 
 try:
@@ -66,10 +66,11 @@ def cli(namespace, template_format, load_from):
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
-              envvar="JIRA_PASSWORD", help="Jira Password")
+              envvar="JIRA_PASSWORD", help="Jira Password document")
+@click.option('--subcomponent', help="Jira Sub-Component", default='', required=False)
 @click.argument('folder')
 @click.argument('path', required=False, type=click.Path())
-def generate_spec(format, username, password, folder, path):
+def generate_spec(format, username, password, folder, path, subcomponent):
     """Read in tests from Adaptavist Test management where FOLDER
     is the ATM Test Case Folder. If specified, PATH is the resulting
     output.
@@ -102,7 +103,17 @@ def generate_spec(format, username, password, folder, path):
                                                    key=lambda item: alphanum_key(item[0])))
 
     # Get VE information
-    ves = build_ve_model(requirements_to_testcases)
+    velist = []
+    if subcomponent != "":
+        velist = get_subcomponents_ves(subcomponent)
+        for ve in requirements_to_testcases.keys():
+            if ve not in velist:
+                velist.append(ve)
+    else:
+        for ve in requirements_to_testcases.keys():
+            velist.append(ve)
+    #ves = build_ve_model(requirements_to_testcases)
+    ves = build_ve_model(velist)
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
