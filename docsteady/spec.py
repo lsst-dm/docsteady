@@ -72,7 +72,6 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
-    #name = fields.String(required=True)
     name = HtmlPandocField()
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner")
@@ -169,6 +168,69 @@ class TestCase(Schema):
         return teststeps
 
 
+class VerificationElementIssue(Schema):
+    key = fields.String(required=True)
+    summary = MarkdownableHtmlPandocField()
+    status = fields.String()
+    description = MarkdownableHtmlPandocField()
+    components = fields.List(fields.String())
+    jira_url = fields.String()
+    assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+    assignee_id = fields.String(load_from="assignee", required=True)
+    requirement_id = fields.String()
+
+    # FIXME: Some of the following seem to be in Jira Markdown and not HTML
+    # requirement_verification_siblings = MarkdownableHtmlPandocField()
+    # requirement_text = MarkdownableHtmlPandocField()
+    # requirement_discussion = MarkdownableHtmlPandocField()
+    # higher_level_requirement = fields.String()  # See Below in extract_fields
+    parent_requirements = fields.Dict()
+    verification_method = fields.String()
+    verification_level = fields.String()
+    percentage_passing = fields.Float()
+    success_criteria = MarkdownableHtmlPandocField()
+
+    @pre_load(pass_many=False)
+    def extract_fields(self, data):
+        data_fields = data["fields"]
+        data["summary"] = data_fields["summary"]
+        data["description"] = data_fields["description"]
+        data["components"] = [component["name"] for component in data_fields["components"]]
+        data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
+        data["requirement_id"] = data_fields["customfield_13511"]
+        # data["requirement_verification_siblings"] = data_fields["customfield_14810"]
+        # data["requirement_text"] = data_fields["customfield_13513"]
+        # data["requirement_discussion"] = data_fields["customfield_13510"]
+        # data["percentage_passing"] = data_fields["customfield_13002"]
+        data["success_criteria"] = data_fields["customfield_12204"]
+
+        # Simplify this so we elverage existing owner_for_id code
+        data["assignee"] = data_fields["assignee"]["key"]
+
+        # This one may need a regex, it seems to be in jira markdown
+        # data["higher_level_requirement"] = data_fields["customfield_13515"]
+        data["parent_requirements"] = {}
+        if data_fields['customfield_13515']:
+            parents = data_fields["customfield_13515"]
+            # Clear out first brackets
+            parents = parents[1:-1]
+            parents = parents.split(', [')
+            for parent in parents:
+                parent = parent.strip("[]")
+                parent_key, url_and_summary = parent.split("|")
+                _, summary = url_and_summary.split("]:")
+                parent_key = parent_key.strip()
+                summary = summary.strip()
+                data["parent_requirements"][parent_key] = summary
+
+        # The following are not simple objects, but we just want the value
+        data["verification_method"] = data_fields["customfield_12002"]["value"]
+        if not data_fields["customfield_12206"]:
+            data["verification_level"] = "NO Verification Level Provided!"
+        else:
+            data["verification_level"] = data_fields["customfield_12206"]["value"]
+        data["status"] = data_fields["status"]["name"]
+        return data
 
 
 def build_spec_model(folder):
@@ -199,7 +261,7 @@ def build_spec_model(folder):
         if errors:
             raise Exception("Unable to process errors: " + str(errors))
         if testcase["key"] not in Config.CACHED_TESTCASES:
-            Config.CACHED_TESTCASES[ testcase["key"] ] = testcase
+            Config.CACHED_TESTCASES[testcase["key"]] = testcase
         testcases.append(testcase)
 
     if max_tests == len(testcases):
@@ -207,3 +269,39 @@ def build_spec_model(folder):
 
     return testcases
 
+
+#
+# Get the list of VEs related to a Sub-Component
+#
+def get_subcomponents_ves(subcomp):
+    rs = requests.Session()
+    rs.auth = Config.AUTH
+    ves = []
+    max_results = 100
+    response = rs.get(f"{Config.JIRA_API}/search?jql=cf[15001]={subcomp}&fields=key&maxResults=0")
+    responsej = response.json()
+    start_at = 0
+    total = responsej['total']
+    while total > start_at:
+        response = rs.get(f"{Config.JIRA_API}/search?jql=cf[15001]={subcomp}"
+                          f"&fields=key&maxResults={max_results}&startAt={start_at}")
+        responsej = response.json()
+        start_at = start_at + max_results
+        for i in responsej['issues']:
+            ves.append(i['key'])
+    return ves
+
+
+#
+# Get the VE details
+#
+def build_ve_model(vetrace):
+    verificationelements = {}
+    rs = requests.Session()
+    rs.auth = Config.AUTH
+    for ve in vetrace:
+        veresp = rs.get(Config.ISSUE_URL.format(issue=ve))
+        verespj = veresp.json()
+        verificationelement, errors = VerificationElementIssue().load(verespj)
+        verificationelements[verificationelement['key']] = verificationelement
+    return verificationelements
