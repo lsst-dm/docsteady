@@ -208,21 +208,24 @@ class VerificationElementIssue(Schema):
         data["assignee"] = data_fields["assignee"]["key"]
 
         # This one may need a regex, it seems to be in jira markdown
-        #data["higher_level_requirement"] = data_fields["customfield_13515"]
+        # data["higher_level_requirement"] = data_fields["customfield_13515"]
         data["parent_requirements"] = {}
         if data_fields['customfield_13515']:
-            parents=data_fields["customfield_13515"].split(', [')
-            for p in parents:
-                ps = p.split('|')
-                pkey = ps[0].strip('[')
-                ps1 = p.split(':')
-                psum = ps1[2].strip(']')
-                #print (pkey, psum)
-                data["parent_requirements"][pkey] = psum
+            parents = data_fields["customfield_13515"]
+            # Clear out first brackets
+            parents = parents[1:-1]
+            parents = parents.split(', [')
+            for parent in parents:
+                parent = parent.strip("[]")
+                parent_key, url_and_summary = parent.split("|")
+                _, summary = url_and_summary.split("]:")
+                parent_key = parent_key.strip()
+                summary = summary.strip()
+                data["parent_requirements"][parent_key] = summary
 
         # The following are not simple objects, but we just want the value
         data["verification_method"] = data_fields["customfield_12002"]["value"]
-        if data_fields["customfield_12206"]  == None:
+        if not data_fields["customfield_12206"]:
             data["verification_level"] = "NO Verification Level Provided!"
         else:
             data["verification_level"] = data_fields["customfield_12206"]["value"]
@@ -258,13 +261,14 @@ def build_spec_model(folder):
         if errors:
             raise Exception("Unable to process errors: " + str(errors))
         if testcase["key"] not in Config.CACHED_TESTCASES:
-            Config.CACHED_TESTCASES[ testcase["key"] ] = testcase
+            Config.CACHED_TESTCASES[testcase["key"]] = testcase
         testcases.append(testcase)
 
     if max_tests == len(testcases):
         print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
     return testcases
+
 
 #
 # Get the list of VEs related to a Sub-Component
@@ -274,24 +278,20 @@ def get_subcomponents_ves(subcomp):
     rs.auth = Config.AUTH
     ves = []
     mr = 100
-    response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]='{subcomp}'&fields=key&maxResults=0")
+    response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]={subcomp}&fields=key&maxResults=0")
     responsej = response.json()
     sa = 0
     total = responsej['total']
     iv = 0
     while total > sa:
-        response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]='{subcomp}'&fields=key&maxResults={mr}&startAt={sa}")
+        response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]={subcomp}&fields=key&maxResults={mr}&startAt={sa}")
         responsej = response.json()
         sa = sa + mr
         for i in responsej['issues']:
             iv = iv + 1
             ves.append(i['key'])
-            #print(iv, i['key'])
-    #if total != iv:
-    #    print(f"Verification elements mismatch: found {iv} VEs, expected {total}.")
-    #else:
-    #    print(f"Found {total} verification elements.")
-    return(ves)
+    return ves
+
 
 #
 # Get the VE details
@@ -303,16 +303,8 @@ def build_ve_model(vetrace):
     rs.auth = Config.AUTH
     for ve in vetrace:
         v = v + 1
-        #print(v, ve, Config.ISSUE_URL.format(issue=ve))
         veresp = rs.get(Config.ISSUE_URL.format(issue=ve))
         verespj = veresp.json()
         verificationelement, errors = VerificationElementIssue().load(verespj)
-        #print(verificationelement['components'])
-        #verificationelements.append(verificationelement)
-        #if ve == "LVV-1579":
-        #    print(verificationelement)
-        #if 'parent_requirements' in verificationelement.keys():
-        #    print(ve, verificationelement['parent_requirements'])
-        verificationelements[ verificationelement['key'] ] = verificationelement
-    return(verificationelements)
- 
+        verificationelements[verificationelement['key']] = verificationelement
+    return verificationelements
