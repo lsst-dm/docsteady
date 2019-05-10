@@ -67,7 +67,7 @@ def cli(namespace, template_format, load_from):
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password document")
-@click.option('--subcomponent', help="Jira Sub-Component", default='', required=False)
+@click.option('--subcomponent', help="Jira Sub-Component", default=None, required=False)
 @click.argument('folder')
 @click.argument('path', required=False, type=click.Path())
 def generate_spec(format, username, password, folder, path, subcomponent):
@@ -104,7 +104,7 @@ def generate_spec(format, username, password, folder, path, subcomponent):
 
     # Get VE information
     velist = []
-    if subcomponent != "":
+    if subcomponent:
         velist = get_subcomponents_ves(subcomponent)
         for ve in requirements_to_testcases.keys():
             if ve not in velist:
@@ -112,7 +112,6 @@ def generate_spec(format, username, password, folder, path, subcomponent):
     else:
         for ve in requirements_to_testcases.keys():
             velist.append(ve)
-    #ves = build_ve_model(requirements_to_testcases)
     ves = build_ve_model(velist)
 
     env = Environment(loader=ChoiceLoader([

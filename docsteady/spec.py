@@ -70,7 +70,6 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
-    #name = fields.String(required=True)
     name = HtmlPandocField()
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner")
@@ -172,7 +171,6 @@ class VerificationElementIssue(Schema):
     summary = MarkdownableHtmlPandocField()
     status = fields.String()
     description = MarkdownableHtmlPandocField()
-    #description = HtmlPandocField()
     components = fields.List(fields.String())
     jira_url = fields.String()
     assignee = fields.Function(deserialize=lambda obj: owner_for_id(obj))
@@ -180,10 +178,10 @@ class VerificationElementIssue(Schema):
     requirement_id = fields.String()
 
     # FIXME: Some of the following seem to be in Jira Markdown and not HTML
-    #requirement_verification_siblings = MarkdownableHtmlPandocField()
-    #requirement_text = MarkdownableHtmlPandocField()
-    #requirement_discussion = MarkdownableHtmlPandocField()
-    #higher_level_requirement = fields.String()  # See Below in extract_fields
+    # requirement_verification_siblings = MarkdownableHtmlPandocField()
+    # requirement_text = MarkdownableHtmlPandocField()
+    # requirement_discussion = MarkdownableHtmlPandocField()
+    # higher_level_requirement = fields.String()  # See Below in extract_fields
     parent_requirements = fields.Dict()
     verification_method = fields.String()
     verification_level = fields.String()
@@ -198,10 +196,10 @@ class VerificationElementIssue(Schema):
         data["components"] = [component["name"] for component in data_fields["components"]]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
         data["requirement_id"] = data_fields["customfield_13511"]
-        #data["requirement_verification_siblings"] = data_fields["customfield_14810"]
-        #data["requirement_text"] = data_fields["customfield_13513"]
-        #data["requirement_discussion"] = data_fields["customfield_13510"]
-        #data["percentage_passing"] = data_fields["customfield_13002"]
+        # data["requirement_verification_siblings"] = data_fields["customfield_14810"]
+        # data["requirement_text"] = data_fields["customfield_13513"]
+        # data["requirement_discussion"] = data_fields["customfield_13510"]
+        # data["percentage_passing"] = data_fields["customfield_13002"]
         data["success_criteria"] = data_fields["customfield_12204"]
 
         # Simplify this so we elverage existing owner_for_id code
@@ -277,18 +275,17 @@ def get_subcomponents_ves(subcomp):
     rs = requests.Session()
     rs.auth = Config.AUTH
     ves = []
-    mr = 100
-    response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]={subcomp}&fields=key&maxResults=0")
+    max_results = 100
+    response = rs.get(f"{Config.JIRA_API}/search?jql=cf[15001]={subcomp}&fields=key&maxResults=0")
     responsej = response.json()
-    sa = 0
+    start_at = 0
     total = responsej['total']
-    iv = 0
-    while total > sa:
-        response = rs.get(f"https://jira.lsstcorp.org/rest/api/2/search?jql=cf[15001]={subcomp}&fields=key&maxResults={mr}&startAt={sa}")
+    while total > start_at:
+        response = rs.get(f"{Config.JIRA_API}/search?jql=cf[15001]={subcomp}"
+                          f"&fields=key&maxResults={max_results}&startAt={start_at}")
         responsej = response.json()
-        sa = sa + mr
+        start_at = start_at + max_results
         for i in responsej['issues']:
-            iv = iv + 1
             ves.append(i['key'])
     return ves
 
@@ -297,12 +294,10 @@ def get_subcomponents_ves(subcomp):
 # Get the VE details
 #
 def build_ve_model(vetrace):
-    v = 0
     verificationelements = {}
     rs = requests.Session()
     rs.auth = Config.AUTH
     for ve in vetrace:
-        v = v + 1
         veresp = rs.get(Config.ISSUE_URL.format(issue=ve))
         verespj = veresp.json()
         verificationelement, errors = VerificationElementIssue().load(verespj)
