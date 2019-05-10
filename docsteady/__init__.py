@@ -271,5 +271,26 @@ def _metadata():
     )
 
 
+@cli.command("generate-vespec")
+@click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
+@click.option('--password', prompt="Jira Password", hide_input=True,
+              envvar="JIRA_PASSWORD", help="Jira Password document")
+@click.option('--reqspc', help="Requirements Specification reference", default='', required=True)
+@click.argument('path', required=False, type=click.Path())
+def generate_vespec(format, username, password, path, reqspec):
+    """Read in tests from Adaptavist Test management where FOLDER
+    is the ATM Test Case Folder. If specified, PATH is the resulting
+    output.
+
+    If PATH is specified, docsteady will examine the output filename
+    and attempt to write an appendix to a similar file.
+    For example, if the output is jira_docugen.tex, the output
+    will also print out a jira_docugen.appendix.tex file if a
+    template for the appendix is found. Otherwise, it will print
+    to standard out.
+    """
+
+
 if __name__ == '__main__':
     cli()
