@@ -21,6 +21,7 @@
 """
 Code for VCD
 """
+
 import pymysql
 import requests
 from marshmallow import Schema, fields, pre_load
@@ -69,25 +70,23 @@ def build_vcd_model(component):
     resp = rs.get("https://jira.lsstcorp.org/rest/api/2/project/LVV/components",
                   auth=Config.AUTH)
     cmps = resp.json()
-    cId = ''
+    component_id = ''
     for c in cmps:
         if c['name'] == component:
-            cId = c['id']
+            component_id = c['id']
             break
-    if cId == '':
+    if component_id == '':
         print(f"Error. Component {{c}} not found in LVV project".format(c=component))
         exit()
 
     # get the number of issue in the componenet
-    resp = rs.get(
-        F"https://jira.lsstcorp.org/rest/api/latest/component/{{cid}}/relatedIssueCounts".format(
-            cid=cId),
-        auth=Config.AUTH)
-    cmpCount = resp.json()
-    maxRes = cmpCount['issueCount']
+    resp = rs.get("https://jira.lsstcorp.org/rest/api/latest/component/{component_id}/relatedIssueCounts",
+                  auth=Config.AUTH)
+    cmp_count: {} = resp.json()
+    max_res = cmp_count['issueCount']
 
-    print(f"Getting {maxRes} Verification Elements from {component}.")
-    resp = rs.get(Config.VE_SEARCH_URL.format(cmpnt=component, maxR=maxRes),
+    print(f"Getting {max_res} Verification Elements from {component}.")
+    resp = rs.get(Config.VE_SEARCH_URL.format(cmpnt=component, maxR=max_res),
                   auth=Config.AUTH)
     resp.raise_for_status()
 
@@ -99,7 +98,7 @@ def build_vcd_model(component):
     i = 0
     for ve in veresp['issues']:
         i = i + 1
-        tmp = {}
+        tmp = dict()
         tmp['jkey'] = ve['key']
         # tmp['summary'] = ve['fields']['summary']
         ves = ve['fields']['summary'].split(':')
@@ -110,13 +109,13 @@ def build_vcd_model(component):
         tmp['reqDoc'] = ve['fields']['customfield_13703']
         tmp['reqId'] = ve['fields']['customfield_13511']
         # if 'value' not in ve['fields']['customfield_12206'].keys():
-        if ve['fields']['customfield_12206'] is None:
+        if not ve['fields']['customfield_12206']:
             # if 'customfield_12206' not in ve['fields'].keys():
             tmp['vlevel'] = 'None'
         else:
             tmp['vlevel'] = ve['fields']['customfield_12206']['value']
         if tmp['reqId'] not in reqs.keys():
-            rtmp = {}
+            rtmp = dict()
             rtmp['desc'] = ve['fields']['customfield_13513']
             # print(ve['fields']['customfield_13513'])
             rtmp['reqDoc'] = ve['fields']['customfield_13703']
@@ -171,7 +170,7 @@ def build_vcd_model(component):
             continue
         else:
             tcdj = tcd.json()
-            tmpr = {}
+            tmpr = dict()
             tmpr['status'] = runstatus(tcdj['status'])
             # print('(', tcdj['status'],')', end="")
             tmpr['exdate'] = tcdj['executionDate'][0:10]
@@ -211,13 +210,13 @@ def build_vcd_model(component):
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
-    printVCD(velem, reqs, component)
+    print_vcd(velem, reqs, component)
 
 
 #
 # returns query result in a 2dim matrix 
 #
-def db_get(jc, dbquery):
+def db_get(jc: {}, dbquery) -> {}:
     db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb)
     cursor = db.cursor()
     cursor.execute(dbquery)
@@ -237,12 +236,13 @@ def db_get(jc, dbquery):
 
     return res
 
+
 #
 #  initialize jst containing the statuses from Jira
 #
-def initJiraStatus(jc):
+def init_jira_status(jc):
     global jst
-    jst = {}
+    jst = dict()
     query = "select id, pname from issuestatus"
     rawst = db_get(jc, query)
     for st in rawst:
@@ -251,8 +251,8 @@ def initJiraStatus(jc):
 
 # return last execution result
 #
-def get_tcRes(jc, tc):
-    R = {}
+def get_tc_results(jc, tc):
+    results = dict()
     query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
              "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
              "join AO_4D28DD_TEST_RESULT tr on tc.`ID` = tr.`TEST_CASE_ID` "
@@ -263,16 +263,22 @@ def get_tcRes(jc, tc):
              "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
              "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 ")
     trdet = db_get(jc, query)
-    R['status'] = runstatus(trdet[0][0])
-    R['tplan'] = trdet[0][1]
-    R['tcycle'] = trdet[0][2]
-    if not trdet[0][3]:
-        R['exdate'] = trdet[0][3].strftime('%Y-%m-%d')
+    # print(">>>> ", tc)
+    # print(query)
+    # print(' - ', trdet)
+    if len(trdet) != 0:
+        results['status'] = runstatus(trdet[0][0])
+        results['tplan'] = trdet[0][1]
+        results['tcycle'] = trdet[0][2]
+        if trdet[0][3]:
+            results['exdate'] = trdet[0][3].strftime('%Y-%m-%d')
+        else:
+            results['exdate'] = None
+        results['dmtr'] = trdet[0][4]
     else:
-        R['exdate'] = None
-    R['dmtr'] = trdet[0][4]
+        results = None
     # print("    -    ", tc, R)
-    return (R)
+    return results
 
 
 #
@@ -282,26 +288,27 @@ def get_tcRes(jc, tc):
 def get_tcs(jc, veid):
     global tcases
     query = (
-                "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc "
-                "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
-                "inner join jiraissue ji on il.issue_id = ji.id "
-                "where ji.id = " + str(veid))
+            "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc "
+            "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
+            "inner join jiraissue ji on il.issue_id = ji.id "
+            "where ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
     for tc in rawtc:
+        # print(tc)
         if tc[0] not in tcs:
             # tcs.append(tc[0])
             if tc[0] in tcases.keys():
                 tcs[tc[0]] = tcases[tc[0]]
             else:
                 tcs[tc[0]] = {}
-                tcs[tc[0]]['tspec'] = get_tspec_R(jc, tc[1])
-                if not tc[2]:
-                    tcs[tc[0]]['lastR'] = get_tcRes(jc, tc[0])
+                tcs[tc[0]]['tspec'] = get_tspec_r(jc, tc[1])
+                if tc[2]:
+                    tcs[tc[0]]['lastR'] = get_tc_results(jc, tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
                 tcases[tc[0]] = tcs[tc[0]]
-    return (tcs)
+    return tcs
 
 
 #
@@ -310,18 +317,18 @@ def get_tcs(jc, veid):
 #
 def get_ves(comp, jc):
     global jst
-    velements = {}
-    reqs = {}
+    velements = dict()
+    reqs = dict()
     query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "'")
-    rawVes = db_get(jc, query)
+    raw_ves = db_get(jc, query)
 
     v = 0
-    for ve in rawVes:
+    for ve in raw_ves:
         v = v + 1
-        tmpve = {}
+        tmpve = dict()
         tmpve['jkey'] = 'LVV-' + str(ve[0])
         ves = ve[2].split(':')
         # print(v, ves[0])
@@ -329,14 +336,13 @@ def get_ves(comp, jc):
         query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
                  "inner join customfield cf on cvf.customfield = cf.id "
                  "inner join jiraissue ji on cvf.issue = ji.id "
-                 "where ji.id = " + str(ve[1]) + " "
-                                                 "and cf.id in (13511, 13703)")
-        rawCfs = db_get(jc, query)
-        for cf in rawCfs:
+                 "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
+        raw_cfs = db_get(jc, query)
+        for cf in raw_cfs:
             tmpve[cf[1]] = cf[2]
         if tmpve['Requirement ID'] not in reqs.keys():
             # print(tmpve['Requirement ID'])
-            rtmp = {}
+            rtmp = dict()
             rtmp['reqDoc'] = tmpve['Requirement Specification']
             rtmp['VEs'] = []
             rtmp['VEs'].append(ves[0])
@@ -351,31 +357,32 @@ def get_ves(comp, jc):
             print("    existing:", velements[ves[0]]['jkey'])
         else:
             velements[ves[0]] = tmpve
-    return (velements, reqs)
+    return velements, reqs
 
 
 #
 # recursivelly browse the folders until findind the test spec of the root (NULL)
 #
-def get_tspec_R(jc, fid):
+def get_tspec_r(jc, fid):
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
+    # print(query)
     dbres = db_get(jc, query)
     tspec = get_tspec(dbres[0][0])
     if tspec == "":
-        if dbres[0][1] != None:
-            tspec = get_tspec_R(jc, dbres[0][1])
-    return (tspec)
+        if dbres[0][1] is not None:
+            tspec = get_tspec_r(jc, dbres[0][1])
+    return tspec
 
 
 #
 # generate and print summary information
 #
-def summary(jc, VEs, reqs, comp):
+def summary(jc, verification_elements, reqs, comp):
     global tcases
     global jst
-    mtrs = {}
+    mtrs = dict()
     mtrs['nr'] = len(reqs)
-    mtrs['nv'] = len(VEs)
+    mtrs['nv'] = len(verification_elements)
     mtrs['nt'] = len(tcases)
 
     # get VE versus status
@@ -383,9 +390,7 @@ def summary(jc, VEs, reqs, comp):
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "'")
-    veStatus = db_get(jc, query)
-    for s in veStatus:
-        print(jst[s[0]], s[1])
+    ve_status = db_get(jc, query)
 
     # get TC versus status
 
@@ -407,11 +412,12 @@ def summary(jc, VEs, reqs, comp):
 
     print('\\begin{longtable}{rl}\n\\toprule', file=fsum)
     print("\\multicolumn{2}{c}{\\textbf{Verification Element Status}} \\\\ \\hline", file=fsum)
-    T = 0
-    for s in veStatus:
-        T = T + s[1]
+    t = 0
+    for s in ve_status:
+        print(jst[s[0]], s[1])
+        t = t + s[1]
         print(f" {jst[s[0]]} & {s[1]} \\\\", file=fsum)
-    print("\\hline\n\\textbf{subtotal} & ", f"{T} \\\\", file=fsum)
+    print("\\hline\n\\textbf{subtotal} & ", f"{t} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
@@ -419,7 +425,7 @@ def summary(jc, VEs, reqs, comp):
 #
 #  print VCD
 #
-def printVCD(VEs, reqs, comp):
+def print_vcd(verification_elements, reqs, comp):
     global tcases
     rtype = []
 
@@ -434,9 +440,8 @@ def printVCD(VEs, reqs, comp):
     print('\\begin{longtable}{lllll}', file=fout)
     print("\\caption{", comp, "VCD Table.}", file=fout)
     print('\\\\\n\\toprule', file=fout)
-    print(
-        '\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & \\textbf{Last Run} & \\textbf{Test Status} \\\\\n',
-        file=fout)
+    print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & ' +
+          '\\textbf{Last Run} & \\textbf{Test Status} \\\\\n', file=fout)
     print('\\toprule\n\\endhead', file=fout)
     bt = '\\begin{tabular}{@{}l@{}}'
     nl = '\\\\'
@@ -455,42 +460,44 @@ def printVCD(VEs, reqs, comp):
             rtype.append(tmptype)
         # print(r, req, reqs[req]['reqDoc'])
         print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et + " &", file=fout)
+        print(reqs[req])
         nve = len(reqs[req]['VEs'])
         v = 0
         for ve in reqs[req]['VEs']:
             v = v + 1
-            # print("    ", v, ve, VEs[ve]['jkey'])
+            # print("    ", v, ve, verification_elements[ve]['jkey'])
             if v != 1:
                 print(" & ", file=fout, end='')
-            print(bt, f"{ve} {nl} {njr}{VEs[ve]['jkey']}{ccb}", et + " &", file=fout)
-            ntc = len(VEs[ve]['tcs'])
+            print(bt, f"{ve} {nl} {njr}{verification_elements[ve]['jkey']}{ccb}", et + " &", file=fout)
+            ntc = len(verification_elements[ve]['tcs'])
             if ntc == 0:
                 print(" && \\\\", file=fout)
             else:
                 t = 0
-                for tc in VEs[ve]['tcs']:
+                for tc in verification_elements[ve]['tcs']:
                     t = t + 1
-                    # print("        ", t, tc, VEs[ve]['tcs'][tc]['tspec'])
+                    # print("        ", t, tc, verification_elements[ve]['tcs'][tc]['tspec'])
                     if t != 1:
                         print(" && ", file=fout, end='')
-                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} {ndr}{VEs[ve]['tcs'][tc]['tspec']}{ccb}", et+" &", file=fout)
-                    if not VEs[ve]['tcs'][tc]['lastR']:
-                        if 'lastR' not in tcases[tc].keys():
-                            # in some cases the rest api do not return the test resusts
-                            print(" & \\notexec{} \\\\", file=fout)
-                            # print("            ",tc,tcases[tc])
-                            # print(VEs[ve]['tcs'][tc]['lastR'])
-                        else:
-                            print(bt, tcases[tc]['lastR']['exdate'], nl, file=fout, end='')
-                            tpl = tcases[tc]['lastR']['tplan']
-                            if tpl != "NA":
-                                print(f"{ndr}{tcases[tc]['lastR']['dmtr']}{ccb} {scr}{atm}testPlan/{tpl}{ccb}{ocb}{tpl}{ccb} {ccb}", et+" &", file=fout, end='')
-                            else:
-                                tcy = tcases[tc]['lastR']['tcycle']
-                                print(f"{scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et+" &", file=fout, end='')
-                            print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastR']['status']), file=fout)
-                    else:
+                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} " +
+                          f"{ndr}{verification_elements[ve]['tcs'][tc]['tspec']}{ccb}",
+                          et + " &", file=fout)
+                    # if verification_elements[ve]['tcs'][tc]['lastR']:
+                    if not tcases[tc]['lastR']:
                         print(" & \\notexec{} \\\\", file=fout)
+                    else:
+                        print(bt, tcases[tc]['lastR']['exdate'], nl, file=fout, end='')
+                        tpl = tcases[tc]['lastR']['tplan']
+                        if tpl != "NA":
+                            print(f"{ndr}{tcases[tc]['lastR']['dmtr']}{ccb}" +
+                                  f" {scr}{atm}testPlan/{tpl}{ccb}{ocb}{tpl}{ccb} {ccb}",
+                                  et + " &", file=fout, end='')
+                        else:
+                            tcy = tcases[tc]['lastR']['tcycle']
+                            print(f"{scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et + " &", file=fout, end='')
+                        print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastR']['status']), file=fout)
+                    # else:
+                    #    print(" & \\notexec{} \\\\", file=fout)
                     if t != ntc:
                         print("\\cmidrule{3-5}", file=fout)
             if v != nve:
@@ -517,13 +524,13 @@ def vcdsql(comp, usr, pwd):
     print(f"Looking for VEs in {comp} ...")
     jcon = {"usr": usr,
             "pwd": pwd}
-    initJiraStatus(jcon)
+    init_jira_status(jcon)
 
-    VEs, reqs = get_ves(comp, jcon)
+    ves, reqs = get_ves(comp, jcon)
 
-    print("  ... found {{nve}} Verification Elements related to {nr} requirements and {ntc} test cases.".format(nve=len(VEs),
-          nr=len(reqs),ntc=len(tcases)))
+    print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
+          format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
 
-    printVCD(VEs, reqs, comp)
+    print_vcd(ves, reqs, comp)
 
-    summary(jcon, VEs, reqs, comp)
+    summary(jcon, ves, reqs, comp)
