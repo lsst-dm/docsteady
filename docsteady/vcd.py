@@ -414,7 +414,7 @@ def summary(jc, verification_elements, reqs, comp):
     print("\\multicolumn{2}{c}{\\textbf{Verification Element Status}} \\\\ \\hline", file=fsum)
     t = 0
     for s in ve_status:
-        print(jst[s[0]], s[1])
+        #print(jst[s[0]], s[1])
         t = t + s[1]
         print(f" {jst[s[0]]} & {s[1]} \\\\", file=fsum)
     print("\\hline\n\\textbf{subtotal} & ", f"{t} \\\\", file=fsum)
@@ -460,7 +460,7 @@ def print_vcd(verification_elements, reqs, comp):
             rtype.append(tmptype)
         # print(r, req, reqs[req]['reqDoc'])
         print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et + " &", file=fout)
-        print(reqs[req])
+        #print(reqs[req])
         nve = len(reqs[req]['VEs'])
         v = 0
         for ve in reqs[req]['VEs']:
