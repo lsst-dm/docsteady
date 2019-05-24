@@ -8,7 +8,8 @@ requires = [
     'click',
     'BeautifulSoup4',
     'marshmallow<3',
-    'setuptools_scm'
+    'setuptools_scm',
+    'pymysql',
 ]
 
 doc_requires = [

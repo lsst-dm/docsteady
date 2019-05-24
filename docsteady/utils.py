@@ -31,6 +31,8 @@ from marshmallow import fields
 from .config import Config
 import requests
 
+jhost = "140.252.32.64"
+jdb = "jira"
 
 class HtmlPandocField(fields.String):
     """
@@ -200,3 +202,13 @@ def get_folders(target_folder):
         if folder.startswith(target_folder):
             target_folders.append(folder)
     return target_folders
+
+def get_tspec(folder):
+    sf = folder.split('/')
+    for d in sf:
+        sd = d.split('|')
+        if len(sd) == 2:
+            return(sd[1])
+    return("")
+
+
