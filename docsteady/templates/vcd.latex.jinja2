@@ -46,8 +46,8 @@
 
 \section{Summary Information}\label{sec:summary}
 
-Following summary is provided as an overview of the {{ metadata.component }} coverage.
-The first subsection \ref{sec:versum} shows how many requirements and verificaiton elements
+The following summary is provided as an overview of the {{ metadata.component }} coverage.
+The first subsection \ref{sec:versum} shows how many requirements and verification elements
 are covered based on the test cases results.
 The second subsection \ref{sec:prosum} shows the Jira status count for test cases and  verification elements.
 
@@ -59,83 +59,40 @@ requirements and verification elements coverage.
 
 
 % Summary of Summaries
-\begin{longtable}{rccc|cccccc}
-\multirow{2}{*}{}&
+\begin{longtable}{rlcc|ccccc}
+\multirow{2}{*}{} & \multirow{2}{*}{} &
 \multirow{2}{*}{\rotatebox[origin=l]{90}{Requirements Count}} &
 \multirow{2}{*}{\rotatebox[origin=l]{90}{Verification Elements Count}} &
-\multirow{2}{*}{\rotatebox[origin=l]{90}{Test Cases NOT Defined}} &
-\multicolumn{6}{c}{Test Results} \\ \cline{5-10}
+\multicolumn{5}{c}{Test Results} \\ \cline{5-9}
 &&&&
+\rotatebox[origin=l]{90}{Test Cases NOT Defined} &
 \rotatebox[origin=l]{90}{ {{ tcresults[0]["name"] }} (\ref{{ curlies(tcresults[0]["label"]) }}) } &
 \rotatebox[origin=l]{90}{ {{ tcresults[1]["name"] }} (\ref{{ curlies(tcresults[1]["label"]) }}) } &
 \rotatebox[origin=l]{90}{ {{ tcresults[2]["name"] }} (\ref{{ curlies(tcresults[2]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[3]["name"] }} (\ref{{ curlies(tcresults[3]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[4]["name"] }} (\ref{{ curlies(tcresults[4]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[5]["name"] }} (\ref{{ curlies(tcresults[5]["label"]) }}) }
+\rotatebox[origin=l]{90}{ {{ tcresults[3]["name"] }} (\ref{{ curlies(tcresults[3]["label"]) }}) }
 \\ \hline
-\textit{Totals:} & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} & &
-\multicolumn{6}{c}{ {{ sum_dict[5][2] }} } \\ \hline
-{{ coverage[0]["name"] }} (\ref{{ curlies(coverage[0]["label"]) }}) &
-{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} &
- X&  &  &  &  &  &   \\ \hline
-{{ coverage[1]["name"] }} (\ref{{ curlies(coverage[1]["label"]) }}) &
-{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} &
- & X&  &  &  &  &   \\ \hline
-{{ coverage[2]["name"] }} (\ref{{ curlies(coverage[2]["label"]) }}) &
-{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} &
- & X& X& X& X&  &   \\ \hline
-{{ coverage[3]["name"] }} (\ref{{ curlies(coverage[3]["label"]) }}) &
-{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} &
- & X& X& X& X& X& X \\ \hline
-{{ coverage[4]["name"] }} (\ref{{ curlies(coverage[4]["label"]) }}) &
-{{ sum_dict[4][4] }} & {{ sum_dict[2][4] }} &
- & X& X& X& X&  & X \\ \hline
-{{ coverage[5]["name"] }} (\ref{{ curlies(coverage[5]["label"]) }}) &
-{{ sum_dict[2][4] }} & {{ sum_dict[2][5] }} &
- &  &  &  &  & X&   \\ \hline
-{{ coverage[6]["name"] }} (\ref{{ curlies(coverage[6]["label"]) }}) &
-{{ sum_dict[4][6] }} & {{ sum_dict[2][6] }} &
- &  &  &  &  &  & X \\
+\multicolumn{2}{r}{\textit{Totals:} } & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} & &
+\multicolumn{4}{c}{ {{ sum_dict[5][2] }} } \\ \hline
+\multirow{4}{*}{
+\begin{tabular}{@{}l@{}}
+Requirements \\ \& Verification \\ Elements
+\end{tabular} } &
+not related to any TC  (\ref{{ curlies(coverage[0]["label"]) }}) &
+{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} & X&  &  &  &   \\ \cline{2-9}
+& related with NOT executed TCs (\ref{{ curlies(coverage[1]["label"]) }}) &
+{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} &  & X&  &  &   \\ \cline{2-9}
+& related with Failed TCs (\ref{{ curlies(coverage[2]["label"]) }}) &
+{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} &  & X& X& X& X \\ \cline{2-9}
+& related with Passed TCs (\ref{{ curlies(coverage[3]["label"]) }}) &
+{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} &  &  & X&  & X \\ \hline
 \bottomrule
-\multicolumn{4}{r}{\textit{Test Results Count:} }
+\multicolumn{5}{r}{\textit{Test Results Count:} }
 {% for r in tcresults %}
  & {{ sum_dict[0][ r["id"] ] }}
 {% endfor %}
 \\
 \bottomrule
 \end{longtable}
-
-
-% Requirements Summary
-\begin{longtable}{rl}
-\multicolumn{2}{c}{\textbf{Requirements Coverage}} \\ \hline
-{% for c in coverage %}
-  {{ coverage[ c["id"] ]["name"] }} & {{ sum_dict[4][ c["id"] ] }} \\ \hline
-{% endfor %}
-%   ----------------------
-\bottomrule
-\end{longtable}
-
-
-\begin{longtable}{rl}
-\multicolumn{2}{c}{\textbf{Verification Elements Coverage}} \\ \hline
-{% for c in coverage %}
-  {{ coverage[ c["id"] ]["name"] }} & {{ sum_dict[2][ c["id"] ] }} \\ \hline
-{% endfor %}
-%   ----------------------
-\bottomrule
-\end{longtable}
-
-% should not be needed anymore, summary of summary should be sufficient
-\begin{longtable}{rl}
-\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
-{% for r in tcresults %}
-  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
-{% endfor %}
-%   ----------------------
-\bottomrule
-\end{longtable}
-
 
 
 \subsection{Progress Summary} \label{sec:prosum}
@@ -259,39 +216,21 @@ The number of requirements or verification elements not related to any test case
 \subsubsection{ {{ coverage[1]["name"] }} } \label{{ curlies(coverage[1]["label"]) }}
 
 The number of requirements or verification elements related only with not executed test cases.
+This includes test cases which status is "In Progress" or "Blocked".
 
 
 \subsubsection{ {{ coverage[2]["name"] }} } \label{{ curlies(coverage[2]["label"]) }}
 
-The number of requirements or verification elements related to test cases that fall in one of the following results:
-
-\begin{itemize}
-\item Conditionally Passed
-\item In Progress
-\item Blocked
-\end{itemize}
+The number of requirements or verification elements related with Failed test cases.
+This includes requirements or verification elements related with both Passed and Failed test cases.
 
 
 \subsubsection{ {{ coverage[3]["name"] }} } \label{{ curlies(coverage[3]["label"]) }}
 
-The number of requirements or verification elements related to one or more failed test cases.
-Other related test cases are in any different status.
+The number of requirements or verification elements related with passed test cases.
+This includes requirements or verification elements related with non executed test cases.
 
 
-\subsubsection{ {{ coverage[4]["name"] }} } \label{{ curlies(coverage[4]["label"]) }}
-
-The number of requirements or verification elements related to one or more passed test cases.
-Other related test cases are in any different status but not failed.
-
-
-\subsubsection{ {{ coverage[5]["name"] }} } \label{{ curlies(coverage[5]["label"]) }}
-
-The number of requirements related to only failed test cases.
-
-
-\subsubsection{ {{ coverage[6]["name"] }} } \label{{ curlies(coverage[6]["label"]) }}
-
-The number of requirements related to only passed test cases.
 
 
 \subsection{Test Cases Results} \label{sec:tcresdef}
@@ -301,29 +240,25 @@ These definitions are derived from the Jira ATM plugin.
 
 \subsubsection{ {{tcresults[0]["name"] }} } \label{{ curlies(tcresults[0]["label"]) }}
 
-The number of test cases that have never been executed.
+The number of test cases that have:
+
+\begin{itemize}
+\item never been executed
+\item in progress
+\item blocked
+\end{itemize}
 
 
 \subsubsection{ {{tcresults[1]["name"] }} } \label{{ curlies(tcresults[1]["label"]) }}
 
-The number of test cases which are currently in execution.
+The number of test cases which result is "Conditionally Passed".
 
 
 \subsubsection{ {{tcresults[2]["name"] }} } \label{{ curlies(tcresults[2]["label"]) }}
 
-The number of test cases which are currently blocked, and their execution cannot be completed.
+The number of test cases which result is "Failed".
 
 
 \subsubsection{ {{tcresults[3]["name"] }} } \label{{ curlies(tcresults[3]["label"]) }}
 
-The number of test cases which have been marked as \textbf{Conditional Passed} in the last execution.
-
-
-\subsubsection{ {{tcresults[4]["name"] }} } \label{{ curlies(tcresults[4]["label"]) }}
-
-The number of test cases which have been marked as \textbf{Fail} in the last execution.
-
-
-\subsubsection{ {{tcresults[5]["name"] }} } \label{{ curlies(tcresults[5]["label"]) }}
-
-The number of test cases which have been marked as \textbf{Pass} in the last execution.
+The number of test cases which result is "Passed".

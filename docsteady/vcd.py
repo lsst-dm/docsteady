@@ -415,15 +415,15 @@ def summary(dictionary, comp, user, passwd):
             elif tcases[tc]['lastR']['status'] == "notexec":
                 mtcres[0] += 1
             elif tcases[tc]['lastR']['status'] == "passed":
-                mtcres[5] += 1
-            elif tcases[tc]['lastR']['status'] == "failed":
-                mtcres[4] += 1
-            elif tcases[tc]['lastR']['status'] == "inprogress":
-                mtcres[1] += 1
-            elif tcases[tc]['lastR']['status'] == "cndpass":
                 mtcres[3] += 1
-            elif tcases[tc]['lastR']['status'] == "blocked":
+            elif tcases[tc]['lastR']['status'] == "failed":
                 mtcres[2] += 1
+            elif tcases[tc]['lastR']['status'] == "inprogress":
+                mtcres[0] += 1
+            elif tcases[tc]['lastR']['status'] == "cndpass":
+                mtcres[1] += 1
+            elif tcases[tc]['lastR']['status'] == "blocked":
+                mtcres[0] += 1
             else:
                 print('Unknown test case result:', tcases[tc]['lastR']['status'])
                 mtcres[6] += 1
@@ -453,7 +453,7 @@ def summary(dictionary, comp, user, passwd):
     # get VE real coverage
     coverNames = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
                   'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
-    vecoverage = [0,0,0,0,0,0,0]
+    vecoverage = [0,0,0,0]
     vestatus = dict()
     for ve in verification_elements.keys():
         #print(verification_elements[ve])
@@ -463,7 +463,7 @@ def summary(dictionary, comp, user, passwd):
             vestatus[ve] = Config.coverage[0]["name"]
         else:
             # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
-            tcs = [0,0,0,0,0,0]
+            tcs = [0,0,0,0]
             for tc in verification_elements[ve]['tcs']:
                 if not tcases[tc]['lastR']:  # not executed
                     tcs[0] += 1
@@ -473,76 +473,55 @@ def summary(dictionary, comp, user, passwd):
                     elif tcases[tc]['lastR']['status'] == "notexec":
                         tcs[0] += 1
                     elif tcases[tc]['lastR']['status'] == "passed":
-                        tcs[5] += 1
-                    elif tcases[tc]['lastR']['status'] == "failed":
-                        tcs[4] += 1
-                    elif tcases[tc]['lastR']['status'] == "inprogress":
-                        tcs[1] += 1
-                    elif tcases[tc]['lastR']['status'] == "cndpass":
                         tcs[3] += 1
-                    elif tcases[tc]['lastR']['status'] == "blocked":
+                    elif tcases[tc]['lastR']['status'] == "failed":
                         tcs[2] += 1
+                    elif tcases[tc]['lastR']['status'] == "inprogress":
+                        tcs[0] += 1
+                    elif tcases[tc]['lastR']['status'] == "cndpass":
+                        tcs[1] += 1
+                    elif tcases[tc]['lastR']['status'] == "blocked":
+                        tcs[0] += 1
                     else:
                         print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                         tcs[0] += 1
-            if tcs[0] == ntc:  # none of the test cases have been executed
-                vecoverage[1] += 1
-                vestatus[ve] = Config.coverage[1]["name"]
-            elif tcs[5] == ntc:  # all test cases are passed
-                vecoverage[6] += 1
-                vestatus[ve] = Config.coverage[6]["name"]
-            elif tcs[4] == ntc:  # all test cases are failed
-                vecoverage[5] += 1
-                vestatus[ve] = Config.coverage[5]["name"]
-            elif tcs[4] > 0:  # some test cases are failed
+            if tcs[2] > 0:  # some test cases are failing
+                vecoverage[2] += 1
+                vestatus[ve] = Config.coverage[2]["name"]
+            elif tcs[3] > 0:  # some test cases are passing
                 vecoverage[3] += 1
                 vestatus[ve] = Config.coverage[3]["name"]
-            elif tcs[5] > 0:  # some test cases (but not all) are passed
-                vecoverage[4] += 1
-                vestatus[ve] = Config.coverage[4]["name"]
-            else:  # all other conditions (Partially Executed)
-                vecoverage[2] += 1;
-                vestatus[ve] = Config.coverage[2]["name"];
+            else:  # all other conditions
+                vecoverage[1] += 1;
+                vestatus[ve] = Config.coverage[1]["name"];
 
     # get requirements status
-    reqcoverage = [0,0,0,0,0,0,0]
+    reqcoverage = [0,0,0,0]
     for req in reqs:
         #print(reqs[req])
         # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
         # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
         nve = len(reqs[req]["VEs"])
-        reqves = [0,0,0,0,0,0,0]
+        reqves = [0,0,0,0]
         for ve in reqs[req]['VEs']:
             if vestatus[ve] == Config.coverage[0]["name"]:
                 reqves[0] += 1;  # no TCs
             elif vestatus[ve] == Config.coverage[1]["name"]:
                 reqves[1] += 1;  # no TCs executed
             elif vestatus[ve] == Config.coverage[2]["name"]:
-                reqves[2] += 1;  # TCs partially executed
+                reqves[2] += 1;  # Failed TCs
             elif vestatus[ve] == Config.coverage[3]["name"]:
-                reqves[3] += 1;  # Some Failed TCs
-            elif vestatus[ve] == Config.coverage[4]["name"]:
-                reqves[4] += 1;  # Some Passed TCs
-            elif vestatus[ve] == Config.coverage[5]["name"]:
-                reqves[5] += 1;  #  All TCs failed
-            elif vestatus[ve] == Config.coverage[6]["name"]:
-                reqves[6] += 1;  # All TCs passed
+                reqves[3] += 1;  # Passed TCs
             else:
                 reqves[0] += 1;  # if not in the above
-        if reqves[0] == nve:  # no test cases associated to any VE
-            reqcoverage[0] += 1
-        elif reqves[6] == nve:  # all VEs have all test cases passed
-            reqcoverage[6] += 1
-        elif reqves[5] == nve:  # all VEs have all test cases failed
-            reqcoverage[5] += 1
-        elif reqves[1] == nve:  # no test cases have been executed
-            reqcoverage[1] += 1
-        elif reqves[3] > 0:  # some test cases are failing
-            reqcoverage[3] += 1
-        elif reqves[4] > 0:  # some test cases are passing
-            reqcoverage[4] += 1
-        else:  # all other cases
+        if reqves[2] > 0:  # with Failures
             reqcoverage[2] += 1
+        elif reqves[3] > 0:  # with Passed
+            reqcoverage[3] += 1
+        elif reqves[1] > 0:  # no test cases have been executed
+            reqcoverage[1] += 1
+        else:  # all other cases
+            reqcoverage[0] += 1
 
     size = [ len(reqs), len(verification_elements), len(tcases)]
 
