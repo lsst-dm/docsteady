@@ -330,37 +330,38 @@ def get_ves(comp, jc):
 
     v = 0
     for ve in raw_ves:
-        v = v + 1
-        tmpve = dict()
-        tmpve['jkey'] = 'LVV-' + str(ve[0])
-        ves = ve[2].split(':')
-        # print(v, ves[0])
-        tmpve['status'] = jst[ve[3]]
-        query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
-                 "inner join customfield cf on cvf.customfield = cf.id "
-                 "inner join jiraissue ji on cvf.issue = ji.id "
-                 "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
-        raw_cfs = db_get(jc, query)
-        for cf in raw_cfs:
-            tmpve[cf[1]] = cf[2]
-        if tmpve['Requirement ID'] not in reqs.keys():
-            # print(tmpve['Requirement ID'])
-            rtmp = dict()
-            rtmp['reqDoc'] = tmpve['Requirement Specification']
-            rtmp['VEs'] = []
-            rtmp['VEs'].append(ves[0])
-            reqs[tmpve['Requirement ID']] = rtmp
-        else:
-            reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
-        tmpve['tcs'] = []
-        tmpve['tcs'] = get_tcs(jc, ve[1])
-        # print(tmpve['jkey'], tmpve['tcs'])
-        if ves[0] in velements.keys():
-            print("  Duplicated:", ves[0], tmpve['jkey'])
-            print("    existing:", velements[ves[0]]['jkey'])
-            veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
-        else:
-            velements[ves[0]] = tmpve
+        if ve[3] != '11713':  # ignore DESCOPED VEs
+            v = v + 1
+            tmpve = dict()
+            tmpve['jkey'] = 'LVV-' + str(ve[0])
+            ves = ve[2].split(':')
+            # print(v, ves[0])
+            tmpve['status'] = jst[ve[3]]
+            query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
+                     "inner join customfield cf on cvf.customfield = cf.id "
+                     "inner join jiraissue ji on cvf.issue = ji.id "
+                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
+            raw_cfs = db_get(jc, query)
+            for cf in raw_cfs:
+                tmpve[cf[1]] = cf[2]
+            if tmpve['Requirement ID'] not in reqs.keys():
+                # print(tmpve['Requirement ID'])
+                rtmp = dict()
+                rtmp['reqDoc'] = tmpve['Requirement Specification']
+                rtmp['VEs'] = []
+                rtmp['VEs'].append(ves[0])
+                reqs[tmpve['Requirement ID']] = rtmp
+            else:
+                reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
+            tmpve['tcs'] = []
+            tmpve['tcs'] = get_tcs(jc, ve[1])
+            # print(tmpve['jkey'], tmpve['tcs'])
+            if ves[0] in velements.keys():
+                print("  Duplicated:", ves[0], tmpve['jkey'])
+                print("    existing:", velements[ves[0]]['jkey'])
+                veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
+            else:
+                velements[ves[0]] = tmpve
     return velements, reqs
 
 

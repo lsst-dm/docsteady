@@ -10,17 +10,14 @@
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 
-{#    ndr = '\\vcdDocRef{' #}
 {%- macro ndr(text) -%}
 \vcdDocRef{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 
-{#    njr = '\\vcdJiraRef{'  #}
 {%- macro njr(text) -%}
 \vcdJiraRef{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 
-{#    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/' #}
 {%- macro atmtc(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
@@ -46,14 +43,6 @@
 
 \section{Summary Information}\label{sec:summary}
 
-The following summary is provided as an overview of the {{ metadata.component }} coverage.
-The first subsection \ref{sec:versum} shows how many requirements and verification elements
-are covered based on the test cases results.
-The second subsection \ref{sec:prosum} shows the Jira status count for test cases and  verification elements.
-
-\subsection{Verification Summary} \label{sec:versum}
-
-
 The following table gives a summary overview including the relation between test cases results and
 requirements and verification elements coverage.
 
@@ -63,17 +52,14 @@ requirements and verification elements coverage.
 &
 \begin{tabular}{@{}l@{}} Requirements \\ Counts \end{tabular} &
 \begin{tabular}{@{}l@{}} Verification \\Elements \\ Counts \end{tabular} \\ \hline
-{{ coverage[0]["title"] }}  (\ref{{ curlies(coverage[0]["label"]) }}) &
-{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
-{{ coverage[1]["title"] }} (\ref{{ curlies(coverage[1]["label"]) }}) &
-{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
-{{ coverage[2]["title"] }} (\ref{{ curlies(coverage[2]["label"]) }}) &
-{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
-{{ coverage[3]["title"] }} (\ref{{ curlies(coverage[3]["label"]) }}) &
-{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+{{ coverage[0]["title"] }}  & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
+{{ coverage[1]["title"] }}  & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
+{{ coverage[2]["title"] }}  & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
+{{ coverage[3]["title"] }}  & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
 Total: & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} \\
 \bottomrule
 \end{longtable}
+
 
 Following table provides the Test Cases result summary.
 
@@ -188,7 +174,7 @@ Please refer to the SE confluence page where the Verification Elements and Test 
 
 
 
-
+{#
 \newpage
 \newpage
 \appendix
@@ -253,4 +239,4 @@ The number of test cases which result is "Failed".
 
 \subsubsection{ {{tcresults[3]["name"] }} } \label{{ curlies(tcresults[3]["label"]) }}
 
-The number of test cases which result is "Passed".
+The number of test cases which result is "Passed". #}
