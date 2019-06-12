@@ -550,94 +550,24 @@ def summary(dictionary, comp, user, passwd):
 
 
 #
-#  print VCD
+#  check that the requirements acronyms have been added to acronyms.tex
 #
-def print_vcd(verification_elements, reqs, comp):
-    global tcases
+def check_acronyms(reqs):
+    acronyms = []
     rtype = []
 
-    fname = comp.lower() + "_vcd.tex"
-    fout = open(fname, 'w')
-    print('\\section{VCD}\\label{sec:vcd}', file=fout)
-    print('\\afterpage{', file=fout)
-    print('{\\small', file=fout)
-    print('\\newlength{\\LTcapwidthold}', file=fout)
-    print('\\setlength{\\LTcapwidthold}{\\LTcapwidth}', file=fout)
-    print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
-    print('\\begin{longtable}{lllll}', file=fout)
-    print("\\caption{", comp, "VCD Table.}", file=fout)
-    print('\\\\\n\\toprule', file=fout)
-    print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & ' +
-          '\\textbf{Last Run} & \\textbf{Test Status} \\\\\n', file=fout)
-    print('\\toprule\n\\endhead', file=fout)
-    bt = '\\begin{tabular}{@{}l@{}}'
-    nl = '\\\\'
-    njr = '\\vcdJiraRef{'
-    ndr = '\\vcdDocRef{'
-    ocb = '{'
-    ccb = '}'
-    et = '\\end{tabular}'
-    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
-    scr = '{\\scriptsize '
-    r = 0
+    acro_file = open("acronyms.tex", 'r')
+    acrolines = acro_file.readlines()
+    for line in acrolines:
+        tmpacro = line.split(" ")
+        acronyms.append(tmpacro[0].strip())
+
     for req in reqs.keys():
-        r = r + 1
         tmptype = req[:-5]
         if tmptype not in rtype:
             rtype.append(tmptype)
-        # print(r, req, reqs[req]['reqDoc'])
-        print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et + " &", file=fout)
-        #print(reqs[req])
-        nve = len(reqs[req]['VEs'])
-        v = 0
-        for ve in reqs[req]['VEs']:
-            v = v + 1
-            # print("    ", v, ve, verification_elements[ve]['jkey'])
-            if v != 1:
-                print(" & ", file=fout, end='')
-            print(bt, f"{ve} {nl} {njr}{verification_elements[ve]['jkey']}{ccb}", et + " &", file=fout)
-            ntc = len(verification_elements[ve]['tcs'])
-            if ntc == 0:
-                print(" && \\\\", file=fout)
-            else:
-                t = 0
-                for tc in verification_elements[ve]['tcs']:
-                    t = t + 1
-                    # print("        ", t, tc, verification_elements[ve]['tcs'][tc]['tspec'])
-                    if t != 1:
-                        print(" && ", file=fout, end='')
-                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} " +
-                          f"{ndr}{verification_elements[ve]['tcs'][tc]['tspec']}{ccb}",
-                          et + " &", file=fout)
-                    # if verification_elements[ve]['tcs'][tc]['lastR']:
-                    if not tcases[tc]['lastR']:
-                        print(" & \\notexec{} \\\\", file=fout)
-                    else:
-                        print(bt, tcases[tc]['lastR']['exdate'], nl, file=fout, end='')
-                        tpl = tcases[tc]['lastR']['tplan']
-                        if tpl != "NA":
-                            print(f"{ndr}{tcases[tc]['lastR']['dmtr']}{ccb}" +
-                                  f" {scr}{atm}testPlan/{tpl}{ccb}{ocb}{tpl}{ccb} {ccb}",
-                                  et + " &", file=fout, end='')
-                        else:
-                            tcy = tcases[tc]['lastR']['tcycle']
-                            print(f"{scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et + " &", file=fout, end='')
-                        print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastR']['status']), file=fout)
-                    # else:
-                    #    print(" & \\notexec{} \\\\", file=fout)
-                    if t != ntc:
-                        print("\\cmidrule{3-5}", file=fout)
-            if v != nve:
-                print("\\cmidrule{2-5}", file=fout)
-        print("\\midrule", file=fout)
-    print('\\label{tab:dmvcd}', file=fout)
-    print('\\end{longtable}', file=fout)
-    print('}\n}', file=fout)
-    fout.close()
-
-    print("Check that following strings are defined in myacronyms.tex")
-    for rt in rtype:
-        print("   - ", rt)
+            if tmptype not in acronyms:
+              print("Missing acronyms", tmptype)
 
 
 #
@@ -649,6 +579,7 @@ def vcdsql(comp, usr, pwd):
     global veduplicated
     veduplicated = dict()
     tcases = {}
+
 
     print(f"Looking for VEs in {comp} ...")
     jcon = {"usr": usr,
@@ -663,5 +594,7 @@ def vcdsql(comp, usr, pwd):
     # print_vcd(ves, reqs, comp)
 
     # summary(jcon, ves, reqs, comp)
+
+    check_acronyms(reqs)
 
     return [ ves, reqs, veduplicated, tcases]
