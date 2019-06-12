@@ -65,3 +65,22 @@ class Config:
     DOCUSHARE_DOC_PATTERN = re.compile(doc_pattern_text)
     milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
+
+    coverage = [   # Coverage for requirements and verification elements
+        {"id": 0, "name": "No TCs", "label": "sec:notcs"},
+        {"id": 1, "name": "No Executed TCs", "label": "sec:noexectcs"},
+        {"id": 2, "name": "Partially Executed TCs", "label": "sec:partexectcs"},
+        {"id": 3, "name": "Failed TCs", "label": "sec:somefailedtcs"},
+        {"id": 4, "name": "Passed TCs", "label": "sec:somepassedtcs"},
+        {"id": 5, "name": "All Failed TCs", "label": "sec:allfailedtcs"},
+        {"id": 6, "name": "All Passed TCs", "label": "sec:allpassedtcs"},
+    ]
+
+    tcresults = [  # Results for Test cases
+        {"id": 0, "name": "Not Executed", "label": "sec:notexec"},
+        {"id": 1, "name": "In Progress", "label": "sec:inprogress"},
+        {"id": 2, "name": "Blocked", "label": "sec:blocked"},
+        {"id": 3, "name": "Conditional Pass", "label": "sec:condpass"},
+        {"id": 4, "name": "Fail", "label": "sec:fail"},
+        {"id": 5, "name": "Pass", "label": "sec:pass"},
+    ]

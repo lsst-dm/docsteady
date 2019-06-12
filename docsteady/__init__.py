@@ -33,7 +33,7 @@ from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
-from .vcd import build_vcd_model, vcdsql
+from .vcd import build_vcd_model, vcdsql, summary
 
 try:
     __version__ = get_distribution(__name__).version
@@ -279,6 +279,37 @@ def generate_vcd(format, username, password, sql, component, path):
         vcd_dict = vcdsql(component, username, password)
     else:
         vcd_dict = build_vcd_model(component)
+
+    sum_dict = summary(vcd_dict, component, username, password)
+
+    file = open(path, "w") if path else sys.stdout
+
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(Config.TEMPLATE_DIRECTORY),
+        PackageLoader('docsteady', 'templates')
+        ]),
+        lstrip_blocks=True, trim_blocks=True,
+        autoescape=None
+    )
+
+    try:
+        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template = env.get_template(template_path)
+    except TemplateNotFound as e:
+        click.echo(f"No Template Found: {template_path}", err=True)
+        sys.exit(1)
+
+    metadata = _metadata()
+    metadata["component"] = component
+    metadata["template"] = template.filename
+    text = template.render(metadata=metadata,
+                           coverage=Config.coverage,
+                           tcresults=Config.tcresults,
+                           sum_dict=sum_dict,
+                           vcd_dict=vcd_dict)
+
+    print(_as_output_format(text), file=file)
+
 
 
 

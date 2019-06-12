@@ -1,0 +1,329 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{#    ndr = '\\vcdDocRef{' #}
+{%- macro ndr(text) -%}
+\vcdDocRef{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{#    njr = '\\vcdJiraRef{'  #}
+{%- macro njr(text) -%}
+\vcdJiraRef{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{#    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/' #}
+{%- macro atmtc(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{%- macro atmtp(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{%- macro atmcycle(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+
+
+% generated from JIRA project {{ metadata.project }}
+% using template at {{ metadata.template }}.
+% Collecting data for component: "{{ metadata.component }}"
+% using docsteady version {{ metadata.docsteady_version }}
+% Please do not edit -- update information in Jira instead
+%
+% This file is meant to be included in LaTeX document in order to provide:
+%   - section 3: Summary Information
+%   - section 4: VCD
+%   - appendix A: Summary Explanations
+
+\section{Summary Information}\label{sec:summary}
+
+Following summary is provided as an overview of the {{ metadata.component }} coverage.
+The first subsection \ref{sec:versum} shows how many requirements and verificaiton elements
+are covered based on the test cases results.
+The second subsection \ref{sec:prosum} shows the Jira status count for test cases and  verification elements.
+
+\subsection{Verification Summary} \label{sec:versum}
+
+
+The following table gives a summary overview including the relation between test cases results and
+requirements and verification elements coverage.
+
+
+% Summary of Summaries
+\begin{longtable}{rccc|cccccc}
+\multirow{2}{*}{}&
+\multirow{2}{*}{\rotatebox[origin=l]{90}{Requirements Count}} &
+\multirow{2}{*}{\rotatebox[origin=l]{90}{Verification Elements Count}} &
+\multirow{2}{*}{\rotatebox[origin=l]{90}{Test Cases NOT Defined}} &
+\multicolumn{6}{c}{Test Results} \\ \cline{5-10}
+&&&&
+\rotatebox[origin=l]{90}{ {{ tcresults[0]["name"] }} (\ref{{ curlies(tcresults[0]["label"]) }}) } &
+\rotatebox[origin=l]{90}{ {{ tcresults[1]["name"] }} (\ref{{ curlies(tcresults[1]["label"]) }}) } &
+\rotatebox[origin=l]{90}{ {{ tcresults[2]["name"] }} (\ref{{ curlies(tcresults[2]["label"]) }}) } &
+\rotatebox[origin=l]{90}{ {{ tcresults[3]["name"] }} (\ref{{ curlies(tcresults[3]["label"]) }}) } &
+\rotatebox[origin=l]{90}{ {{ tcresults[4]["name"] }} (\ref{{ curlies(tcresults[4]["label"]) }}) } &
+\rotatebox[origin=l]{90}{ {{ tcresults[5]["name"] }} (\ref{{ curlies(tcresults[5]["label"]) }}) }
+\\ \hline
+\textit{Totals:} & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} & &
+\multicolumn{6}{c}{ {{ sum_dict[5][2] }} } \\ \hline
+{{ coverage[0]["name"] }} (\ref{{ curlies(coverage[0]["label"]) }}) &
+{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} &
+ X&  &  &  &  &  &   \\ \hline
+{{ coverage[1]["name"] }} (\ref{{ curlies(coverage[1]["label"]) }}) &
+{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} &
+ & X&  &  &  &  &   \\ \hline
+{{ coverage[2]["name"] }} (\ref{{ curlies(coverage[2]["label"]) }}) &
+{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} &
+ & X& X& X& X&  &   \\ \hline
+{{ coverage[3]["name"] }} (\ref{{ curlies(coverage[3]["label"]) }}) &
+{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} &
+ & X& X& X& X& X& X \\ \hline
+{{ coverage[4]["name"] }} (\ref{{ curlies(coverage[4]["label"]) }}) &
+{{ sum_dict[4][4] }} & {{ sum_dict[2][4] }} &
+ & X& X& X& X&  & X \\ \hline
+{{ coverage[5]["name"] }} (\ref{{ curlies(coverage[5]["label"]) }}) &
+{{ sum_dict[2][4] }} & {{ sum_dict[2][5] }} &
+ &  &  &  &  & X&   \\ \hline
+{{ coverage[6]["name"] }} (\ref{{ curlies(coverage[6]["label"]) }}) &
+{{ sum_dict[4][6] }} & {{ sum_dict[2][6] }} &
+ &  &  &  &  &  & X \\
+\bottomrule
+\multicolumn{4}{r}{\textit{Test Results Count:} }
+{% for r in tcresults %}
+ & {{ sum_dict[0][ r["id"] ] }}
+{% endfor %}
+\\
+\bottomrule
+\end{longtable}
+
+
+% Requirements Summary
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Requirements Coverage}} \\ \hline
+{% for c in coverage %}
+  {{ coverage[ c["id"] ]["name"] }} & {{ sum_dict[4][ c["id"] ] }} \\ \hline
+{% endfor %}
+%   ----------------------
+\bottomrule
+\end{longtable}
+
+
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Verification Elements Coverage}} \\ \hline
+{% for c in coverage %}
+  {{ coverage[ c["id"] ]["name"] }} & {{ sum_dict[2][ c["id"] ] }} \\ \hline
+{% endfor %}
+%   ----------------------
+\bottomrule
+\end{longtable}
+
+% should not be needed anymore, summary of summary should be sufficient
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
+{% for r in tcresults %}
+  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
+{% endfor %}
+%   ----------------------
+\bottomrule
+\end{longtable}
+
+
+
+\subsection{Progress Summary} \label{sec:prosum}
+
+The information contained in this subsection is not relevant for th requirements coverage.
+This is a complementary information useful to understand the status of the process, and the work still in progress.
+
+Please refer to the SE confluence page where the Verification Elements and Test Cases workflows are documented.
+
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Verification Elements per Jira Status}} \\ \hline
+{% for s in sum_dict[3] %}
+  {{ s[2] }} & {{ s[1] }} \\ \hline
+{% endfor %}
+%   ----------------------
+\bottomrule
+\end{longtable}
+
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Test Cases per Jira Status}} \\ \hline
+{% for id in sum_dict[1]["id"] %}
+  {{ sum_dict[1]["name"][id] }} & {{ sum_dict[1]["count"][id] }} \\ \hline
+{% endfor %}
+%   ----------------------
+\bottomrule
+\end{longtable}
+
+
+\newpage
+\section{VCD}
+
+
+\afterpage{
+{\small
+{# \newlength{\LTcapwidthold}
+\setlength{\LTcapwidthold}{\LTcapwidth}
+\setlength{\LTcapwidth}{\textheight} #}
+\begin{longtable}{lllll}
+\caption{ {{ metadata.component }} VCD Table.} \\
+\toprule
+\textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
+\toprule
+\endhead
+{% for req in vcd_dict[1] %}
+  \begin{tabular}{@{}l@{}}
+  {{ req }} \\ {{ ndr(vcd_dict[1][req]['reqDoc']) }}
+  \end{tabular} &
+  {% set nve = vcd_dict[1][req]['VEs']| length %}
+  {% for ve in vcd_dict[1][req]['VEs'] %}
+    {% if loop.index != 1 %}
+      &
+    {% endif %}
+    \begin{tabular}{@{}l@{}}
+    {{ ve }} \\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    \end{tabular} &
+    {% set ntc = vcd_dict[0][ve]['tcs']| length %}
+    {% if ntc == 0 %}
+      & & \\
+    {% else %}
+      {% for tc in vcd_dict[0][ve]['tcs'] %}
+        {% if loop.index != 1 %}
+          & &
+        {% endif %}
+        \begin{tabular}{@{}l@{}}
+        {{ atmtc(tc) }} \\
+        {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
+        \end{tabular} &
+        {% if vcd_dict[3][tc]['lastR'] %}
+          \begin{tabular}{@{}l@{}}
+          {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
+          {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
+          {% if tpl != "NA" %}
+            {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
+            {\scriptsize {{ atmtp(tpl) }} }
+          {% else %}
+            {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
+          {% endif %}
+          \end{tabular} &
+          \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
+        {% else %}
+          & \notexec{} \\
+        {% endif %}
+        {% if loop.index != ntc %}
+          \cmidrule{3-5}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if loop.index != nve %}
+      \cmidrule{2-5}
+    {% endif %}
+  {% endfor %}
+  \midrule
+{% endfor %}
+\label{tab:dmvcd}
+\end{longtable}
+}
+}
+
+
+
+
+
+
+
+\newpage
+\newpage
+\appendix
+\section{Summary Explanations}
+
+
+\subsection{Coverage Explanation}
+
+The following definitions are valid for both requirements and verification elements.
+
+
+\subsubsection{ {{ coverage[0]["name"] }} } \label{{ curlies(coverage[0]["label"]) }}
+
+The number of requirements or verification elements not related to any test case.
+
+
+\subsubsection{ {{ coverage[1]["name"] }} } \label{{ curlies(coverage[1]["label"]) }}
+
+The number of requirements or verification elements related only with not executed test cases.
+
+
+\subsubsection{ {{ coverage[2]["name"] }} } \label{{ curlies(coverage[2]["label"]) }}
+
+The number of requirements or verification elements related to test cases that fall in one of the following results:
+
+\begin{itemize}
+\item Conditionally Passed
+\item In Progress
+\item Blocked
+\end{itemize}
+
+
+\subsubsection{ {{ coverage[3]["name"] }} } \label{{ curlies(coverage[3]["label"]) }}
+
+The number of requirements or verification elements related to one or more failed test cases.
+Other related test cases are in any different status.
+
+
+\subsubsection{ {{ coverage[4]["name"] }} } \label{{ curlies(coverage[4]["label"]) }}
+
+The number of requirements or verification elements related to one or more passed test cases.
+Other related test cases are in any different status but not failed.
+
+
+\subsubsection{ {{ coverage[5]["name"] }} } \label{{ curlies(coverage[5]["label"]) }}
+
+The number of requirements related to only failed test cases.
+
+
+\subsubsection{ {{ coverage[6]["name"] }} } \label{{ curlies(coverage[6]["label"]) }}
+
+The number of requirements related to only passed test cases.
+
+
+\subsection{Test Cases Results} \label{sec:tcresdef}
+
+These definitions are derived from the Jira ATM plugin.
+
+
+\subsubsection{ {{tcresults[0]["name"] }} } \label{{ curlies(tcresults[0]["label"]) }}
+
+The number of test cases that have never been executed.
+
+
+\subsubsection{ {{tcresults[1]["name"] }} } \label{{ curlies(tcresults[1]["label"]) }}
+
+The number of test cases which are currently in execution.
+
+
+\subsubsection{ {{tcresults[2]["name"] }} } \label{{ curlies(tcresults[2]["label"]) }}
+
+The number of test cases which are currently blocked, and their execution cannot be completed.
+
+
+\subsubsection{ {{tcresults[3]["name"] }} } \label{{ curlies(tcresults[3]["label"]) }}
+
+The number of test cases which have been marked as \textbf{Conditional Passed} in the last execution.
+
+
+\subsubsection{ {{tcresults[4]["name"] }} } \label{{ curlies(tcresults[4]["label"]) }}
+
+The number of test cases which have been marked as \textbf{Fail} in the last execution.
+
+
+\subsubsection{ {{tcresults[5]["name"] }} } \label{{ curlies(tcresults[5]["label"]) }}
+
+The number of test cases which have been marked as \textbf{Pass} in the last execution.
