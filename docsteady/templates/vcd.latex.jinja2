@@ -59,43 +59,36 @@ requirements and verification elements coverage.
 
 
 % Summary of Summaries
-\begin{longtable}{rlcc|ccccc}
-\multirow{2}{*}{} & \multirow{2}{*}{} &
-\multirow{2}{*}{\rotatebox[origin=l]{90}{Requirements Count}} &
-\multirow{2}{*}{\rotatebox[origin=l]{90}{Verification Elements Count}} &
-\multicolumn{5}{c}{Test Results} \\ \cline{5-9}
-&&&&
-\rotatebox[origin=l]{90}{Test Cases NOT Defined} &
-\rotatebox[origin=l]{90}{ {{ tcresults[0]["name"] }} (\ref{{ curlies(tcresults[0]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[1]["name"] }} (\ref{{ curlies(tcresults[1]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[2]["name"] }} (\ref{{ curlies(tcresults[2]["label"]) }}) } &
-\rotatebox[origin=l]{90}{ {{ tcresults[3]["name"] }} (\ref{{ curlies(tcresults[3]["label"]) }}) }
-\\ \hline
-\multicolumn{2}{r}{\textit{Totals:} } & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} & &
-\multicolumn{4}{c}{ {{ sum_dict[5][2] }} } \\ \hline
-\multirow{4}{*}{
-\begin{tabular}{@{}l@{}}
-Requirements \\ \& Verification \\ Elements
-\end{tabular} } &
-not related to any TC  (\ref{{ curlies(coverage[0]["label"]) }}) &
-{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} & X&  &  &  &   \\ \cline{2-9}
-& related with NOT executed TCs (\ref{{ curlies(coverage[1]["label"]) }}) &
-{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} &  & X&  &  &   \\ \cline{2-9}
-& related with Failed TCs (\ref{{ curlies(coverage[2]["label"]) }}) &
-{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} &  & X& X& X& X \\ \cline{2-9}
-& related with Passed TCs (\ref{{ curlies(coverage[3]["label"]) }}) &
-{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} &  &  & X&  & X \\ \hline
+\begin{longtable}{rcc}
+&
+\begin{tabular}{@{}l@{}} Requirements \\ Counts \end{tabular} &
+\begin{tabular}{@{}l@{}} Verification \\Elements \\ Counts \end{tabular} \\ \hline
+{{ coverage[0]["title"] }}  (\ref{{ curlies(coverage[0]["label"]) }}) &
+{{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
+{{ coverage[1]["title"] }} (\ref{{ curlies(coverage[1]["label"]) }}) &
+{{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
+{{ coverage[2]["title"] }} (\ref{{ curlies(coverage[2]["label"]) }}) &
+{{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
+{{ coverage[3]["title"] }} (\ref{{ curlies(coverage[3]["label"]) }}) &
+{{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+Total: & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} \\
 \bottomrule
-\multicolumn{5}{r}{\textit{Test Results Count:} }
+\end{longtable}
+
+Following table provides the Test Cases result summary.
+
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
 {% for r in tcresults %}
- & {{ sum_dict[0][ r["id"] ] }}
+  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
 {% endfor %}
-\\
+%   ----------------------
+Total: & {{ sum_dict[5][2] }} \\
 \bottomrule
 \end{longtable}
 
 
-\subsection{Progress Summary} \label{sec:prosum}
+{# \subsection{Progress Summary} \label{sec:prosum}
 
 The information contained in this subsection is not relevant for th requirements coverage.
 This is a complementary information useful to understand the status of the process, and the work still in progress.
@@ -118,10 +111,9 @@ Please refer to the SE confluence page where the Verification Elements and Test 
 {% endfor %}
 %   ----------------------
 \bottomrule
-\end{longtable}
+\end{longtable} #}
 
 
-\newpage
 \section{VCD}
 
 
@@ -208,24 +200,24 @@ Please refer to the SE confluence page where the Verification Elements and Test 
 The following definitions are valid for both requirements and verification elements.
 
 
-\subsubsection{ {{ coverage[0]["name"] }} } \label{{ curlies(coverage[0]["label"]) }}
+\subsubsection{ {{ coverage[0]["title"] }} } \label{{ curlies(coverage[0]["label"]) }}
 
 The number of requirements or verification elements not related to any test case.
 
 
-\subsubsection{ {{ coverage[1]["name"] }} } \label{{ curlies(coverage[1]["label"]) }}
+\subsubsection{ {{ coverage[1]["title"] }} } \label{{ curlies(coverage[1]["label"]) }}
 
 The number of requirements or verification elements related only with not executed test cases.
 This includes test cases which status is "In Progress" or "Blocked".
 
 
-\subsubsection{ {{ coverage[2]["name"] }} } \label{{ curlies(coverage[2]["label"]) }}
+\subsubsection{ {{ coverage[2]["title"] }} } \label{{ curlies(coverage[2]["label"]) }}
 
 The number of requirements or verification elements related with Failed test cases.
 This includes requirements or verification elements related with both Passed and Failed test cases.
 
 
-\subsubsection{ {{ coverage[3]["name"] }} } \label{{ curlies(coverage[3]["label"]) }}
+\subsubsection{ {{ coverage[3]["title"] }} } \label{{ curlies(coverage[3]["label"]) }}
 
 The number of requirements or verification elements related with passed test cases.
 This includes requirements or verification elements related with non executed test cases.

@@ -456,7 +456,7 @@ def summary(dictionary, comp, user, passwd):
     vecoverage = [0,0,0,0]
     vestatus = dict()
     for ve in verification_elements.keys():
-        #print(verification_elements[ve])
+        # print(verification_elements[ve]['jkey'], ", ", end='')
         ntc = len(verification_elements[ve]['tcs'])
         if ntc == 0:
             vecoverage[0] += 1
@@ -467,24 +467,33 @@ def summary(dictionary, comp, user, passwd):
             for tc in verification_elements[ve]['tcs']:
                 if not tcases[tc]['lastR']:  # not executed
                     tcs[0] += 1
+                    # print("NotRun, ", end="")
                 else:
                     if not tcases[tc]['lastR']['status']:
                         tcs[0] += 1
+                        # print("NoStatus, ", end="")
                     elif tcases[tc]['lastR']['status'] == "notexec":
                         tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "passed":
                         tcs[3] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "failed":
                         tcs[2] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "inprogress":
                         tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "cndpass":
                         tcs[1] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "blocked":
                         tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     else:
                         print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                         tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
             if tcs[2] > 0:  # some test cases are failing
                 vecoverage[2] += 1
                 vestatus[ve] = Config.coverage[2]["name"]
@@ -494,16 +503,18 @@ def summary(dictionary, comp, user, passwd):
             else:  # all other conditions
                 vecoverage[1] += 1;
                 vestatus[ve] = Config.coverage[1]["name"];
+        # print(vestatus[ve])
 
     # get requirements status
     reqcoverage = [0,0,0,0]
     for req in reqs:
-        #print(reqs[req])
+        # print(req, ', ', end='')
         # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
         # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
         nve = len(reqs[req]["VEs"])
         reqves = [0,0,0,0]
         for ve in reqs[req]['VEs']:
+            # print(vestatus[ve], ', ', end='')
             if vestatus[ve] == Config.coverage[0]["name"]:
                 reqves[0] += 1;  # no TCs
             elif vestatus[ve] == Config.coverage[1]["name"]:
@@ -516,12 +527,17 @@ def summary(dictionary, comp, user, passwd):
                 reqves[0] += 1;  # if not in the above
         if reqves[2] > 0:  # with Failures
             reqcoverage[2] += 1
+            # print("REQ Failed")
         elif reqves[3] > 0:  # with Passed
             reqcoverage[3] += 1
+            # print("REQ Passed")
         elif reqves[1] > 0:  # no test cases have been executed
             reqcoverage[1] += 1
+            # print("REQ NoExecutions")
         else:  # all other cases
             reqcoverage[0] += 1
+            # print("REQ NoCoverage")
+
 
     size = [ len(reqs), len(verification_elements), len(tcases)]
 
