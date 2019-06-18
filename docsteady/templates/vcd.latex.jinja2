@@ -44,7 +44,7 @@
 \section{Summary Information}\label{sec:summary}
 
 The following table gives a summary overview including the relation between test cases results and
-requirements and verification elements coverage.
+coverage of requirements and verification elements coverage.
 
 
 % Summary of Summaries
@@ -52,16 +52,16 @@ requirements and verification elements coverage.
 &
 \begin{tabular}{@{}l@{}} Requirements \\ Counts \end{tabular} &
 \begin{tabular}{@{}l@{}} Verification \\Elements \\ Counts \end{tabular} \\ \hline
-{{ coverage[0]["title"] }}  & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
-{{ coverage[1]["title"] }}  & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
-{{ coverage[2]["title"] }}  & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
-{{ coverage[3]["title"] }}  & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+Not related to any Test Case  & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
+Related to NOT executed Test Cases  & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
+Related to Failed Test Cases  & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
+Related to Passed Test Cases  & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
 Total: & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} \\
 \bottomrule
 \end{longtable}
 
 
-Following table provides the Test Cases result summary.
+The following table provides the Test Cases result summary.
 
 \begin{longtable}{rl}
 \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
@@ -72,6 +72,9 @@ Following table provides the Test Cases result summary.
 Total: & {{ sum_dict[5][2] }} \\
 \bottomrule
 \end{longtable}
+
+Note that test cases may be related to multiple requirements or verification elements,
+and requirements or verification elements may be related to multiple test cases.
 
 
 \section{VCD} \label{sec:vcd}
@@ -108,7 +111,7 @@ Total: & {{ sum_dict[5][2] }} \\
             {% if loop.index != 1 %}
                &
             {% endif %}
-            \ref[{{ vby.lower() }}]{{ curlies(vby) }} \\
+            \hyperref[{{ vby.lower() }}]{{ curlies(vby) }} \\
         {% endfor %}
         \end{tabular}
         } \\

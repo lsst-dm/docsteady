@@ -67,10 +67,10 @@ class Config:
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
 
     coverage = [   # Coverage for requirements and verification elements
-        {"id": 0, "name": "No TCs", "label": "sec:notcs", "title": "Not related to any Test Case"},
-        {"id": 1, "name": "No Executed TCs", "label": "sec:noexectcs", "title": "Related to NOT executed Test Cases"},
-        {"id": 2, "name": "Failed TCs", "label": "sec:failedtcs", "title": "Related to Failed Test Cases"},
-        {"id": 3, "name": "Passed TCs", "label": "sec:passedtcs", "title": "Related to Passed Test Cases"},
+        {"id": 0, "name": "No TCs", "label": "sec:notcs"},
+        {"id": 1, "name": "No Executed TCs", "label": "sec:noexectcs"},
+        {"id": 2, "name": "Failed TCs", "label": "sec:failedtcs"},
+        {"id": 3, "name": "Passed TCs", "label": "sec:passedtcs"},
     ]
 
     tcresults = [  # Results for Test cases
