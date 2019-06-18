@@ -10,6 +10,14 @@
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 
+{%- macro hyperlink(text) -%}
+\hyperlink{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro hypertarget(text) -%}
+\hypertarget{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
 {%- macro ndr(text) -%}
 \vcdDocRef{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
@@ -76,11 +84,11 @@ Total: & {{ sum_dict[5][2] }} \\
 Note that test cases may be related to multiple requirements or verification elements,
 and requirements or verification elements may be related to multiple test cases.
 
-
+\newpage
 \section{VCD} \label{sec:vcd}
 
-
-\afterpage{
+\setlength\LTleft{-0.25in}
+\setlength\LTright{-0.5in}
 {\small
 {# \newlength{\LTcapwidthold}
 \setlength{\LTcapwidthold}{\LTcapwidth}
@@ -101,8 +109,10 @@ and requirements or verification elements may be related to multiple test cases.
       &
     {% endif %}
     \begin{tabular}{@{}l@{}}
-    {{ curlies(ve) }}{{ label(ve.lower()) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
     \end{tabular} &
+    {% set ntc = vcd_dict[0][ve]['tcs']| length %}
+    {% set ntby = 0 %}
     {% if vcd_dict[0][ve]['verifiedby'] %}
         \multicolumn{3}{c}{
         \begin{tabular}{ r l }
@@ -111,43 +121,47 @@ and requirements or verification elements may be related to multiple test cases.
             {% if loop.index != 1 %}
                &
             {% endif %}
-            \hyperref[{{ vby.lower() }}]{{ curlies(vby) }} \\
+            {{ hyperlink(vby.lower()) }}{{ curlies(vby) }}({{ njr(vcd_dict[0][vby]['jkey']) }})\\
         {% endfor %}
         \end{tabular}
         } \\
-    {% else %}
-        {% set ntc = vcd_dict[0][ve]['tcs']| length %}
-        {% if ntc == 0 %}
-          & & \\
-        {% else %}
-          {% for tc in vcd_dict[0][ve]['tcs'] %}
-            {% if loop.index != 1 %}
-              & &
-            {% endif %}
-            \begin{tabular}{@{}l@{}}
-            {{ atmtc(tc) }} \\
-            {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
-            \end{tabular} &
-            {% if vcd_dict[3][tc]['lastR'] %}
-              \begin{tabular}{@{}l@{}}
-              {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
-              {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
-              {% if tpl != "NA" %}
-                {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
-                {\scriptsize {{ atmtp(tpl) }} }
-              {% else %}
-                {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
-              {% endif %}
-              \end{tabular} &
-              \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
-            {% else %}
-              & \notexec{} \\
-            {% endif %}
-            {% if loop.index != ntc %}
-              \cmidrule{3-5}
-            {% endif %}
-          {% endfor %}
+        {% set ntby = vcd_dict[0][ve]['verifiedby']| length %}
+        {% if ntc != 0 %}
+          \cmidrule{3-5}
         {% endif %}
+    {% endif %}
+    {% if ntc == 0 %}
+      {% if ntby == 0 %}
+        & & \\
+      {% endif %}
+    {% else %}
+      {% for tc in vcd_dict[0][ve]['tcs'] %}
+        {% if (loop.index != 1 or ntby != 0) %}
+          & &
+        {% endif %}
+        \begin{tabular}{@{}l@{}}
+        {{ atmtc(tc) }} \\
+        {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
+        \end{tabular} &
+        {% if vcd_dict[3][tc]['lastR'] %}
+          \begin{tabular}{@{}l@{}}
+          {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
+          {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
+          {% if tpl != "NA" %}
+            {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
+            {\scriptsize {{ atmtp(tpl) }} }
+          {% else %}
+            {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
+          {% endif %}
+          \end{tabular} &
+          \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
+        {% else %}
+          & \notexec{} \\
+        {% endif %}
+        {% if loop.index != ntc %}
+          \cmidrule{3-5}
+        {% endif %}
+      {% endfor %}
     {% endif %}
     {% if loop.index != nve %}
       \cmidrule{2-5}
@@ -158,4 +172,4 @@ and requirements or verification elements may be related to multiple test cases.
 \label{tab:dmvcd}
 \end{longtable}
 }
-}
+

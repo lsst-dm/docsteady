@@ -365,7 +365,8 @@ def get_ves(comp, jc):
                 rtmp['VEs'].append(ves[0])
                 reqs[tmpve['Requirement ID']] = rtmp
             else:
-                reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
+                if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
+                    reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
             tmpve['tcs'] = []
             tmpve['tcs'] = get_tcs(jc, ve[1])
             # print(tmpve['jkey'], tmpve['tcs'])
