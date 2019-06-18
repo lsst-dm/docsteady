@@ -74,7 +74,7 @@ Total: & {{ sum_dict[5][2] }} \\
 \end{longtable}
 
 
-\section{VCD}
+\section{VCD} \label{sec:vcd}
 
 
 \afterpage{
@@ -98,39 +98,53 @@ Total: & {{ sum_dict[5][2] }} \\
       &
     {% endif %}
     \begin{tabular}{@{}l@{}}
-    {{ ve }} \\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    {{ curlies(ve) }}{{ label(ve.lower()) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
     \end{tabular} &
-    {% set ntc = vcd_dict[0][ve]['tcs']| length %}
-    {% if ntc == 0 %}
-      & & \\
+    {% if vcd_dict[0][ve]['verifiedby'] %}
+        \multicolumn{3}{c}{
+        \begin{tabular}{ r l }
+        Verified in: &
+        {% for vby in vcd_dict[0][ve]['verifiedby'] %}
+            {% if loop.index != 1 %}
+               &
+            {% endif %}
+            \ref[{{ vby.lower() }}]{{ curlies(vby) }} \\
+        {% endfor %}
+        \end{tabular}
+        } \\
     {% else %}
-      {% for tc in vcd_dict[0][ve]['tcs'] %}
-        {% if loop.index != 1 %}
-          & &
-        {% endif %}
-        \begin{tabular}{@{}l@{}}
-        {{ atmtc(tc) }} \\
-        {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
-        \end{tabular} &
-        {% if vcd_dict[3][tc]['lastR'] %}
-          \begin{tabular}{@{}l@{}}
-          {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
-          {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
-          {% if tpl != "NA" %}
-            {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
-            {\scriptsize {{ atmtp(tpl) }} }
-          {% else %}
-            {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
-          {% endif %}
-          \end{tabular} &
-          \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
+        {% set ntc = vcd_dict[0][ve]['tcs']| length %}
+        {% if ntc == 0 %}
+          & & \\
         {% else %}
-          & \notexec{} \\
+          {% for tc in vcd_dict[0][ve]['tcs'] %}
+            {% if loop.index != 1 %}
+              & &
+            {% endif %}
+            \begin{tabular}{@{}l@{}}
+            {{ atmtc(tc) }} \\
+            {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
+            \end{tabular} &
+            {% if vcd_dict[3][tc]['lastR'] %}
+              \begin{tabular}{@{}l@{}}
+              {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
+              {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
+              {% if tpl != "NA" %}
+                {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
+                {\scriptsize {{ atmtp(tpl) }} }
+              {% else %}
+                {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
+              {% endif %}
+              \end{tabular} &
+              \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
+            {% else %}
+              & \notexec{} \\
+            {% endif %}
+            {% if loop.index != ntc %}
+              \cmidrule{3-5}
+            {% endif %}
+          {% endfor %}
         {% endif %}
-        {% if loop.index != ntc %}
-          \cmidrule{3-5}
-        {% endif %}
-      {% endfor %}
     {% endif %}
     {% if loop.index != nve %}
       \cmidrule{2-5}

@@ -322,6 +322,7 @@ def get_ves(comp, jc):
     global veduplicated
     velements = dict()
     reqs = dict()
+    # get all VE for the provided component
     query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
@@ -337,6 +338,18 @@ def get_ves(comp, jc):
             ves = ve[2].split(':')
             # print(v, ves[0])
             tmpve['status'] = jst[ve[3]]
+            # get VEs that may verify this VE, instead of test cases
+            query = ("select ji.issuenum, ji.summary from jiraissue ji "
+                     "inner join issuelink il on il.source = ji.id " 
+                     "where destination = " + str(ve[1]) +" and linktype = 10700 and ji.issuetype = 10602")
+            raw_vby = db_get(jc, query)
+            if len(raw_vby) > 0:
+                vbytmp = []
+                for vby in raw_vby:
+                    tsum = vby[1].split(':')
+                    vbytmp.append(tsum[0])
+                tmpve['verifiedby'] = vbytmp
+            # get the parent requirement
             query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
                      "inner join customfield cf on cvf.customfield = cf.id "
                      "inner join jiraissue ji on cvf.issue = ji.id "
