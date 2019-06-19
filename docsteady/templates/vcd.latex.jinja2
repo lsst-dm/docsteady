@@ -1,0 +1,175 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro hyperlink(text) -%}
+\hyperlink{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro hypertarget(text) -%}
+\hypertarget{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro ndr(text) -%}
+\vcdDocRef{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro njr(text) -%}
+\vcdJiraRef{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro atmtc(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{%- macro atmtp(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{%- macro atmcycle(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+
+
+% generated from JIRA project {{ metadata.project }}
+% using template at {{ metadata.template }}.
+% Collecting data for component: "{{ metadata.component }}"
+% using docsteady version {{ metadata.docsteady_version }}
+% Please do not edit -- update information in Jira instead
+%
+% This file is meant to be included in LaTeX document in order to provide:
+%   - section 3: Summary Information
+%   - section 4: VCD
+%   - appendix A: Summary Explanations
+
+\section{Summary Information}\label{sec:summary}
+
+The following table gives a summary overview including the relation between test cases results and
+coverage of requirements and verification elements coverage.
+
+
+% Summary of Summaries
+\begin{longtable}{rcc}
+&
+\begin{tabular}{@{}l@{}} Requirements \\ Counts \end{tabular} &
+\begin{tabular}{@{}l@{}} Verification \\Elements \\ Counts \end{tabular} \\ \hline
+Not related to any Test Case  & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
+Related to NOT executed Test Cases  & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
+Related to Failed Test Cases  & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
+Related to Passed Test Cases  & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+Total: & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} \\
+\bottomrule
+\end{longtable}
+
+
+The following table provides the Test Cases result summary.
+
+\begin{longtable}{rl}
+\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
+{% for r in tcresults %}
+  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
+{% endfor %}
+%   ----------------------
+Total: & {{ sum_dict[5][2] }} \\
+\bottomrule
+\end{longtable}
+
+Note that test cases may be related to multiple requirements or verification elements,
+and requirements or verification elements may be related to multiple test cases.
+
+\newpage
+\section{VCD} \label{sec:vcd}
+
+\setlength\LTleft{-0.25in}
+\setlength\LTright{-0.5in}
+{\small
+{# \newlength{\LTcapwidthold}
+\setlength{\LTcapwidthold}{\LTcapwidth}
+\setlength{\LTcapwidth}{\textheight} #}
+\begin{longtable}{lllll}
+\caption{ {{ metadata.component }} VCD Table.} \\
+\toprule
+\textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
+\toprule
+\endhead
+{% for req in vcd_dict[1] %}
+  \begin{tabular}{@{}l@{}}
+  {{ req }} \\ {{ ndr(vcd_dict[1][req]['reqDoc']) }}
+  \end{tabular} &
+  {% set nve = vcd_dict[1][req]['VEs']| length %}
+  {% for ve in vcd_dict[1][req]['VEs'] %}
+    {% if loop.index != 1 %}
+      &
+    {% endif %}
+    \begin{tabular}{@{}l@{}}
+    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    \end{tabular} &
+    {% set ntc = vcd_dict[0][ve]['tcs']| length %}
+    {% set ntby = 0 %}
+    {% if vcd_dict[0][ve]['verifiedby'] %}
+        \multicolumn{3}{c}{
+        \begin{tabular}{ r l }
+        Verified in: &
+        {% for vby in vcd_dict[0][ve]['verifiedby'] %}
+            {% if loop.index != 1 %}
+               &
+            {% endif %}
+            {{ hyperlink(vby.lower()) }}{{ curlies(vby) }}({{ njr(vcd_dict[0][vby]['jkey']) }})\\
+        {% endfor %}
+        \end{tabular}
+        } \\
+        {% set ntby = vcd_dict[0][ve]['verifiedby']| length %}
+        {% if ntc != 0 %}
+          \cmidrule{3-5}
+        {% endif %}
+    {% endif %}
+    {% if ntc == 0 %}
+      {% if ntby == 0 %}
+        & & \\
+      {% endif %}
+    {% else %}
+      {% for tc in vcd_dict[0][ve]['tcs'] %}
+        {% if (loop.index != 1 or ntby != 0) %}
+          & &
+        {% endif %}
+        \begin{tabular}{@{}l@{}}
+        {{ atmtc(tc) }} \\
+        {{ ndr(vcd_dict[0][ve]['tcs'][tc]['tspec']) }}
+        \end{tabular} &
+        {% if vcd_dict[3][tc]['lastR'] %}
+          \begin{tabular}{@{}l@{}}
+          {{ vcd_dict[3][tc]['lastR']['exdate'] }} \\
+          {% set tpl = vcd_dict[3][tc]['lastR']['tplan'] %}
+          {% if tpl != "NA" %}
+            {{ ndr(vcd_dict[3][tc]['lastR']['dmtr']) }}
+            {\scriptsize {{ atmtp(tpl) }} }
+          {% else %}
+            {\scriptsize {{ atmcycle(vcd_dict[3][tc]['lastR']['tcycle']) }} }
+          {% endif %}
+          \end{tabular} &
+          \{{ vcd_dict[3][tc]['lastR']['status'] }} \\
+        {% else %}
+          & \notexec{} \\
+        {% endif %}
+        {% if loop.index != ntc %}
+          \cmidrule{3-5}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if loop.index != nve %}
+      \cmidrule{2-5}
+    {% endif %}
+  {% endfor %}
+  \midrule
+{% endfor %}
+\label{tab:dmvcd}
+\end{longtable}
+}
+

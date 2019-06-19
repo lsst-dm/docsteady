@@ -288,9 +288,10 @@ def get_tc_results(jc, tc):
 def get_tcs(jc, veid):
     global tcases
     query = (
-            "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID from AO_4D28DD_TEST_CASE tc "
+            "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name from AO_4D28DD_TEST_CASE tc "
             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
             "inner join jiraissue ji on il.issue_id = ji.id "
+            "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
             "where ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
@@ -302,6 +303,7 @@ def get_tcs(jc, veid):
                 tcs[tc[0]] = tcases[tc[0]]
             else:
                 tcs[tc[0]] = {}
+                tcs[tc[0]]['status'] = tc[3]
                 tcs[tc[0]]['tspec'] = get_tspec_r(jc, tc[1])
                 if tc[2]:
                     tcs[tc[0]]['lastR'] = get_tc_results(jc, tc[0])
@@ -317,8 +319,10 @@ def get_tcs(jc, veid):
 #
 def get_ves(comp, jc):
     global jst
+    global veduplicated
     velements = dict()
     reqs = dict()
+    # get all VE for the provided component
     query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
@@ -327,36 +331,51 @@ def get_ves(comp, jc):
 
     v = 0
     for ve in raw_ves:
-        v = v + 1
-        tmpve = dict()
-        tmpve['jkey'] = 'LVV-' + str(ve[0])
-        ves = ve[2].split(':')
-        # print(v, ves[0])
-        tmpve['status'] = jst[ve[3]]
-        query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
-                 "inner join customfield cf on cvf.customfield = cf.id "
-                 "inner join jiraissue ji on cvf.issue = ji.id "
-                 "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
-        raw_cfs = db_get(jc, query)
-        for cf in raw_cfs:
-            tmpve[cf[1]] = cf[2]
-        if tmpve['Requirement ID'] not in reqs.keys():
-            # print(tmpve['Requirement ID'])
-            rtmp = dict()
-            rtmp['reqDoc'] = tmpve['Requirement Specification']
-            rtmp['VEs'] = []
-            rtmp['VEs'].append(ves[0])
-            reqs[tmpve['Requirement ID']] = rtmp
-        else:
-            reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
-        tmpve['tcs'] = []
-        tmpve['tcs'] = get_tcs(jc, ve[1])
-        # print(tmpve['jkey'], tmpve['tcs'])
-        if ves[0] in velements.keys():
-            print("  Duplicated:", ves[0], tmpve['jkey'])
-            print("    existing:", velements[ves[0]]['jkey'])
-        else:
-            velements[ves[0]] = tmpve
+        if ve[3] != '11713':  # ignore DESCOPED VEs
+            v = v + 1
+            tmpve = dict()
+            tmpve['jkey'] = 'LVV-' + str(ve[0])
+            ves = ve[2].split(':')
+            # print(v, ves[0])
+            tmpve['status'] = jst[ve[3]]
+            # get VEs that may verify this VE, instead of test cases
+            query = ("select ji.issuenum, ji.summary from jiraissue ji "
+                     "inner join issuelink il on il.source = ji.id " 
+                     "where destination = " + str(ve[1]) +" and linktype = 10700 and ji.issuetype = 10602")
+            raw_vby = db_get(jc, query)
+            if len(raw_vby) > 0:
+                vbytmp = []
+                for vby in raw_vby:
+                    tsum = vby[1].split(':')
+                    vbytmp.append(tsum[0])
+                tmpve['verifiedby'] = vbytmp
+            # get the parent requirement
+            query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
+                     "inner join customfield cf on cvf.customfield = cf.id "
+                     "inner join jiraissue ji on cvf.issue = ji.id "
+                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
+            raw_cfs = db_get(jc, query)
+            for cf in raw_cfs:
+                tmpve[cf[1]] = cf[2]
+            if tmpve['Requirement ID'] not in reqs.keys():
+                # print(tmpve['Requirement ID'])
+                rtmp = dict()
+                rtmp['reqDoc'] = tmpve['Requirement Specification']
+                rtmp['VEs'] = []
+                rtmp['VEs'].append(ves[0])
+                reqs[tmpve['Requirement ID']] = rtmp
+            else:
+                if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
+                    reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
+            tmpve['tcs'] = []
+            tmpve['tcs'] = get_tcs(jc, ve[1])
+            # print(tmpve['jkey'], tmpve['tcs'])
+            if ves[0] in velements.keys():
+                print("  Duplicated:", ves[0], tmpve['jkey'])
+                print("    existing:", velements[ves[0]]['jkey'])
+                veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
+            else:
+                velements[ves[0]] = tmpve
     return velements, reqs
 
 
@@ -377,140 +396,188 @@ def get_tspec_r(jc, fid):
 #
 # generate and print summary information
 #
-def summary(jc, verification_elements, reqs, comp):
+def summary(dictionary, comp, user, passwd):
     global tcases
     global jst
+    global veduplicated
     mtrs = dict()
+
+    jc = {"usr": user, "pwd": passwd}
+    init_jira_status(jc)
+
+    verification_elements = dictionary[0]
+
+    reqs = dictionary[1]
+
     mtrs['nr'] = len(reqs)
     mtrs['nv'] = len(verification_elements)
     mtrs['nt'] = len(tcases)
+
+    # get TC status and result
+    # metric testcases results
+    # [ 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked', 'Unknown' ]
+    mtcres = [0,0,0,0,0,0,0]
+    # metric testcases status:
+    mtcstatus = {"count": [0,0,0,0],
+                 "name": ['Draft', 'Defined', 'Approved', 'Deprecated'],
+                 "id": [0,1,2,3]}
+    for tc in tcases.keys():
+        if not tcases[tc]['lastR']: #not executed
+            mtcres[0] += 1
+        else:
+            if not tcases[tc]['lastR']['status']:
+                mtcres[0] += 1
+            elif tcases[tc]['lastR']['status'] == "notexec":
+                mtcres[0] += 1
+            elif tcases[tc]['lastR']['status'] == "passed":
+                mtcres[3] += 1
+            elif tcases[tc]['lastR']['status'] == "failed":
+                mtcres[2] += 1
+            elif tcases[tc]['lastR']['status'] == "inprogress":
+                mtcres[0] += 1
+            elif tcases[tc]['lastR']['status'] == "cndpass":
+                mtcres[1] += 1
+            elif tcases[tc]['lastR']['status'] == "blocked":
+                mtcres[0] += 1
+            else:
+                print('Unknown test case result:', tcases[tc]['lastR']['status'])
+                mtcres[6] += 1
+        if tcases[tc]['status'] == 'Draft':
+            mtcstatus["count"][0] += 1
+        elif tcases[tc]['status'] == 'Defined':
+            mtcstatus["count"][1] += 1
+        elif tcases[tc]['status'] == 'Approved':
+            mtcstatus["count"][2] += 1
+        elif tcases[tc]['status'] == 'Deprecated':
+            mtcstatus["count"][3] += 1
+        else:
+            print('Test case status unknown:', tcases[tc]['status'])
 
     # get VE versus status
     query = ("select ji.issuestatus, count(*) from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
-             " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "'")
+             " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "' group by ji.issuestatus")
     ve_status = db_get(jc, query)
-
-    # get TC versus status
-
-    # get TC result
-
-    fsum = open(comp.lower() + "_summary.tex", 'w')
-    print('\\newpage\n\\section{Summary Information}\\label{sec:summary}', file=fsum)
-
-    # print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
-    print('\\begin{longtable}{rccc}\n\\toprule', file=fsum)
-    print(
-        " & \\textbf{Requirements} & \\textbf{Verification Elements} & \\textbf{Test Cases} \\\\ \\hline",
-        file=fsum)
-    print(f"N.& {mtrs['nr']} & {mtrs['nv']} & {mtrs['nt']} \\\\", file=fsum)
-    # print(f"Number of Requirements: & {mtrs['nr']} \\\\", file=fsum)
-    # print(f"Number of Verification Elements: & {mtrs['nv']} \\\\", file=fsum)
-    # print(f"Number of Test Cases: & {mtrs['nt']} \\\\", file=fsum)
-    print('\\bottomrule\n\\end{longtable}', file=fsum)
-
-    print('\\begin{longtable}{rl}\n\\toprule', file=fsum)
-    print("\\multicolumn{2}{c}{\\textbf{Verification Element Status}} \\\\ \\hline", file=fsum)
     t = 0
     for s in ve_status:
-        #print(jst[s[0]], s[1])
-        t = t + s[1]
-        print(f" {jst[s[0]]} & {s[1]} \\\\", file=fsum)
-    print("\\hline\n\\textbf{subtotal} & ", f"{t} \\\\", file=fsum)
-    print('\\bottomrule\n\\end{longtable}', file=fsum)
-    fsum.close()
+        ve_status[t].append(jst[s[0]])
+        t += 1
+    ve_status.append(['-1', len(veduplicated), "Duplicated"])
+
+    # get VE real coverage
+    coverNames = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
+                  'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
+    vecoverage = [0,0,0,0]
+    vestatus = dict()
+    for ve in verification_elements.keys():
+        # print(verification_elements[ve]['jkey'], ", ", end='')
+        ntc = len(verification_elements[ve]['tcs'])
+        if ntc == 0:
+            vecoverage[0] += 1
+            vestatus[ve] = Config.coverage[0]["name"]
+        else:
+            # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
+            tcs = [0,0,0,0]
+            for tc in verification_elements[ve]['tcs']:
+                if not tcases[tc]['lastR']:  # not executed
+                    tcs[0] += 1
+                    # print("NotRun, ", end="")
+                else:
+                    if not tcases[tc]['lastR']['status']:
+                        tcs[0] += 1
+                        # print("NoStatus, ", end="")
+                    elif tcases[tc]['lastR']['status'] == "notexec":
+                        tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    elif tcases[tc]['lastR']['status'] == "passed":
+                        tcs[3] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    elif tcases[tc]['lastR']['status'] == "failed":
+                        tcs[2] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    elif tcases[tc]['lastR']['status'] == "inprogress":
+                        tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    elif tcases[tc]['lastR']['status'] == "cndpass":
+                        tcs[1] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    elif tcases[tc]['lastR']['status'] == "blocked":
+                        tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+                    else:
+                        print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
+                        tcs[0] += 1
+                        # print(tcases[tc]['lastR']['status'], ", ", end="")
+            if tcs[2] > 0:  # some test cases are failing
+                vecoverage[2] += 1
+                vestatus[ve] = Config.coverage[2]["name"]
+            elif tcs[3] > 0:  # some test cases are passing
+                vecoverage[3] += 1
+                vestatus[ve] = Config.coverage[3]["name"]
+            else:  # all other conditions
+                vecoverage[1] += 1;
+                vestatus[ve] = Config.coverage[1]["name"];
+        # print(vestatus[ve])
+
+    # get requirements status
+    reqcoverage = [0,0,0,0]
+    for req in reqs:
+        # print(req, ', ', end='')
+        # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
+        # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
+        nve = len(reqs[req]["VEs"])
+        reqves = [0,0,0,0]
+        for ve in reqs[req]['VEs']:
+            # print(vestatus[ve], ', ', end='')
+            if vestatus[ve] == Config.coverage[0]["name"]:
+                reqves[0] += 1;  # no TCs
+            elif vestatus[ve] == Config.coverage[1]["name"]:
+                reqves[1] += 1;  # no TCs executed
+            elif vestatus[ve] == Config.coverage[2]["name"]:
+                reqves[2] += 1;  # Failed TCs
+            elif vestatus[ve] == Config.coverage[3]["name"]:
+                reqves[3] += 1;  # Passed TCs
+            else:
+                reqves[0] += 1;  # if not in the above
+        if reqves[2] > 0:  # with Failures
+            reqcoverage[2] += 1
+            # print("REQ Failed")
+        elif reqves[3] > 0:  # with Passed
+            reqcoverage[3] += 1
+            # print("REQ Passed")
+        elif reqves[1] > 0:  # no test cases have been executed
+            reqcoverage[1] += 1
+            # print("REQ NoExecutions")
+        else:  # all other cases
+            reqcoverage[0] += 1
+            # print("REQ NoCoverage")
+
+
+    size = [ len(reqs), len(verification_elements), len(tcases)]
+
+    return [mtcres, mtcstatus, vecoverage, ve_status, reqcoverage, size]
 
 
 #
-#  print VCD
+#  check that the requirements acronyms have been added to acronyms.tex
 #
-def print_vcd(verification_elements, reqs, comp):
-    global tcases
+def check_acronyms(reqs):
+    acronyms = []
     rtype = []
 
-    fname = comp.lower() + "_vcd.tex"
-    fout = open(fname, 'w')
-    print('\\section{VCD}\\label{sec:vcd}', file=fout)
-    print('\\afterpage{', file=fout)
-    print('{\\small', file=fout)
-    print('\\newlength{\\LTcapwidthold}', file=fout)
-    print('\\setlength{\\LTcapwidthold}{\\LTcapwidth}', file=fout)
-    print('\\setlength{\\LTcapwidth}{\\textheight}', file=fout)
-    print('\\begin{longtable}{lllll}', file=fout)
-    print("\\caption{", comp, "VCD Table.}", file=fout)
-    print('\\\\\n\\toprule', file=fout)
-    print('\\textbf{Requirement} & \\textbf{Verification Element} & \\textbf{Test Case} & ' +
-          '\\textbf{Last Run} & \\textbf{Test Status} \\\\\n', file=fout)
-    print('\\toprule\n\\endhead', file=fout)
-    bt = '\\begin{tabular}{@{}l@{}}'
-    nl = '\\\\'
-    njr = '\\vcdJiraRef{'
-    ndr = '\\vcdDocRef{'
-    ocb = '{'
-    ccb = '}'
-    et = '\\end{tabular}'
-    atm = '\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/'
-    scr = '{\\scriptsize '
-    r = 0
+    acro_file = open("acronyms.tex", 'r')
+    acrolines = acro_file.readlines()
+    for line in acrolines:
+        tmpacro = line.split(" ")
+        acronyms.append(tmpacro[0].strip())
+
     for req in reqs.keys():
-        r = r + 1
         tmptype = req[:-5]
         if tmptype not in rtype:
             rtype.append(tmptype)
-        # print(r, req, reqs[req]['reqDoc'])
-        print(bt, f"{req} {nl} {ndr}{reqs[req]['reqDoc']}{ccb}", et + " &", file=fout)
-        #print(reqs[req])
-        nve = len(reqs[req]['VEs'])
-        v = 0
-        for ve in reqs[req]['VEs']:
-            v = v + 1
-            # print("    ", v, ve, verification_elements[ve]['jkey'])
-            if v != 1:
-                print(" & ", file=fout, end='')
-            print(bt, f"{ve} {nl} {njr}{verification_elements[ve]['jkey']}{ccb}", et + " &", file=fout)
-            ntc = len(verification_elements[ve]['tcs'])
-            if ntc == 0:
-                print(" && \\\\", file=fout)
-            else:
-                t = 0
-                for tc in verification_elements[ve]['tcs']:
-                    t = t + 1
-                    # print("        ", t, tc, verification_elements[ve]['tcs'][tc]['tspec'])
-                    if t != 1:
-                        print(" && ", file=fout, end='')
-                    print(bt, f"{atm}testCase/{tc}{ccb}{ocb}{tc}{ccb} {nl} " +
-                          f"{ndr}{verification_elements[ve]['tcs'][tc]['tspec']}{ccb}",
-                          et + " &", file=fout)
-                    # if verification_elements[ve]['tcs'][tc]['lastR']:
-                    if not tcases[tc]['lastR']:
-                        print(" & \\notexec{} \\\\", file=fout)
-                    else:
-                        print(bt, tcases[tc]['lastR']['exdate'], nl, file=fout, end='')
-                        tpl = tcases[tc]['lastR']['tplan']
-                        if tpl != "NA":
-                            print(f"{ndr}{tcases[tc]['lastR']['dmtr']}{ccb}" +
-                                  f" {scr}{atm}testPlan/{tpl}{ccb}{ocb}{tpl}{ccb} {ccb}",
-                                  et + " &", file=fout, end='')
-                        else:
-                            tcy = tcases[tc]['lastR']['tcycle']
-                            print(f"{scr}{atm}testCycle/{tcy}{ccb}{ocb}{tcy}{ccb} {ccb}", et + " &", file=fout, end='')
-                        print(f" \\{{result}} \\\\ ".format(result=tcases[tc]['lastR']['status']), file=fout)
-                    # else:
-                    #    print(" & \\notexec{} \\\\", file=fout)
-                    if t != ntc:
-                        print("\\cmidrule{3-5}", file=fout)
-            if v != nve:
-                print("\\cmidrule{2-5}", file=fout)
-        print("\\midrule", file=fout)
-    print('\\label{tab:dmvcd}', file=fout)
-    print('\\end{longtable}', file=fout)
-    print('}\n}', file=fout)
-    fout.close()
-
-    print("Check that following strings are defined in myacronyms.tex")
-    for rt in rtype:
-        print("   - ", rt)
+            if tmptype not in acronyms:
+              print("Missing acronyms", tmptype)
 
 
 #
@@ -519,7 +586,10 @@ def print_vcd(verification_elements, reqs, comp):
 def vcdsql(comp, usr, pwd):
     global jst
     global tcases
+    global veduplicated
+    veduplicated = dict()
     tcases = {}
+
 
     print(f"Looking for VEs in {comp} ...")
     jcon = {"usr": usr,
@@ -531,6 +601,10 @@ def vcdsql(comp, usr, pwd):
     print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
           format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
 
-    print_vcd(ves, reqs, comp)
+    # print_vcd(ves, reqs, comp)
 
-    summary(jcon, ves, reqs, comp)
+    # summary(jcon, ves, reqs, comp)
+
+    check_acronyms(reqs)
+
+    return [ ves, reqs, veduplicated, tcases]
