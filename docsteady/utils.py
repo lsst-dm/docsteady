@@ -90,7 +90,7 @@ class MarkdownableHtmlPandocField(fields.String):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
             value = download_and_rewrite_images(value)
-            soup = BeautifulSoup(value, "html.parser")
+            soup = BeautifulSoup(value, "html.parser", from_encoding="utf-8")
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
             # matches `[markdown]: #` at the top of description
@@ -141,7 +141,7 @@ def test_case_for_key(test_case_key):
 
 
 def download_and_rewrite_images(value):
-    soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
+    soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.findAll("img"):
         img_url = urljoin(rest_location, img["src"])
@@ -167,7 +167,7 @@ def rewrite_strong_to_subsection(content, extractable):
     """
     # The default is to preserve order,
     preserve_order = True
-    soup = BeautifulSoup(content, "html.parser")
+    soup = BeautifulSoup(content, "html.parser", from_encoding="utf-8")
     element_neighbor_text = ""
     seen_name = None
     shelved = []
