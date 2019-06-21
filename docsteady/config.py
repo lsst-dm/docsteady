@@ -21,6 +21,8 @@
 import os
 import re
 
+import pandoc
+
 
 class Config:
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
@@ -46,7 +48,7 @@ class Config:
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
-    DOC = None
+    DOC = pandoc.Document()
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
     CACHED_USERS = {}
@@ -65,6 +67,7 @@ class Config:
     DOCUSHARE_DOC_PATTERN = re.compile(doc_pattern_text)
     milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
+    DOWNLOAD_IMAGES = True
 
     coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "name": "No TCs", "label": "sec:notcs"},

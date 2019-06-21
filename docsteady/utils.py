@@ -23,6 +23,8 @@ Code for Test Specification Model Generation
 """
 import re
 from collections import OrderedDict
+import os
+from os.path import dirname, exists
 
 import arrow
 from bs4 import BeautifulSoup
@@ -30,9 +32,11 @@ from marshmallow import fields
 
 from .config import Config
 import requests
+from urllib.parse import *
 
 jhost = "140.252.32.64"
 jdb = "jira"
+
 
 class HtmlPandocField(fields.String):
     """
@@ -41,6 +45,7 @@ class HtmlPandocField(fields.String):
     """
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            value = download_and_rewrite_images(value)
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
             if Config.TEMPLATE_LANGUAGE == 'latex':
@@ -60,6 +65,7 @@ class SubsectionableHtmlPandocField(fields.String):
 
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            value = download_and_rewrite_images(value)
             value = rewrite_strong_to_subsection(value, self.extractable)
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
@@ -83,6 +89,7 @@ class MarkdownableHtmlPandocField(fields.String):
     def _deserialize(self, value, attr, data):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
+            value = download_and_rewrite_images(value)
             soup = BeautifulSoup(value, "html.parser")
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
@@ -131,6 +138,23 @@ def test_case_for_key(test_case_key):
         Config.CACHED_TESTCASES[test_case_key] = testcase
         cached_testcase_resp = testcase
     return cached_testcase_resp
+
+
+def download_and_rewrite_images(value):
+    soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
+    rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
+    for img in soup.findAll("img"):
+        img_url = urljoin(rest_location, img["src"])
+        fs_path = urlparse(img_url).path[1:]
+        if Config.DOWNLOAD_IMAGES:
+            os.makedirs(dirname(fs_path), exist_ok=True)
+            if not exists(fs_path):
+                resp = requests.get(img_url, auth=Config.AUTH)
+                resp.raise_for_status()
+                with open(fs_path, "w+b") as img_f:
+                    img_f.write(resp.content)
+        img["src"] = fs_path
+    return str(soup)
 
 
 def rewrite_strong_to_subsection(content, extractable):
@@ -203,12 +227,11 @@ def get_folders(target_folder):
             target_folders.append(folder)
     return target_folders
 
+
 def get_tspec(folder):
     sf = folder.split('/')
     for d in sf:
         sd = d.split('|')
         if len(sd) == 2:
-            return(sd[1])
-    return("")
-
-
+            return sd[1]
+    return ""
