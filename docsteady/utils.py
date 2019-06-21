@@ -162,6 +162,7 @@ def download_and_rewrite_images(value):
                     img_f.write(resp.content)
                 if extension:
                     os.symlink(fs_path, f"{fs_path}.{extension}")
+                    fs_path = f"{fs_path}.{extension}"
         img["src"] = fs_path
     return str(soup)
 
