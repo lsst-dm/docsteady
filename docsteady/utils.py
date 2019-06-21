@@ -151,8 +151,17 @@ def download_and_rewrite_images(value):
             if not exists(fs_path):
                 resp = requests.get(img_url, auth=Config.AUTH)
                 resp.raise_for_status()
+                extension = None
+                if "png" in resp.headers["content-type"]:
+                    extension = "png"
+                elif "jpeg" in resp.headers["content-type"]:
+                    extension = "jpg"
+                elif "gif" in resp.headers["content-type"]:
+                    extension = "gif"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
+                if extension:
+                    os.symlink(fs_path, f"{fs_path}.{extension}")
         img["src"] = fs_path
     return str(soup)
 
