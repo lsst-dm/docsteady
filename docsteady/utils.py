@@ -148,6 +148,11 @@ def download_and_rewrite_images(value):
         fs_path = urlparse(img_url).path[1:]
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
+            existing_files = os.listdir(dirname(fs_path))
+            # Look for a file in this path, we don't know what the extension is
+            for existing_file in existing_files:
+                if fs_path in existing_file:
+                    fs_path = existing_file
             if not exists(fs_path):
                 resp = requests.get(img_url, auth=Config.AUTH)
                 resp.raise_for_status()
@@ -158,11 +163,9 @@ def download_and_rewrite_images(value):
                     extension = "jpg"
                 elif "gif" in resp.headers["content-type"]:
                     extension = "gif"
+                fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
-                if extension:
-                    os.symlink(fs_path, f"{fs_path}.{extension}")
-                    fs_path = f"{fs_path}.{extension}"
         img["src"] = fs_path
     return str(soup)
 
