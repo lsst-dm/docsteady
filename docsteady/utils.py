@@ -166,6 +166,7 @@ def download_and_rewrite_images(value):
                 fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
+        img["width"] = "90%"
         img["src"] = fs_path
     return str(soup)
 
