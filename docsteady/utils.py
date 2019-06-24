@@ -23,6 +23,8 @@ Code for Test Specification Model Generation
 """
 import re
 from collections import OrderedDict
+import os
+from os.path import dirname, exists
 
 import arrow
 from bs4 import BeautifulSoup
@@ -30,9 +32,11 @@ from marshmallow import fields
 
 from .config import Config
 import requests
+from urllib.parse import *
 
 jhost = "140.252.32.64"
 jdb = "jira"
+
 
 class HtmlPandocField(fields.String):
     """
@@ -41,6 +45,7 @@ class HtmlPandocField(fields.String):
     """
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            value = download_and_rewrite_images(value)
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
             if Config.TEMPLATE_LANGUAGE == 'latex':
@@ -60,6 +65,7 @@ class SubsectionableHtmlPandocField(fields.String):
 
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
+            value = download_and_rewrite_images(value)
             value = rewrite_strong_to_subsection(value, self.extractable)
             Config.DOC.html = value.encode("utf-8")
             value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
@@ -83,7 +89,8 @@ class MarkdownableHtmlPandocField(fields.String):
     def _deserialize(self, value, attr, data):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
-            soup = BeautifulSoup(value, "html.parser")
+            value = download_and_rewrite_images(value)
+            soup = BeautifulSoup(value, "html.parser", from_encoding="utf-8")
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
             # matches `[markdown]: #` at the top of description
@@ -133,6 +140,37 @@ def test_case_for_key(test_case_key):
     return cached_testcase_resp
 
 
+def download_and_rewrite_images(value):
+    soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
+    rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
+    for img in soup.findAll("img"):
+        img_url = urljoin(rest_location, img["src"])
+        fs_path = urlparse(img_url).path[1:]
+        if Config.DOWNLOAD_IMAGES:
+            os.makedirs(dirname(fs_path), exist_ok=True)
+            existing_files = os.listdir(dirname(fs_path))
+            # Look for a file in this path, we don't know what the extension is
+            for existing_file in existing_files:
+                if fs_path in existing_file:
+                    fs_path = existing_file
+            if not exists(fs_path):
+                resp = requests.get(img_url, auth=Config.AUTH)
+                resp.raise_for_status()
+                extension = None
+                if "png" in resp.headers["content-type"]:
+                    extension = "png"
+                elif "jpeg" in resp.headers["content-type"]:
+                    extension = "jpg"
+                elif "gif" in resp.headers["content-type"]:
+                    extension = "gif"
+                fs_path = f"{fs_path}.{extension}"
+                with open(fs_path, "w+b") as img_f:
+                    img_f.write(resp.content)
+        img["width"] = "90%"
+        img["src"] = fs_path
+    return str(soup)
+
+
 def rewrite_strong_to_subsection(content, extractable):
     """
     Extract specific "strong" elements and rewrite them to headings so
@@ -143,7 +181,7 @@ def rewrite_strong_to_subsection(content, extractable):
     """
     # The default is to preserve order,
     preserve_order = True
-    soup = BeautifulSoup(content, "html.parser")
+    soup = BeautifulSoup(content, "html.parser", from_encoding="utf-8")
     element_neighbor_text = ""
     seen_name = None
     shelved = []
@@ -203,12 +241,11 @@ def get_folders(target_folder):
             target_folders.append(folder)
     return target_folders
 
+
 def get_tspec(folder):
     sf = folder.split('/')
     for d in sf:
         sd = d.split('|')
         if len(sd) == 2:
-            return(sd[1])
-    return("")
-
-
+            return sd[1]
+    return ""

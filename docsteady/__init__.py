@@ -59,7 +59,6 @@ def cli(namespace, template_format, load_from):
     """
     Config.MODE_PREFIX = f"{namespace.lower()}-" if namespace else ""
     Config.TEMPLATE_LANGUAGE = template_format
-    Config.DOC = pandoc.Document()
     Config.TEMPLATE_DIRECTORY = load_from
 
 
