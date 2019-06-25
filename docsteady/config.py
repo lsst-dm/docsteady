@@ -68,6 +68,8 @@ class Config:
     milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
     DOWNLOAD_IMAGES = True
+    MAX_IMG_PIXELS = 250
+    MIN_IMG_PIXELS = 32
 
     coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "name": "No TCs", "label": "sec:notcs"},
