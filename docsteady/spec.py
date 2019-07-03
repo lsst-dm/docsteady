@@ -70,7 +70,7 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
-    name = fields.String(required=True)
+    name = HtmlPandocField(required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner", required=True)
     jira_url = fields.String()
