@@ -170,16 +170,7 @@ def download_and_rewrite_images(value):
         im = Image.open(fs_path)
         width, height = im.size
         if width > Config.MAX_IMG_PIXELS:
-            pixels_per_cm = width / 3
-            img["width"] = "3cm"
-            img["height"] = f"{height / pixels_per_cm}cm"
-        elif width < Config.MIN_IMG_PIXELS:
-            pixels_per_cm = width / Config.MAX_IMG_PIXELS
-            img["width"] = "1cm"
-        else:
-            pixels_per_cm = width / Config.MAX_IMG_PIXELS
-            img["width"] = f"{width / pixels_per_cm}cm"
-        img["height"] = f"{height / pixels_per_cm}cm"
+            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS}")
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
