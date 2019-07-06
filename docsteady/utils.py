@@ -146,7 +146,9 @@ def download_and_rewrite_images(value):
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
         img_url = urljoin(rest_location, img["src"])
-        fs_path = urlparse(img_url).path[1:]
+        url_path = urlparse(img_url).path[1:]
+        img_name = os.path.basename(url_path)
+        fs_path = "jira_imgs/" + img_name
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
             existing_files = os.listdir(dirname(fs_path))
@@ -170,7 +172,8 @@ def download_and_rewrite_images(value):
         im = Image.open(fs_path)
         width, height = im.size
         if width > Config.MAX_IMG_PIXELS:
-            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS}")
+            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS} pixels.")
+            img["width"] = f"{Config.MAX_IMG_PIXELS}px"
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""

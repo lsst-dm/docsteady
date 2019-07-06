@@ -163,7 +163,8 @@ class TestCase(Schema):
         for teststep in teststeps:
             if teststep.get("test_case_key"):
                 test_case_for_key(teststep["test_case_key"])
-        return teststeps
+        teststeps_sorted = sorted(teststeps, key=lambda step: step["index"])
+        return teststeps_sorted
 
 
 def build_spec_model(folder):
@@ -189,6 +190,7 @@ def build_spec_model(folder):
     testcases_resp = resp.json()
     testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
     testcases = []
+    requirements = {}
     for testcase_resp in testcases_resp:
         testcase, errors = TestCase().load(testcase_resp)
         if errors:
@@ -196,8 +198,11 @@ def build_spec_model(folder):
         if testcase["key"] not in Config.CACHED_TESTCASES:
             Config.CACHED_TESTCASES["key"] = testcase
         testcases.append(testcase)
+        for req in testcase['requirements']:
+            if req['key'] not in requirements.keys():
+                requirements[req['key']] = req
 
     if max_tests == len(testcases):
         print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
-    return testcases
+    return testcases, requirements
