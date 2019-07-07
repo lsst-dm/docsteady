@@ -32,7 +32,10 @@ Test Id & Test Name\tabularnewline
 
 \newpage
 
-\section{Test Cases}
+\section{Active Test Cases}
+
+This section documents all active test cases.
+
 {% for testcase in testcases %}
 
 \subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
@@ -174,4 +177,99 @@ Version & Status & Priority & Verification Type & Owner
 {% endif %}
 {% endfor %}
 
+\newpage
+\section{Library Test Cases}
+
+This section includes all test cases that are used as library.
+
+{% if libtestcases|length > 0 %}
+
+{% for testcase in libtestcases %}
+
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+  \textit{No library test cases found.}
+{% endif %}
+
+
+
+
+\newpage
+\section{Deprecated Test Cases}
+
+This section includes all test cases that have been marked as deprecated.
+These test cases will never be executed again, but have been in the past.
+For this reason it is important to keep them in the baseline as a reference.
+
+{% if deprecated|length > 0 %}
+
+{% for testcase in deprecated %}
+
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Verification Elements}
+{% if testcase.requirements %}
+\begin{itemize}
+{% for item in testcase.requirements %}
+\item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
+{% endfor %}
+\end{itemize}
+{% else %}
+    None.
+{% endif %}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+  \textit{No deprecated test cases found.}
+{% endif %}
+
+\newpage
 \appendix

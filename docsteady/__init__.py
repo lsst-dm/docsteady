@@ -101,6 +101,8 @@ def generate_spec(format, username, password, folder, path):
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
+    for testcase in Config.CACHED_LIBTESTCASES.keys():
+        print(testcase)
 
 
     env = Environment(loader=ChoiceLoader([
@@ -122,7 +124,9 @@ def generate_spec(format, username, password, folder, path):
     metadata["folder"] = folder
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
-                           testcases=testcases,
+                           testcases=testcases['active'],
+                           deprecated=testcases['deprecated'],
+                           libtestcases=Config.CACHED_LIBTESTCASES.values(),
                            requirements_to_testcases=requirements_to_testcases,
                            requirements_map=requirements,
                            testcases_map=Config.CACHED_TESTCASES)

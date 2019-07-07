@@ -51,6 +51,7 @@ class Config:
     DOC = pandoc.Document()
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
+    CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
