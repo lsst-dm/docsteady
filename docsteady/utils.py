@@ -172,7 +172,11 @@ def download_and_rewrite_images(value):
         im = Image.open(fs_path)
         width, height = im.size
         if width > Config.MAX_IMG_PIXELS:
-            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS} pixels.")
+            warn = f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS} pixels."
+            print(warn)
+            warning_tag = soup.new_tag("b")
+            warning_tag.text = warn
+            img.insert_before(warning_tag)
             img["width"] = f"{Config.MAX_IMG_PIXELS}px"
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
