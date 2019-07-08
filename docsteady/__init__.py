@@ -101,10 +101,6 @@ def generate_spec(format, username, password, folder, path):
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
-    for testcase in Config.CACHED_LIBTESTCASES.keys():
-        print(testcase)
-
-
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
