@@ -32,7 +32,11 @@ Test Id & Test Name\tabularnewline
 
 \newpage
 
-\section{Test Cases}
+\section{Active Test Cases}
+
+This section documents all active test cases that have a status in the Jira/ATM system of Draft, Defined or Approved.
+
+
 {% for testcase in testcases %}
 
 \subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
@@ -174,4 +178,104 @@ Version & Status & Priority & Verification Type & Owner
 {% endif %}
 {% endfor %}
 
+\newpage
+\section{Reusable Test Cases}
+
+Test cases in this section are made up of commonly encountered steps that have been factored out into modular, reusable scripts.
+These test cases are meant solely for the building of actual tests used for verification, to be inserted in test scripts via the “Call to Test” functionality in Jira/ATM.
+They streamline the process of writing test scripts by providing pre-designed steps, while also ensuring homogeneity throughout the test suite.
+These reusable modules are not themselves verifying requirements.
+Also, these test cases shall not call other reusable test cases in their script.
+
+
+{% if libtestcases|length > 0 %}
+
+{% for testcase in libtestcases %}
+
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+  \textit{No library test cases found.}
+{% endif %}
+
+
+
+
+\newpage
+\section{Deprecated Test Cases}
+
+This section includes all test cases that have been marked as deprecated.
+These test cases will never be executed again, but have been in the past.
+For this reason it is important to keep them in the baseline as a reference.
+
+{% if deprecated|length > 0 %}
+
+{% for testcase in deprecated %}
+
+\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
+    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+
+\begin{longtable}[]{llllll}
+\toprule
+Version & Status & Priority & Verification Type & Owner
+\\\midrule
+{{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
+{{ testcase.verification_type }} & {{ testcase.owner }}
+\\\bottomrule
+\end{longtable}
+
+\subsubsection{Verification Elements}
+{% if testcase.requirements %}
+\begin{itemize}
+{% for item in testcase.requirements %}
+\item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
+{% endfor %}
+\end{itemize}
+{% else %}
+    None.
+{% endif %}
+
+\subsubsection{Test Items}
+{% if testcase.objective %}
+{{ testcase.objective }}
+{% endif %}
+
+{% if testcase.more_objectives %}
+{% for title, objective in testcase.more_objectives.items() %}
+\paragraph{ {{ title.replace("_", " ").title() }} }
+{{ objective }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+  \textit{No deprecated test cases found.}
+{% endif %}
+
+\newpage
 \appendix

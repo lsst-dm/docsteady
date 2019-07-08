@@ -210,8 +210,6 @@ def build_vcd_model(component):
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
-    print_vcd(velem, reqs, component)
-
 
 #
 # returns query result in a 2dim matrix 
@@ -263,9 +261,6 @@ def get_tc_results(jc, tc):
              "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
              "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 ")
     trdet = db_get(jc, query)
-    # print(">>>> ", tc)
-    # print(query)
-    # print(' - ', trdet)
     if len(trdet) != 0:
         results['status'] = runstatus(trdet[0][0])
         results['tplan'] = trdet[0][1]
@@ -277,7 +272,6 @@ def get_tc_results(jc, tc):
         results['dmtr'] = trdet[0][4]
     else:
         results = None
-    # print("    -    ", tc, R)
     return results
 
 
@@ -340,8 +334,8 @@ def get_ves(comp, jc):
             tmpve['status'] = jst[ve[3]]
             # get VEs that may verify this VE, instead of test cases
             query = ("select ji.issuenum, ji.summary from jiraissue ji "
-                     "inner join issuelink il on il.source = ji.id " 
-                     "where destination = " + str(ve[1]) +" and linktype = 10700 and ji.issuetype = 10602")
+                     "inner join issuelink il on il.source = ji.id "
+                     "where destination = " + str(ve[1]) + " and linktype = 10700 and ji.issuetype = 10602")
             raw_vby = db_get(jc, query)
             if len(raw_vby) > 0:
                 vbytmp = []
@@ -376,6 +370,7 @@ def get_ves(comp, jc):
                 veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
             else:
                 velements[ves[0]] = tmpve
+
     return velements, reqs
 
 
@@ -416,13 +411,13 @@ def summary(dictionary, comp, user, passwd):
     # get TC status and result
     # metric testcases results
     # [ 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked', 'Unknown' ]
-    mtcres = [0,0,0,0,0,0,0]
+    mtcres = [0, 0, 0, 0, 0, 0, 0]
     # metric testcases status:
-    mtcstatus = {"count": [0,0,0,0],
+    mtcstatus = {"count": [0, 0, 0, 0],
                  "name": ['Draft', 'Defined', 'Approved', 'Deprecated'],
-                 "id": [0,1,2,3]}
+                 "id": [0, 1, 2, 3]}
     for tc in tcases.keys():
-        if not tcases[tc]['lastR']: #not executed
+        if not tcases[tc]['lastR']:  # not executed
             mtcres[0] += 1
         else:
             if not tcases[tc]['lastR']['status']:
@@ -466,49 +461,69 @@ def summary(dictionary, comp, user, passwd):
     ve_status.append(['-1', len(veduplicated), "Duplicated"])
 
     # get VE real coverage
-    coverNames = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
-                  'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
-    vecoverage = [0,0,0,0]
+    cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
+                   'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
+    vecoverage = [0, 0, 0, 0]
     vestatus = dict()
     for ve in verification_elements.keys():
-        # print(verification_elements[ve]['jkey'], ", ", end='')
+        tcs = [0, 0, 0, 0]
+        if 'verifiedby' in verification_elements[ve].keys():
+            for sve in verification_elements[ve]['verifiedby']:
+                ntc = len(verification_elements[sve]['tcs'])
+                if ntc == 0:
+                    vecoverage[0] += 1
+                    vestatus[ve] = Config.coverage[0]["name"]
+                else:
+                    # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
+                    for tc in verification_elements[sve]['tcs']:
+                        if not tcases[tc]['lastR']:  # not executed
+                            tcs[0] += 1
+                        else:
+                            if not tcases[tc]['lastR']['status']:
+                                tcs[0] += 1
+                            elif tcases[tc]['lastR']['status'] == "notexec":
+                                tcs[0] += 1
+                            elif tcases[tc]['lastR']['status'] == "passed":
+                                tcs[3] += 1
+                            elif tcases[tc]['lastR']['status'] == "failed":
+                                tcs[2] += 1
+                            elif tcases[tc]['lastR']['status'] == "inprogress":
+                                tcs[0] += 1
+                            elif tcases[tc]['lastR']['status'] == "cndpass":
+                                tcs[1] += 1
+                            elif tcases[tc]['lastR']['status'] == "blocked":
+                                tcs[0] += 1
+                            else:
+                                print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
+                                tcs[0] += 1
+
         ntc = len(verification_elements[ve]['tcs'])
         if ntc == 0:
             vecoverage[0] += 1
             vestatus[ve] = Config.coverage[0]["name"]
         else:
             # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
-            tcs = [0,0,0,0]
             for tc in verification_elements[ve]['tcs']:
                 if not tcases[tc]['lastR']:  # not executed
                     tcs[0] += 1
-                    # print("NotRun, ", end="")
                 else:
                     if not tcases[tc]['lastR']['status']:
                         tcs[0] += 1
-                        # print("NoStatus, ", end="")
                     elif tcases[tc]['lastR']['status'] == "notexec":
                         tcs[0] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "passed":
                         tcs[3] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "failed":
                         tcs[2] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "inprogress":
                         tcs[0] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "cndpass":
                         tcs[1] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     elif tcases[tc]['lastR']['status'] == "blocked":
                         tcs[0] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
                     else:
                         print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                         tcs[0] += 1
-                        # print(tcases[tc]['lastR']['status'], ", ", end="")
             if tcs[2] > 0:  # some test cases are failing
                 vecoverage[2] += 1
                 vestatus[ve] = Config.coverage[2]["name"]
@@ -516,45 +531,38 @@ def summary(dictionary, comp, user, passwd):
                 vecoverage[3] += 1
                 vestatus[ve] = Config.coverage[3]["name"]
             else:  # all other conditions
-                vecoverage[1] += 1;
-                vestatus[ve] = Config.coverage[1]["name"];
-        # print(vestatus[ve])
+                vecoverage[1] += 1
+                vestatus[ve] = Config.coverage[1]["name"]
 
     # get requirements status
-    reqcoverage = [0,0,0,0]
+    reqcoverage = [0, 0, 0, 0]
     for req in reqs:
-        # print(req, ', ', end='')
         # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
         # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
         nve = len(reqs[req]["VEs"])
-        reqves = [0,0,0,0]
+        reqves = [0, 0, 0, 0]
         for ve in reqs[req]['VEs']:
             # print(vestatus[ve], ', ', end='')
             if vestatus[ve] == Config.coverage[0]["name"]:
-                reqves[0] += 1;  # no TCs
+                reqves[0] += 1  # no TCs
             elif vestatus[ve] == Config.coverage[1]["name"]:
-                reqves[1] += 1;  # no TCs executed
+                reqves[1] += 1  # no TCs executed
             elif vestatus[ve] == Config.coverage[2]["name"]:
-                reqves[2] += 1;  # Failed TCs
+                reqves[2] += 1  # Failed TCs
             elif vestatus[ve] == Config.coverage[3]["name"]:
-                reqves[3] += 1;  # Passed TCs
+                reqves[3] += 1  # Passed TCs
             else:
-                reqves[0] += 1;  # if not in the above
+                reqves[0] += 1  # if not in the above
         if reqves[2] > 0:  # with Failures
             reqcoverage[2] += 1
-            # print("REQ Failed")
         elif reqves[3] > 0:  # with Passed
             reqcoverage[3] += 1
-            # print("REQ Passed")
         elif reqves[1] > 0:  # no test cases have been executed
             reqcoverage[1] += 1
-            # print("REQ NoExecutions")
         else:  # all other cases
             reqcoverage[0] += 1
-            # print("REQ NoCoverage")
 
-
-    size = [ len(reqs), len(verification_elements), len(tcases)]
+    size = [len(reqs), len(verification_elements), len(tcases)]
 
     return [mtcres, mtcstatus, vecoverage, ve_status, reqcoverage, size]
 
@@ -577,7 +585,7 @@ def check_acronyms(reqs):
         if tmptype not in rtype:
             rtype.append(tmptype)
             if tmptype not in acronyms:
-              print("Missing acronyms", tmptype)
+                print("Missing acronyms", tmptype)
 
 
 #
@@ -590,7 +598,6 @@ def vcdsql(comp, usr, pwd):
     veduplicated = dict()
     tcases = {}
 
-
     print(f"Looking for VEs in {comp} ...")
     jcon = {"usr": usr,
             "pwd": pwd}
@@ -601,10 +608,6 @@ def vcdsql(comp, usr, pwd):
     print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
           format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
 
-    # print_vcd(ves, reqs, comp)
-
-    # summary(jcon, ves, reqs, comp)
-
     check_acronyms(reqs)
 
-    return [ ves, reqs, veduplicated, tcases]
+    return [ves, reqs, veduplicated, tcases]
