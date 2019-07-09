@@ -70,7 +70,7 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
-    name = fields.String(required=True)
+    name = HtmlPandocField(required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner", required=True)
     jira_url = fields.String()
@@ -162,8 +162,10 @@ class TestCase(Schema):
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
-                test_case_for_key(teststep["test_case_key"])
-        return teststeps
+                step_testcase = test_case_for_key(teststep["test_case_key"])
+                Config.CACHED_LIBTESTCASES[step_testcase['key']] = step_testcase
+        teststeps_sorted = sorted(teststeps, key=lambda step: step["index"])
+        return teststeps_sorted
 
 
 def build_spec_model(folder):
@@ -189,15 +191,27 @@ def build_spec_model(folder):
     testcases_resp = resp.json()
     testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
     testcases = []
+    deprecated = []
+    requirements = {}
     for testcase_resp in testcases_resp:
         testcase, errors = TestCase().load(testcase_resp)
         if errors:
             raise Exception("Unable to process errors: " + str(errors))
         if testcase["key"] not in Config.CACHED_TESTCASES:
             Config.CACHED_TESTCASES["key"] = testcase
-        testcases.append(testcase)
+        if testcase['status'] == 'Deprecated':
+            deprecated.append(testcase)
+        else:
+            testcases.append(testcase)
+        for req in testcase['requirements']:
+            if req['key'] not in requirements.keys():
+                requirements[req['key']] = req
 
     if max_tests == len(testcases):
         print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
-    return testcases
+    alltestcases = {}
+    alltestcases["active"] = testcases
+    alltestcases['deprecated'] = deprecated
+
+    return alltestcases, requirements

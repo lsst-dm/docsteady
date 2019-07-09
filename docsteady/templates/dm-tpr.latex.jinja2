@@ -156,12 +156,15 @@ The following personnel are involved in this test activity:
 \begin{longtable}{p{0.12\textwidth}p{0.2\textwidth}p{0.56\textwidth}p{0.12\textwidth}}
 \toprule
 {% for cycle in testcycles %}
+
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
+
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
-  {% for test_result in testresults_map[cycle.key] %}
-    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
-    & {{ test_result['status'] }} & {{ test_result['comment'] }} &
-    {% for issue_key in test_result['result_issue_keys'] %}
+
+  {% for test_item in testcycles_map[cycle.key].test_items %}
+    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
+    & {{ test_item['status'] }} & {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }} &
+    {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
       \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
     {% endfor %}
     \\\hline
@@ -221,31 +224,30 @@ Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/
 
   \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
-  {% for test_result in testresults_map[cycle.key] %}
+  {% for test_item in testcycles_map[cycle.key].test_items %}
 
-    \paragraph{Test Case {{ test_result['test_case_key'] }} }\mbox{}\\
+    \paragraph{Test Case {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
 
-Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}}{\textit{ {{ test_result['test_case_key'] }} } }
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
 test case in Jira.
 
-    {{  testcases_map[test_result['test_case_key']]['objective'] }}
+    {{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
 
-    {\bf Preconditions}:\\
-    {{ testcases_map[test_result['test_case_key']]['precondition'] }}
+    \textbf{ Preconditions}:\\
+    {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-    Execution status: {\bf {{  test_result['status'] }} }
+    Execution status: {\bf {{  test_item['status'] }} }
 
-    Final comment:\\{{ test_result['comment'] }}
+    Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
 
-    {% if test_result['issues'] %}
-      Issues found during the execution of {{ test_result['test_case_key'] }} test case:
+    {% if testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
+      Issues found during the execution of {{ test_item['test_case_key'] }} test case:
 
       \begin{itemize}
-      {% for issue in test_result['issues'] %}
+      {% for issue in testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
         \item {{ issue['id'] }}: {{ issue['summary'] }}
       {% endfor %}
       \end{itemize}
-
     {% endif %}
 
     Detailed step results:
@@ -253,7 +255,7 @@ test case in Jira.
     \begin{longtable}{p{1cm}p{2cm}p{13cm}}
     \hline
     {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
-    {% for script_result in test_result['script_results'] %}
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
       {{ loop.index }} & Description &
 
       \begin{minipage}[t]{13cm}{\footnotesize

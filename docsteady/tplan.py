@@ -134,8 +134,10 @@ def build_tpr_model(tplan_id):
 
         resp = requests.get(Config.TESTRESULTS_URL.format(testrun=cycle_key), auth=Config.AUTH)
         resp.raise_for_status()
-        testresult, errors = TestResult().load(resp.json(), many=True)
-        test_results_map[cycle_key] = testresult
+        testresults, errors = TestResult().load(resp.json(), many=True)
+        test_results_map[cycle_key] = {}
+        for result in testresults:
+            test_results_map[cycle_key][result['test_case_key']] = result
 
         # Get all the test cases from the test items
         for test_item in test_cycle['test_items']:

@@ -31,6 +31,7 @@ from bs4 import BeautifulSoup
 from marshmallow import fields
 
 from .config import Config
+from PIL import Image
 import requests
 from urllib.parse import *
 
@@ -143,9 +144,11 @@ def test_case_for_key(test_case_key):
 def download_and_rewrite_images(value):
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
-    for img in soup.findAll("img"):
+    for img in soup.find_all("img"):
         img_url = urljoin(rest_location, img["src"])
-        fs_path = urlparse(img_url).path[1:]
+        url_path = urlparse(img_url).path[1:]
+        img_name = os.path.basename(url_path)
+        fs_path = "jira_imgs/" + img_name
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
             existing_files = os.listdir(dirname(fs_path))
@@ -166,7 +169,14 @@ def download_and_rewrite_images(value):
                 fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
-        img["width"] = "90%"
+        im = Image.open(fs_path)
+        width, height = im.size
+        if width > Config.MAX_IMG_PIXELS:
+            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS} pixels.")
+            img["width"] = f"{Config.MAX_IMG_PIXELS}px"
+        if img.previous_element.name != "br":
+            img.insert_before(soup.new_tag("br"))
+        img["style"] = ""
         img["src"] = fs_path
     return str(soup)
 

@@ -89,7 +89,7 @@ def generate_spec(format, username, password, folder, path):
 
     # Build model
     try:
-        testcases = build_spec_model(folder)
+        testcases, requirements = build_spec_model(folder)
     except Exception as e:
         print("Error in building model")
         print(e)
@@ -120,9 +120,11 @@ def generate_spec(format, username, password, folder, path):
     metadata["folder"] = folder
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
-                           testcases=testcases,
+                           testcases=testcases['active'],
+                           deprecated=testcases['deprecated'],
+                           libtestcases=Config.CACHED_LIBTESTCASES.values(),
                            requirements_to_testcases=requirements_to_testcases,
-                           requirements_map=Config.CACHED_REQUIREMENTS,
+                           requirements_map=requirements,
                            testcases_map=Config.CACHED_TESTCASES)
 
     print(_as_output_format(text), file=file)
@@ -138,7 +140,7 @@ def generate_spec(format, username, password, folder, path):
         metadata=metadata,
         testcases=testcases,
         requirements_to_testcases=requirements_to_testcases,
-        requirements_map=Config.CACHED_REQUIREMENTS,
+        requirements_map=requirements,
         testcases_map=Config.CACHED_TESTCASES)
     print(_as_output_format(appendix_text), file=appendix_file)
 

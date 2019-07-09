@@ -10,6 +10,7 @@ requires = [
     'marshmallow<3',
     'setuptools_scm',
     'pymysql',
+    'pillow',
 ]
 
 doc_requires = [

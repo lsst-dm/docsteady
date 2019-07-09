@@ -51,6 +51,7 @@ class Config:
     DOC = pandoc.Document()
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
+    CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
@@ -68,6 +69,8 @@ class Config:
     milestone_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+-\d+)([\s\.])"
     MILESTONE_PATTERN = re.compile(milestone_pattern_text)
     DOWNLOAD_IMAGES = True
+    MAX_IMG_PIXELS = 450
+    MIN_IMG_PIXELS = 32
 
     coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "name": "No TCs", "label": "sec:notcs"},
