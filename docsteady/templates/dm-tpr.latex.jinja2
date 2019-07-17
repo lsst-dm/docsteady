@@ -145,7 +145,7 @@ The following personnel are involved in this test activity:
 \item Additional Test Personnel involved:
   \begin{itemize}
   {% for testcase in testcases_map %}
-    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ testcase }}{{ '}' }}{{ '{' }}{{ testcase }}{{ '}' }}: {{ testcases_map[testcase]['custom_fields']['Test Personnel'] }}
+    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ testcase }}{{ '}' }}{{ '{' }}{{ testcase }}{{ '}' }}: {{ testcases_map[testcase].test_personnel }}
   {% endfor %}
   \end{itemize}
 \end{itemize}
