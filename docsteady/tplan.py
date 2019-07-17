@@ -141,10 +141,11 @@ def build_tpr_model(tplan_id):
 
         # Get all the test cases from the test items
         for test_item in test_cycle['test_items']:
-            resp = requests.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']),
-                                auth=Config.AUTH)
-            testcase, errors = TestCase().load(resp.json())
-            test_cases_map[test_item['test_case_key']] = testcase
+            if test_item['test_case_key'] not in test_cases_map.keys():
+                resp = requests.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']),
+                                    auth=Config.AUTH)
+                testcase, errors = TestCase().load(resp.json())
+                test_cases_map[test_item['test_case_key']] = testcase
 
     tpr = {}
     tpr['tplan'] = testplan
