@@ -25,7 +25,7 @@
 
 \setDocCompact{true}
 
-\title{ {{ testplan.milestone_id }} - {{ testplan.milestone_name }} - Test Plan and Report}
+\title{ {{ testplan.milestone_id }} {{ testplan.milestone_name }} Test Plan and Report}
 \setDocRef{\lsstDocType-\lsstDocNum}
 \date{\vcsdate}
 \setDocUpstreamLocation{\url{https://github.com/lsst/lsst-texmf/examples}}
@@ -81,7 +81,7 @@ Section \ref{sect:personnel} describes the necessary roles and lists the individ
 Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
 Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
-The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['status'] }}.
+The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ testplan['status'] }} }.
 
 \subsection{References}
 \label{sect:references}
@@ -270,13 +270,16 @@ test case in Jira.
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
+      {% if 'example_code' in script_result.custom_field_values %}
       & Example Code &
 
       \begin{minipage}[t]{13cm}{\footnotesize
-      {{ testcases_map[test_case_key].test_script[{{ loop.index }}]['exmaple_code'] }}
+      {{ script_result.custom_field_values.example_code }}
+      {# {{ testcases_map[test_item['test_case_key']].test_script[{{ loop.index }}]['exmaple_code'] }} #}
       \vspace{\dp0}
       } \end{minipage} \\
       \\ \cdashline{2-3}
+      {% endif %}
 
       & Expected Result &
 

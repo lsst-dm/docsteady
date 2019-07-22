@@ -106,7 +106,7 @@ class TestPlan(Schema):
             data['milestone_name'] = data['name'].replace(sname[0], '').strip()
         else:
             data['milestone_id'] = data['key']
-            data['milestone_name'] = data['name'].capitalize()
+            data['milestone_name'] = data['name'].title()
 
         # Product
         data['product'] = data['folder'].split('/')[-1]

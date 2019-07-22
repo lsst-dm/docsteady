@@ -84,6 +84,20 @@ class ScriptResult(Schema):
     # result_issue_keys are actually jira issue keys (not HTTP links)
     result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
     result_issues = fields.Nested(Issue, many=True)
+    custom_field_values = fields.List(fields.Dict(), load_from="customFieldValues")
+
+    # Custom fields
+    example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data):
+        # Custom fields
+        custom_field_values = data.get("customFieldValues", list())
+        for custom_field in custom_field_values:
+            string_value = custom_field["stringValue"]
+            name = custom_field["customField"]["name"]
+            name = name.lower().replace(" ", "_")
+            data[name] = string_value
 
     @post_load
     def postprocess(self, data):
