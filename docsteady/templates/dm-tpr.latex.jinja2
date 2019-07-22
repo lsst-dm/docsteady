@@ -25,9 +25,9 @@
 
 \setDocCompact{true}
 
-\title[\milestoneId{}~Test Report]{\milestoneId{} (\milestoneName{})~Test Plan and Report}
+\title{ {{ testplan.milestone_id }} - {{ testplan.milestone_name }} - Test Plan and Report}
 \setDocRef{\lsstDocType-\lsstDocNum}
-\setDocDate{\vcsdate}
+\date{\vcsdate}
 \setDocUpstreamLocation{\url{https://github.com/lsst/lsst-texmf/examples}}
 \author{ {{ testplan['owner'] }} }
 
@@ -35,7 +35,7 @@
 
 
 \setDocAbstract{
-This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST level 2 milestone pertaining to the Data Management Subsystem.
+This is the test plan and report for {{ testplan.milestone_id }} ({{ testplan.milestone_name }}), an LSST level 2 milestone pertaining to the Data Management Subsystem.
 }
 
 
@@ -119,6 +119,7 @@ The current status of test plan {{ testplan['key'] }} in Jira is {{ testplan['st
   {{ testplan.pmcs_activity }}
 {% endif %}
 
+\newpage
 \section{Personnel}
 \label{sect:personnel}
 
@@ -269,7 +270,15 @@ test case in Jira.
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      & Expected Result & 
+      & Example Code &
+
+      \begin{minipage}[t]{13cm}{\footnotesize
+      {{ testcases_map[test_case_key].test_script[{{ loop.index }}]['exmaple_code'] }}
+      \vspace{\dp0}
+      } \end{minipage} \\
+      \\ \cdashline{2-3}
+
+      & Expected Result &
 
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ script_result['expected_result'] }}
