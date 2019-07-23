@@ -189,17 +189,6 @@ def generate_report(format, username, password, plan, path):
     metadata["tplan"] = tplan
     metadata["template"] = template.filename
 
-    for cycle in list(testcycles_map.values()):
-        for test_item in testcycles_map[cycle['key']]['test_items']:
-            print(" - ", test_item)
-            print(testcases_map[test_item['test_case_key']]['test_script'])
-            for step in testcases_map[test_item['test_case_key']]['test_script']:
-                print(step)
-            for script_result in testresults_map[cycle['key']][test_item['test_case_key']]['script_results']:
-                print(script_result)
-                for key in script_result:
-                    print(key, script_result[key])
-
     text = template.render(metadata=metadata,
                            testplan=testplan,
                            testcycles=list(testcycles_map.values()),  # For convenience (sorted)
