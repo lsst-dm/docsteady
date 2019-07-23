@@ -286,7 +286,7 @@ def get_tcs(jc, veid):
             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
             "inner join jiraissue ji on il.issue_id = ji.id "
             "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
-            "where ji.id = " + str(veid))
+            "where tc.archived = 0 and ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
     for tc in rawtc:
