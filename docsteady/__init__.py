@@ -260,9 +260,9 @@ def _metadata():
 
 @cli.command("generate-vcd")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
-@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
+@click.option('--username', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
-              envvar="JIRA_PASSWORD", help="Jira Password")
+              envvar="JIRA_VCD_PASSWORD", help="Jira Password")
 @click.option('--sql', required=False, default=False)
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
