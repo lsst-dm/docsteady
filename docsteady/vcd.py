@@ -286,7 +286,7 @@ def get_tcs(jc, veid):
             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
             "inner join jiraissue ji on il.issue_id = ji.id "
             "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
-            "where ji.id = " + str(veid))
+            "where tc.archived = 0 and ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
     for tc in rawtc:
@@ -461,19 +461,17 @@ def summary(dictionary, comp, user, passwd):
     ve_status.append(['-1', len(veduplicated), "Duplicated"])
 
     # get VE real coverage
-    cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
-                   'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
+    # for reference: cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
+    #               'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
     vecoverage = [0, 0, 0, 0]
     vestatus = dict()
     for ve in verification_elements.keys():
         tcs = [0, 0, 0, 0]
+        ntc = len(verification_elements[ve]['tcs'])
         if 'verifiedby' in verification_elements[ve].keys():
             for sve in verification_elements[ve]['verifiedby']:
-                ntc = len(verification_elements[sve]['tcs'])
-                if ntc == 0:
-                    vecoverage[0] += 1
-                    vestatus[ve] = Config.coverage[0]["name"]
-                else:
+                ntc = ntc + len(verification_elements[sve]['tcs'])
+                if len(verification_elements[sve]['tcs']) > 0:
                     # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
                     for tc in verification_elements[sve]['tcs']:
                         if not tcases[tc]['lastR']:  # not executed
@@ -496,38 +494,38 @@ def summary(dictionary, comp, user, passwd):
                             else:
                                 print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                                 tcs[0] += 1
-
-        ntc = len(verification_elements[ve]['tcs'])
         if ntc == 0:
             vecoverage[0] += 1
             vestatus[ve] = Config.coverage[0]["name"]
         else:
-            # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
-            for tc in verification_elements[ve]['tcs']:
-                if not tcases[tc]['lastR']:  # not executed
-                    tcs[0] += 1
-                else:
-                    if not tcases[tc]['lastR']['status']:
-                        tcs[0] += 1
-                    elif tcases[tc]['lastR']['status'] == "notexec":
-                        tcs[0] += 1
-                    elif tcases[tc]['lastR']['status'] == "passed":
-                        tcs[3] += 1
-                    elif tcases[tc]['lastR']['status'] == "failed":
-                        tcs[2] += 1
-                    elif tcases[tc]['lastR']['status'] == "inprogress":
-                        tcs[0] += 1
-                    elif tcases[tc]['lastR']['status'] == "cndpass":
-                        tcs[1] += 1
-                    elif tcases[tc]['lastR']['status'] == "blocked":
+            if len(verification_elements[ve]['tcs']) > 0:
+                # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
+                for tc in verification_elements[ve]['tcs']:
+                    if not tcases[tc]['lastR']:  # not executed
                         tcs[0] += 1
                     else:
-                        print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
-                        tcs[0] += 1
+                        # print("  - ", tcases[tc]['lastR'])
+                        if not tcases[tc]['lastR']['status']:
+                            tcs[0] += 1
+                        elif tcases[tc]['lastR']['status'] == "notexec":
+                            tcs[0] += 1
+                        elif tcases[tc]['lastR']['status'] == "passed":
+                            tcs[3] += 1
+                        elif tcases[tc]['lastR']['status'] == "failed":
+                            tcs[2] += 1
+                        elif tcases[tc]['lastR']['status'] == "inprogress":
+                            tcs[0] += 1
+                        elif tcases[tc]['lastR']['status'] == "cndpass":
+                            tcs[1] += 1
+                        elif tcases[tc]['lastR']['status'] == "blocked":
+                            tcs[0] += 1
+                        else:
+                            print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
+                            tcs[0] += 1
             if tcs[2] > 0:  # some test cases are failing
                 vecoverage[2] += 1
                 vestatus[ve] = Config.coverage[2]["name"]
-            elif tcs[3] > 0:  # some test cases are passing
+            elif tcs[3] > 0 or tcs[1] > 0:  # some test cases are passing or conditionally passing
                 vecoverage[3] += 1
                 vestatus[ve] = Config.coverage[3]["name"]
             else:  # all other conditions
@@ -539,10 +537,8 @@ def summary(dictionary, comp, user, passwd):
     for req in reqs:
         # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
         # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
-        nve = len(reqs[req]["VEs"])
         reqves = [0, 0, 0, 0]
         for ve in reqs[req]['VEs']:
-            # print(vestatus[ve], ', ', end='')
             if vestatus[ve] == Config.coverage[0]["name"]:
                 reqves[0] += 1  # no TCs
             elif vestatus[ve] == Config.coverage[1]["name"]:
