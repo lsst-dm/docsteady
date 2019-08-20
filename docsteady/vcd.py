@@ -247,6 +247,17 @@ def init_jira_status(jc):
         jst[st[0]] = st[1]
 
 
+#
+#  initialize jpr containing the priorities from Jira
+#
+def init_priority(jc):
+    global jpr
+    jpr = dict()
+    query = "select id, pname from priority"
+    rawst = db_get(jc, query)
+    for st in rawst:
+        jpr[st[0]] = st[1]
+
 # return last execution result
 #
 def get_tc_results(jc, tc):
@@ -317,7 +328,7 @@ def get_ves(comp, jc):
     velements = dict()
     reqs = dict()
     # get all VE for the provided component
-    query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus from jiraissue ji "
+    query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "'")
@@ -332,6 +343,11 @@ def get_ves(comp, jc):
             ves = ve[2].split(':')
             # print(v, ves[0])
             tmpve['status'] = jst[ve[3]]
+            if ve[4]:
+                tmpve['priority'] = jpr[ve[4]]
+            else:
+                tmpve['priority'] = "Not Specified"
+            # print(tmpve['priority'], ve[4])
             # get VEs that may verify this VE, instead of test cases
             query = ("select ji.issuenum, ji.summary from jiraissue ji "
                      "inner join issuelink il on il.source = ji.id "
@@ -344,19 +360,31 @@ def get_ves(comp, jc):
                     vbytmp.append(tsum[0])
                 tmpve['verifiedby'] = vbytmp
             # get the parent requirement
-            query = ("select cf.id, cf.cfname, cvf.textvalue from customfieldvalue cvf "
+            query = ("select cf.id, cf.cfname, cvf.textvalue, "
+                     "(select customvalue from customfieldoption where id = cvf.stringvalue) "
+                     " from customfieldvalue cvf "
                      "inner join customfield cf on cvf.customfield = cf.id "
                      "inner join jiraissue ji on cvf.issue = ji.id "
-                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703)")
+                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703, 15204)")
             raw_cfs = db_get(jc, query)
             for cf in raw_cfs:
-                tmpve[cf[1]] = cf[2]
+                if cf[2]:
+                    tmpve[cf[1]] = cf[2]
+                else:
+                    tmpve[cf[1]] = cf[3]
+                # print(f">{{p}}< {{v}}".format(p=cf[1],v=tmpve[cf[1]]))
             if tmpve['Requirement ID'] not in reqs.keys():
                 # print(tmpve['Requirement ID'])
                 rtmp = dict()
                 rtmp['reqDoc'] = tmpve['Requirement Specification']
                 rtmp['VEs'] = []
                 rtmp['VEs'].append(ves[0])
+                if "Requirement Priority" in tmpve.keys():
+                    rtmp['priority'] = tmpve['Requirement Priority']
+                else:
+                    rtmp['priority'] = "Not Set"
+                # if rtmp['reqDoc'] == 'LSE-61':
+                #    print(tmpve['Requirement ID'], rtmp['reqDoc'], rtmp['priority'])
                 reqs[tmpve['Requirement ID']] = rtmp
             else:
                 if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
@@ -534,7 +562,10 @@ def summary(dictionary, comp, user, passwd):
 
     # get requirements status
     reqcoverage = [0, 0, 0, 0]
-    for req in reqs:
+    req1acoverage = [0, 0, 0, 0]  # for LSE-61 1a requirements
+    reqs_lse61 = []
+    reqs_lse61_1a = []
+    for req in reqs.keys():
         # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
         # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
         reqves = [0, 0, 0, 0]
@@ -557,10 +588,22 @@ def summary(dictionary, comp, user, passwd):
             reqcoverage[1] += 1
         else:  # all other cases
             reqcoverage[0] += 1
+        if reqs[req]['reqDoc'] == 'LSE-61':
+            reqs_lse61.append(req)
+            if reqs[req]['priority'] == "1a":
+                reqs_lse61_1a.append(req)
+                if reqves[2] > 0:  # with Failures
+                    req1acoverage[2] += 1
+                elif reqves[3] > 0:  # with Passed
+                    req1acoverage[3] += 1
+                elif reqves[1] > 0:  # no test cases have been executed
+                    req1acoverage[1] += 1
+                else:  # all other cases
+                    reqcoverage[0] += 1
 
-    size = [len(reqs), len(verification_elements), len(tcases)]
+    size = [len(reqs), len(verification_elements), len(tcases), len(reqs_lse61_1a)]
 
-    return [mtcres, mtcstatus, vecoverage, ve_status, reqcoverage, size]
+    return [mtcres, mtcstatus, vecoverage, ve_status, reqcoverage, req1acoverage, size]
 
 
 #
@@ -589,6 +632,7 @@ def check_acronyms(reqs):
 # 
 def vcdsql(comp, usr, pwd):
     global jst
+    global jpr
     global tcases
     global veduplicated
     veduplicated = dict()
@@ -598,6 +642,7 @@ def vcdsql(comp, usr, pwd):
     jcon = {"usr": usr,
             "pwd": pwd}
     init_jira_status(jcon)
+    init_priority(jcon)
 
     ves, reqs = get_ves(comp, jcon)
 

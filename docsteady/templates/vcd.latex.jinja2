@@ -54,15 +54,16 @@
 The following table provides an overview of the relationships between requirements, verification elements, and test cases.
 
 % Summary of Summaries
-\begin{longtable}{rrr}
+\begin{longtable}{rrrr}
 &
-\begin{tabular}{@{}l@{}} Count of \\ Requirements \end{tabular} &
+\begin{tabular}{@{}l@{}} Count of \\ LSE-61 1a \\ Requirements \end{tabular} &
+\begin{tabular}{@{}l@{}} Count of ALL \\ Requirements \end{tabular} &
 \begin{tabular}{@{}l@{}} Count of \\ Verification \\Elements \end{tabular} \\ \hline
-Not related to any Test Case  & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
-Related to NOT executed Test Cases  & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
-Related to Failed Test Cases  & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
-Related to Passed Test Cases  & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
-Total & {{ sum_dict[5][0] }} & {{ sum_dict[5][1] }} \\
+Not related to any Test Case  & {{ sum_dict[5][0] }} & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
+Related to NOT executed Test Cases  & {{ sum_dict[5][1] }} & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
+Related to Failed Test Cases  & {{ sum_dict[5][2] }} & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
+Related to Passed Test Cases  & {{ sum_dict[5][3] }} & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+Total & {{ sum_dict[6][3] }} & {{ sum_dict[6][0] }} & {{ sum_dict[6][1] }} \\
 \bottomrule
 \end{longtable}
 
@@ -75,7 +76,7 @@ The following table provides the Test Cases result summary.
   {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
 {% endfor %}
 %   ----------------------
-Total & {{ sum_dict[5][2] }} \\
+Total & {{ sum_dict[6][2] }} \\
 \bottomrule
 \end{longtable}
 
