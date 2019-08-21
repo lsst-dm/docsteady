@@ -1,0 +1,52 @@
+{% set version = "1.2.rc4" %}
+
+package:
+  name: docsteady
+  version: {{ version }}
+
+source:
+  path: ../src
+  git_url: https://github.com/lsst-dm/docsteady.git
+  git_rev: {{ GIT_DESCRIBE_HASH }}
+
+build:
+  noarch: python
+  number: 1
+  script: $PYTHON setup.py install
+  entry_points:
+    - docsteady = docsteady:cli
+
+requirements:
+  host:
+    - python
+    - pip
+    - click
+    - arrow
+    - marshmallow 2.18
+    - setuptools_scm
+    - sphinx
+    - sphinx-click
+    - sphinx-rtd-theme
+    - requests
+    - jinja2
+    - BeautifulSoup4
+    - pyandoc
+    - pandoc 1.19.1
+    - pymysql
+    - pillow
+  run:
+    - python
+    - requests
+    - jinja2
+    - click
+    - BeautifulSoup4
+    - marshmallow 2.18
+    - pyandoc
+    - arrow
+    - pandoc 1.19.1
+    - pymysql
+    - pillow
+
+about:
+  home: https://github.com/lsst-dm/docsteady
+  license: GPL
