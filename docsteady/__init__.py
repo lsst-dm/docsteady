@@ -260,28 +260,27 @@ def _metadata():
 
 @cli.command("generate-vcd")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
-@click.option('--username', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
-@click.option('--password', prompt="Jira Password", hide_input=True,
+@click.option('--vcduser', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
+@click.option('--vcdpwd', prompt="Jira Password", hide_input=True,
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
 @click.option('--sql', required=False, default=False)
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, username, password, sql, component, path):
+def generate_vcd(format, vcduser, vcdpwd, sql, component, path):
     """Given a specific subsystem, it build the VCD.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.AUTH = (username, password)
     target = "vcd"
 
     if sql:
         print('Building model using direct SQL access')
-        vcd_dict = vcdsql(component, username, password)
+        vcd_dict = vcdsql(component, vcduser, vcdpwd)
     else:
-        vcd_dict = build_vcd_model(component)
+        print("VCD via rest API disabled")
 
-    sum_dict = summary(vcd_dict, component, username, password)
+    sum_dict = summary(vcd_dict, component, vcduser, vcdpwd)
 
     file = open(path, "w") if path else sys.stdout
 
