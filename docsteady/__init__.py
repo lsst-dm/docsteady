@@ -278,7 +278,8 @@ def generate_vcd(format, vcduser, vcdpwd, sql, component, path):
         print('Building model using direct SQL access')
         vcd_dict = vcdsql(component, vcduser, vcdpwd)
     else:
-        print("VCD via rest API disabled")
+        print("VCD via rest API disabled. Use '--sql True' option")
+        exit()
 
     sum_dict = summary(vcd_dict, component, vcduser, vcdpwd)
 
