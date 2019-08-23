@@ -1,17 +1,15 @@
-{% set version = "1.2.x" %}
+{% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER, GIT_DESCRIBE_HASH]|join('_') %}
 
 package:
   name: docsteady
-  version: {{ GIT_DESCRIBE_TAG }}
+  version: {{ version }}
 
 source:
-  path: ../src
-  git_url: https://github.com/lsst-dm/docsteady.git
-  git_rev: {{ GIT_DESCRIBE_HASH }}
+  git_url: ../
 
 build:
   noarch: python
-  number: 1
+  number: 0
   script: $PYTHON setup.py install
   entry_points:
     - docsteady = docsteady:cli
