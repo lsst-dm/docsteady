@@ -1,8 +1,8 @@
-{% set version = "1.2.rc5" %}
+{% set version = "1.2.x" %}
 
 package:
   name: docsteady
-  version: {{ version }}
+  version: {{ GIT_DESCRIBE_TAG }}
 
 source:
   path: ../src
