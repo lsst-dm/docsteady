@@ -265,7 +265,7 @@ def _metadata():
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
 @click.option('--sql', required=False, default=False, help="True if direct access to the database shall be used")
 @click.option('--spec', required=False, default=False,
-              help="Requirement Specification to print out test case prioritization")
+              help="Req|Test specifications to print out test case prioritization")
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
 def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):

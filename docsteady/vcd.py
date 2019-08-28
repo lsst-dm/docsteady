@@ -655,18 +655,26 @@ def vcdsql(comp, usr, pwd, RSP):
     # print out the list of test cases, sorted per corresponding requirement priority
     # "*" indicates that the test case the execution result is "Passed" or "Conditinoaly Passed"
     if RSP != "":
+        spec_split = RSP.split('|')
+        if len(spec_split) == 2:
+            req_f = spec_split[0]
+            test_f = spec_split[1]
+        else:
+            req_f = RSP
+            test_f = ""
         print(f"Test cases related to {{spec}} grouped per priority.\n".format(spec=RSP),
               " '*' indicates that the test case the execution result is 'Passed' or 'Conditinoal-Passed'")
         by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
         executed = {}
         for ve in ves.values():
-            if ve["Requirement Specification"] == RSP:
+            if ve["Requirement Specification"] == req_f:
                 for tc in ve['tcs']:
-                    tc_number = int(tc[5:])  # strip off LVV-T
-                    lastR = ve['tcs'][tc]['lastR']
-                    executed[tc_number] = lastR is not None and (
-                    lastR['status'] == "passed" or lastR['status'] == "cndpass")
-                    by_priority[ve['Requirement Priority']][tc_number] = 1
+                    if ve['tcs'][tc]['tspec'] == test_f or test_f == "":
+                        tc_number = int(tc[5:])  # strip off LVV-T
+                        lastR = ve['tcs'][tc]['lastR']
+                        executed[tc_number] = lastR is not None and (
+                        lastR['status'] == "passed" or lastR['status'] == "cndpass")
+                        by_priority[ve['Requirement Priority']][tc_number] = 1
         for priority in sorted(by_priority.keys()):
             print(f"Priority: {priority}")
             tc_list = []
