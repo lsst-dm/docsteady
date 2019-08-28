@@ -630,7 +630,7 @@ def check_acronyms(reqs):
 #
 # get VCD using direct SQL quiery
 # 
-def vcdsql(comp, usr, pwd):
+def vcdsql(comp, usr, pwd, RSP):
     global jst
     global jpr
     global tcases
@@ -650,5 +650,31 @@ def vcdsql(comp, usr, pwd):
           format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
 
     check_acronyms(reqs)
+
+    # Credit: KTL
+    # print out the list of test cases, sorted per corresponding requirement priority
+    # "*" indicates that the test case the execution result is "Passed" or "Conditinoaly Passed"
+    if RSP != "":
+        print(f"Test cases related to {{spec}} grouped per priority.\n".format(spec=RSP),
+              " '*' indicates that the test case the execution result is 'Passed' or 'Conditinoal-Passed'")
+        by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
+        executed = {}
+        for ve in ves.values():
+            if ve["Requirement Specification"] == RSP:
+                for tc in ve['tcs']:
+                    tc_number = int(tc[5:])  # strip off LVV-T
+                    lastR = ve['tcs'][tc]['lastR']
+                    executed[tc_number] = lastR is not None and (
+                    lastR['status'] == "passed" or lastR['status'] == "cndpass")
+                    by_priority[ve['Requirement Priority']][tc_number] = 1
+        for priority in sorted(by_priority.keys()):
+            print(f"Priority: {priority}")
+            tc_list = []
+            for tc_number in sorted(by_priority[priority].keys()):
+                tc_name = f"LVV-T{tc_number}"
+                if executed[tc_number]:
+                    tc_name += "*"
+                tc_list.append(tc_name)
+            print(", ".join(tc_list))
 
     return [ves, reqs, veduplicated, tcases]

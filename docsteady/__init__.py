@@ -263,10 +263,12 @@ def _metadata():
 @click.option('--vcduser', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
 @click.option('--vcdpwd', prompt="Jira Password", hide_input=True,
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
-@click.option('--sql', required=False, default=False)
+@click.option('--sql', required=False, default=False, help="True if direct access to the database shall be used")
+@click.option('--spec', required=False, default=False,
+              help="Requirement Specification to print out test case prioritization")
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, vcduser, vcdpwd, sql, component, path):
+def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
     """Given a specific subsystem, it build the VCD.
     If specified, PATH is the resulting output.
     """
@@ -274,9 +276,14 @@ def generate_vcd(format, vcduser, vcdpwd, sql, component, path):
     OUTPUT_FORMAT = format
     target = "vcd"
 
+    if spec:
+        RSP = spec
+    else:
+        RSP = ""
+
     if sql:
         print('Building model using direct SQL access')
-        vcd_dict = vcdsql(component, vcduser, vcdpwd)
+        vcd_dict = vcdsql(component, vcduser, vcdpwd, RSP)
     else:
         print("VCD via rest API disabled. Use '--sql True' option")
         exit()
