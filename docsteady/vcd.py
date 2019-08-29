@@ -44,20 +44,17 @@ class VerificationE(Schema):
         return data
 
 
-class Coverage(object):
-    def __init__(self):
-        self.notcs_count = 0
-        self.notcs_name = "No TCs"
-        self.notcs_label = "sec:notcs"
-        self.noexectcs_count = 0
-        self.noexectcs_name = "No Executed TCs"
-        self.noexectcs_label = "sec:noexectcs"
-        self.failedtcs_count = 0
-        self.failedtcs_name = "Failed TCs"
-        self.failedtcs_label = "sec:failedtcs"
-        self.passedtcs_count = 0
-        self.passedtcs_name = "Passed TCs"
-        self.passedtcs_label = "sec:passedtcs"
+class Coverage_Count:
+    """Coverage for Requirements and Verification Elements"""
+    notcs = 0
+    noexectcs = 0
+    failedtcs = 0
+    passedtcs = 0
+    passedtcs_name = "Passed TCs"
+    passedtcs_label = "sec:passedtcs"
+
+    def total_count(self):
+        return self.notcs + self.noexectcs + self.failedtcs  + self.passedtcs
 
 
 def runstatus(trs):
@@ -493,7 +490,7 @@ def summary(dictionary, comp, user, passwd):
     # get VE real coverage
     # for reference: cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
     #               'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
-    ve_coverage = Coverage()
+    ve_coverage = Coverage_Count()
     vestatus = dict()
     for ve in verification_elements.keys():
         tcs = [0, 0, 0, 0]
@@ -525,8 +522,8 @@ def summary(dictionary, comp, user, passwd):
                                 print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                                 tcs[0] += 1
         if ntc == 0:
-            ve_coverage.notcs_count += 1
-            vestatus[ve] = ve_coverage.notcs_name
+            ve_coverage.notcs += 1
+            vestatus[ve] = Config.coverage_texts['notcs']['name']
         else:
             if len(verification_elements[ve]['tcs']) > 0:
                 # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
@@ -553,14 +550,14 @@ def summary(dictionary, comp, user, passwd):
                             print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                             tcs[0] += 1
             if tcs[2] > 0:  # some test cases are failing
-                ve_coverage.failedtcs_count += 1
-                vestatus[ve] = ve_coverage.failedtcs_name
+                ve_coverage.failedtcs += 1
+                vestatus[ve] = Config.coverage_texts['failedtcs']['name']
             elif tcs[3] > 0 or tcs[1] > 0:  # some test cases are passing or conditionally passing
-                ve_coverage.passedtcs_count += 1
-                vestatus[ve] = ve_coverage.passedtcs_name
+                ve_coverage.passedtcs += 1
+                vestatus[ve] = Config.coverage_texts['passedtcs']['name']
             else:  # all other conditions
-                ve_coverage.noexectcs_count += 1
-                vestatus[ve] = ve_coverage.noexectcs_name
+                ve_coverage.noexectcs += 1
+                vestatus[ve] = Config.coverage_texts['noexectcs']['name']
 
     # get requirements status
     reqcoverage = [0, 0, 0, 0]
@@ -604,6 +601,9 @@ def summary(dictionary, comp, user, passwd):
                     reqcoverage[0] += 1
 
     size = [len(reqs), len(verification_elements), len(tcases), len(reqs_lse61_1a)]
+
+    print(ve_coverage.notcs, ve_coverage.noexectcs, ve_coverage.failedtcs, ve_coverage.passedtcs,
+          ve_coverage.total_count())
 
     return [mtcres, mtcstatus, ve_coverage, ve_status, reqcoverage, req1acoverage, size]
 
