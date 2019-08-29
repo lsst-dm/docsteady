@@ -59,10 +59,10 @@ The following table provides an overview of the relationships between requiremen
 \begin{tabular}{@{}l@{}} Count of \\ LSE-61 1a \\ Requirements \end{tabular} &
 \begin{tabular}{@{}l@{}} Count of ALL \\ Requirements \end{tabular} &
 \begin{tabular}{@{}l@{}} Count of \\ Verification \\Elements \end{tabular} \\ \hline
-Not related to any Test Case  & {{ sum_dict[5][0] }} & {{ sum_dict[4][0] }} & {{ sum_dict[2][0] }} \\ \hline
-Related to NOT executed Test Cases  & {{ sum_dict[5][1] }} & {{ sum_dict[4][1] }} & {{ sum_dict[2][1] }} \\ \hline
-Related to Failed Test Cases  & {{ sum_dict[5][2] }} & {{ sum_dict[4][2] }} & {{ sum_dict[2][2] }} \\ \hline
-Related to Passed Test Cases  & {{ sum_dict[5][3] }} & {{ sum_dict[4][3] }} & {{ sum_dict[2][3] }} \\ \hline
+Not related to any Test Case  & {{ sum_dict[5][0] }} & {{ sum_dict[4][0] }} & {{ sum_dict[2].notcs_count }} \\ \hline
+Related to NOT executed Test Cases  & {{ sum_dict[5][1] }} & {{ sum_dict[4][1] }} & {{ sum_dict[2].noexectcs_count }} \\ \hline
+Related to Failed Test Cases  & {{ sum_dict[5][2] }} & {{ sum_dict[4][2] }} & {{ sum_dict[2].failedtcs_count }} \\ \hline
+Related to Passed Test Cases  & {{ sum_dict[5][3] }} & {{ sum_dict[4][3] }} & {{ sum_dict[2].passedtcs_count }} \\ \hline
 Total & {{ sum_dict[6][3] }} & {{ sum_dict[6][0] }} & {{ sum_dict[6][1] }} \\
 \bottomrule
 \end{longtable}

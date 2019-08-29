@@ -44,6 +44,22 @@ class VerificationE(Schema):
         return data
 
 
+class Coverage(object):
+    def __init__(self):
+        self.notcs_count = 0
+        self.notcs_name = "No TCs"
+        self.notcs_label = "sec:notcs"
+        self.noexectcs_count = 0
+        self.noexectcs_name = "No Executed TCs"
+        self.noexectcs_label = "sec:noexectcs"
+        self.failedtcs_count = 0
+        self.failedtcs_name = "Failed TCs"
+        self.failedtcs_label = "sec:failedtcs"
+        self.passedtcs_count = 0
+        self.passedtcs_name = "Passed TCs"
+        self.passedtcs_label = "sec:passedtcs"
+
+
 def runstatus(trs):
     if trs == "Pass":
         status = 'passed'
@@ -211,10 +227,8 @@ def build_vcd_model(component):
     fsum.close()
 
 
-#
-# returns query result in a 2dim matrix 
-#
 def db_get(jc: {}, dbquery) -> {}:
+    """returns query result in a 2dim matrix"""
     db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb)
     cursor = db.cursor()
     cursor.execute(dbquery)
@@ -235,10 +249,8 @@ def db_get(jc: {}, dbquery) -> {}:
     return res
 
 
-#
-#  initialize jst containing the statuses from Jira
-#
 def init_jira_status(jc):
+    """initialize jst containing the statuses from Jira"""
     global jst
     jst = dict()
     query = "select id, pname from issuestatus"
@@ -247,10 +259,8 @@ def init_jira_status(jc):
         jst[st[0]] = st[1]
 
 
-#
-#  initialize jpr containing the priorities from Jira
-#
 def init_priority(jc):
+    """initialize jpr containing the priorities from Jira"""
     global jpr
     jpr = dict()
     query = "select id, pname from priority"
@@ -258,9 +268,9 @@ def init_priority(jc):
     for st in rawst:
         jpr[st[0]] = st[1]
 
-# return last execution result
-#
+
 def get_tc_results(jc, tc):
+    """return last execution result"""
     results = dict()
     query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
              "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
@@ -286,11 +296,9 @@ def get_tc_results(jc, tc):
     return results
 
 
-#
-# for a given VE (id) return the related test cases
-#   and populate in parallel the global tcases
-#
 def get_tcs(jc, veid):
+    """for a given VE (id) return the related test cases
+       and populate in parallel the global tcases """
     global tcases
     query = (
             "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name from AO_4D28DD_TEST_CASE tc "
@@ -318,11 +326,9 @@ def get_tcs(jc, veid):
     return tcs
 
 
-#
-# gets information for all Verification Elementes for a Component
-# it returns also the reqs and test cases related to them
-#
 def get_ves(comp, jc):
+    """gets information for all Verification Elementes for a Component
+       it returns also the reqs and test cases related to them"""
     global jst
     global veduplicated
     velements = dict()
@@ -402,10 +408,8 @@ def get_ves(comp, jc):
     return velements, reqs
 
 
-#
-# recursivelly browse the folders until findind the test spec of the root (NULL)
-#
 def get_tspec_r(jc, fid):
+    """recursively browse the folders until findind the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(jc, query)
@@ -416,10 +420,8 @@ def get_tspec_r(jc, fid):
     return tspec
 
 
-#
-# generate and print summary information
-#
 def summary(dictionary, comp, user, passwd):
+    """generate and print summary information"""
     global tcases
     global jst
     global veduplicated
@@ -491,7 +493,7 @@ def summary(dictionary, comp, user, passwd):
     # get VE real coverage
     # for reference: cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
     #               'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
-    vecoverage = [0, 0, 0, 0]
+    ve_coverage = Coverage()
     vestatus = dict()
     for ve in verification_elements.keys():
         tcs = [0, 0, 0, 0]
@@ -523,8 +525,8 @@ def summary(dictionary, comp, user, passwd):
                                 print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                                 tcs[0] += 1
         if ntc == 0:
-            vecoverage[0] += 1
-            vestatus[ve] = Config.coverage[0]["name"]
+            ve_coverage.notcs_count += 1
+            vestatus[ve] = ve_coverage.notcs_name
         else:
             if len(verification_elements[ve]['tcs']) > 0:
                 # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
@@ -551,14 +553,14 @@ def summary(dictionary, comp, user, passwd):
                             print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
                             tcs[0] += 1
             if tcs[2] > 0:  # some test cases are failing
-                vecoverage[2] += 1
-                vestatus[ve] = Config.coverage[2]["name"]
+                ve_coverage.failedtcs_count += 1
+                vestatus[ve] = ve_coverage.failedtcs_name
             elif tcs[3] > 0 or tcs[1] > 0:  # some test cases are passing or conditionally passing
-                vecoverage[3] += 1
-                vestatus[ve] = Config.coverage[3]["name"]
+                ve_coverage.passedtcs_count += 1
+                vestatus[ve] = ve_coverage.passedtcs_name
             else:  # all other conditions
-                vecoverage[1] += 1
-                vestatus[ve] = Config.coverage[1]["name"]
+                ve_coverage.noexectcs_count += 1
+                vestatus[ve] = ve_coverage.noexectcs_name
 
     # get requirements status
     reqcoverage = [0, 0, 0, 0]
@@ -603,13 +605,11 @@ def summary(dictionary, comp, user, passwd):
 
     size = [len(reqs), len(verification_elements), len(tcases), len(reqs_lse61_1a)]
 
-    return [mtcres, mtcstatus, vecoverage, ve_status, reqcoverage, req1acoverage, size]
+    return [mtcres, mtcstatus, ve_coverage, ve_status, reqcoverage, req1acoverage, size]
 
 
-#
-#  check that the requirements acronyms have been added to acronyms.tex
-#
 def check_acronyms(reqs):
+    """check that the requirements acronyms have been added to acronyms.tex"""
     acronyms = []
     rtype = []
 
@@ -627,10 +627,8 @@ def check_acronyms(reqs):
                 print("Missing acronyms", tmptype)
 
 
-#
-# get VCD using direct SQL quiery
-# 
 def vcdsql(comp, usr, pwd, RSP):
+    """get VCD using direct SQL query"""
     global jst
     global jpr
     global tcases

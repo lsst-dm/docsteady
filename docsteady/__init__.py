@@ -319,7 +319,5 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
     print(_as_output_format(text), file=file)
 
 
-
-
 if __name__ == '__main__':
     cli()
