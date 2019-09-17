@@ -85,3 +85,9 @@ class Config:
         {"id": 2, "name": "Fail", "label": "sec:fail"},
         {"id": 3, "name": "Pass", "label": "sec:pass"},
     ]
+
+    coverage_texts = {'notcs': {'name': 'No TCs', 'label': 'sec:noexectcs'},
+                      'noexectcs': {'name': 'No Executed TCs', 'label': 'sec:noexectcs'},
+                      'failedtcs': {'name': 'Failed TCs', 'label': 'sec:failedtcs'},
+                      'passedtcs': {'name': 'Passed TCs', 'label': 'sec:passedtcs'},
+                      'totalcount': {'name': 'Total Count', 'label': 'sec:totalcount'}}
