@@ -21,7 +21,7 @@
 """
 Code for Test Specification Model Generation
 """
-
+import re
 import requests
 import sys
 
@@ -168,6 +168,35 @@ class TestCase(Schema):
         return teststeps_sorted
 
 
+def get_lvv_details(key):
+    """ Get LVV information from Jira
+
+    PARAMETERS
+    ----------
+    key: `str`
+        LVV jira Key
+    RETURNS
+    -------
+    lvv: dictionary
+        The LVV information that is not available in the test case.
+        In a first stage, the only information required are the High Level Requirements
+    """
+    lvv = dict()
+    lvv['high_level_req'] = []
+    if key != "":
+        resp = requests.get(
+            Config.ISSUE_URL.format(issue=key),
+            auth=Config.AUTH
+        )
+        if resp.status_code != 200:
+            print(f"Unable to download: {resp.text}")
+            sys.exit(1)
+        lvv_resp = resp.json()
+        if lvv_resp['fields'][Config.HIGH_LEVEL_REQS_FIELD]:
+            lvv['high_level_req'] = re.findall(r'\[([^[]+?)\|', lvv_resp['fields']['customfield_13515'])
+    return lvv
+
+
 def build_spec_model(folder):
     # query = f'folder = "{folder}"'
     # FIXME: use the previous query if they fix the ATM testcases/search API
@@ -205,6 +234,9 @@ def build_spec_model(folder):
             testcases.append(testcase)
         for req in testcase['requirements']:
             if req['key'] not in requirements.keys():
+                # get the req information
+                lvv = get_lvv_details(req['key'])
+                req['high_level_req'] = lvv['high_level_req']
                 requirements[req['key']] = req
 
     if max_tests == len(testcases):

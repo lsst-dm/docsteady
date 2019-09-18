@@ -14,9 +14,9 @@
 
 \section{Traceability}
 \scriptsize{
-\begin{longtable}[]{p{13cm}p{3cm}}
+\begin{longtable}[]{p{10cm}p{4cm}p{2cm}}
 \toprule
-Verification Elements & Test Cases\tabularnewline
+Verification Elements & High Level Requirements & Test Cases\tabularnewline
 \midrule
 \endhead
 
@@ -24,10 +24,19 @@ Verification Elements & Test Cases\tabularnewline
     {{ href(requirement.jira_url, requirement.key + " - " + requirement.summary) }}
     {% set testcases_list = requirements_to_testcases[requirement.key] -%}
     & {
+    \begin{tabular}{c}
+    {% for hreq in requirement.high_level_req %}
+        {% set lnk = "https://jira.lsstcorp.org/secure/QuickSearch.jspa?searchString=" ~ hreq %}
+        \href{{ curlies(lnk) }}{{ curlies(hreq) }} \\
+    {% endfor %}
+    \end{tabular}
+    } & {
+    \begin{tabular}{c}
     {% for tc in testcases_list -%}
-        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }}
+        \hyperref[{{ tc.lower() }}]{{ curlies(tc) }} \\
     {% endfor -%}
-    } \\
+    \end{tabular}
+    } \\ \hdashline
 {% endfor %}
 \tabularnewline
 \bottomrule
