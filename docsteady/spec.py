@@ -21,7 +21,7 @@
 """
 Code for Test Specification Model Generation
 """
-
+import re
 import requests
 import sys
 
@@ -169,10 +169,19 @@ class TestCase(Schema):
 
 
 def get_lvv_details(key):
-    """
-    get LVV information from Jira
-    :param key: LVV jira Key
-    :return: needed parameter (first stage, only high level req, if available in Jira
+    """ Get LVV information from Jira
+
+    The High Level Requirements information is included in customfield_13515 of LSST Jira instance.
+
+    PARAMETERS
+    ----------
+    key: `str`
+        LVV jira Key
+    RETURNS
+    -------
+    lvv: dictionary
+        The LVV information that is not available in the test case.
+        In a first stage, the only information required are the High Level Requirements
     """
     lvv = dict()
     lvv['high_level_req'] = []
@@ -183,14 +192,10 @@ def get_lvv_details(key):
         )
         if resp.status_code != 200:
             print(f"Unable to download: {resp.text}")
-            print(resp.text)
             sys.exit(1)
         lvv_resp = resp.json()
         if lvv_resp['fields']['customfield_13515']:
-            lvv['high_level_req'] = re.findall(r'\[(.+?)\|', lvv_resp['fields']['customfield_13515'])
-            for entry in raw0:
-                high_req = entry.split('|')
-                lvv['high_level_req'].append(high_req[0].strip('['))
+            lvv['high_level_req'] = re.findall(r'\[([^[]+?)\|', lvv_resp['fields']['customfield_13515'])
     return lvv
 
 
