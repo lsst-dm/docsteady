@@ -48,6 +48,7 @@ class Config:
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
+    HIGH_LEVEL_REQS_FIELD = "customfield_13515"
     DOC = pandoc.Document()
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}

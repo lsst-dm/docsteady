@@ -171,8 +171,6 @@ class TestCase(Schema):
 def get_lvv_details(key):
     """ Get LVV information from Jira
 
-    The High Level Requirements information is included in customfield_13515 of LSST Jira instance.
-
     PARAMETERS
     ----------
     key: `str`
@@ -194,7 +192,7 @@ def get_lvv_details(key):
             print(f"Unable to download: {resp.text}")
             sys.exit(1)
         lvv_resp = resp.json()
-        if lvv_resp['fields']['customfield_13515']:
+        if lvv_resp['fields'][Config.HIGH_LEVEL_REQS_FIELD]:
             lvv['high_level_req'] = re.findall(r'\[([^[]+?)\|', lvv_resp['fields']['customfield_13515'])
     return lvv
 
