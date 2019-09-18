@@ -187,7 +187,7 @@ def get_lvv_details(key):
             sys.exit(1)
         lvv_resp = resp.json()
         if lvv_resp['fields']['customfield_13515']:
-            raw0 = lvv_resp['fields']['customfield_13515'].split(', [')
+            lvv['high_level_req'] = re.findall(r'\[(.+?)\|', lvv_resp['fields']['customfield_13515'])
             for entry in raw0:
                 high_req = entry.split('|')
                 lvv['high_level_req'].append(high_req[0].strip('['))
