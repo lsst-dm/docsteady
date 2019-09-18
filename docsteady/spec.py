@@ -168,6 +168,32 @@ class TestCase(Schema):
         return teststeps_sorted
 
 
+def get_lvv_details(key):
+    """
+    get LVV information from Jira
+    :param key: LVV jira Key
+    :return: needed parameter (first stage, only high level req, if available in Jira
+    """
+    lvv = dict()
+    lvv['high_level_req'] = []
+    if key != "":
+        resp = requests.get(
+            Config.ISSUE_URL.format(issue=key),
+            auth=Config.AUTH
+        )
+        if resp.status_code != 200:
+            print("Unable to download")
+            print(resp.text)
+            sys.exit(1)
+        lvv_resp = resp.json()
+        if lvv_resp['fields']['customfield_13515']:
+            raw0 = lvv_resp['fields']['customfield_13515'].split(', [')
+            for entry in raw0:
+                high_req = entry.split('|')
+                lvv['high_level_req'].append(high_req[0].strip('['))
+    return lvv
+
+
 def build_spec_model(folder):
     # query = f'folder = "{folder}"'
     # FIXME: use the previous query if they fix the ATM testcases/search API
@@ -205,6 +231,9 @@ def build_spec_model(folder):
             testcases.append(testcase)
         for req in testcase['requirements']:
             if req['key'] not in requirements.keys():
+                # get the req information
+                lvv = get_lvv_details(req['key'])
+                req['high_level_req'] = lvv['high_level_req']
                 requirements[req['key']] = req
 
     if max_tests == len(testcases):
