@@ -182,7 +182,7 @@ def get_lvv_details(key):
             auth=Config.AUTH
         )
         if resp.status_code != 200:
-            print("Unable to download")
+            print(f"Unable to download: {resp.text}")
             print(resp.text)
             sys.exit(1)
         lvv_resp = resp.json()
