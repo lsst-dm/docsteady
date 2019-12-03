@@ -169,8 +169,13 @@ The following personnel are involved in this test activity:
 
   {% for test_item in testcycles_map[cycle.key].test_items %}
     \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
-    & {{ test_item['status'] }} & {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }} &
-    {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
+    & {{ test_item['status'] }} &
+    \begin{minipage}[]{0.56\textwidth}
+    \smallskip
+    {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+    \medskip
+    \end{minipage}
+    & {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
       \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
     {% endfor %}
     \\\hline
