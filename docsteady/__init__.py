@@ -150,9 +150,10 @@ def generate_spec(format, username, password, folder, path):
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
+@click.option('--trace', default=False, help='If true, traceability table will be added in appendix')
 @click.argument('plan')
 @click.argument('path', required=False, type=click.Path())
-def generate_report(format, username, password, plan, path):
+def generate_report(format, username, password, trace, plan, path):
     """Read in a Test Plan and related cycles from Adaptavist Test management.
     If specified, PATH is the resulting output.
     """
@@ -219,6 +220,19 @@ def generate_report(format, username, password, plan, path):
         testcases_map=testcases_map)
 
     print(_as_output_format(appendix_text), file=appendix_file)
+
+    if trace:
+        # Will exit if it can't find a template
+        appendix_template = _try_appendix_template(target, env)
+        if not appendix_template:
+            click.echo(f"No Appendix Template Found, skipping...", err=True)
+            sys.exit(0)
+        metadata["template"] = appendix_template.filename
+        appendix_file = _get_appendix_output(path)
+        appendix_text = appendix_template.render(
+            metadata=metadata,
+            testcases_map=testcases_map)
+        print(_as_output_format(appendix_text), file=appendix_file)
 
 
 def _try_appendix_template(target, env):
