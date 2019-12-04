@@ -82,6 +82,7 @@ class ScriptResult(Schema):
     description = MarkdownableHtmlPandocField(load_from='description')
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
+    testdata = MarkdownableHtmlPandocField(load_from='testData')
     # result_issue_keys are actually jira issue keys (not HTTP links)
     result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
     result_issues = fields.Nested(Issue, many=True)

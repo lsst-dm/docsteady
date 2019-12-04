@@ -131,10 +131,12 @@ def build_tpr_model(tplan_id):
 
     for cycle_key in testplan['cycles']:
         resp = requests.get(Config.TESTCYCLE_URL.format(testrun=cycle_key), auth=Config.AUTH)
+        print("  >  ", Config.TESTCYCLE_URL.format(testrun=cycle_key))
         test_cycle, error = TestCycle().load(resp.json())
         test_cycles_map[cycle_key] = test_cycle
 
         resp = requests.get(Config.TESTRESULTS_URL.format(testrun=cycle_key), auth=Config.AUTH)
+        print("  >>  ", Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp.raise_for_status()
         testresults, errors = TestResult().load(resp.json(), many=True)
         test_results_map[cycle_key] = {}
@@ -146,6 +148,7 @@ def build_tpr_model(tplan_id):
             if test_item['test_case_key'] not in test_cases_map.keys():
                 resp = requests.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']),
                                     auth=Config.AUTH)
+                print("  >>>  ", Config.TESTCASE_URL.format(testcase=test_item['test_case_key']))
                 testcase, errors = TestCase().load(resp.json())
                 test_cases_map[test_item['test_case_key']] = testcase
 
