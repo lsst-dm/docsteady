@@ -36,6 +36,7 @@ class TestCycleItem(Schema):
                                     load_from='testCaseKey', required=True)
     user_id = fields.String(load_from="userKey")
     user = fields.Function(load_from="userKey", deserialize=lambda obj: owner_for_id(obj))
+    assignee = fields.Function(load_from="assignedTo", deserialize=lambda obj: owner_for_id(obj))
     execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
     status = fields.String(required=True)
 

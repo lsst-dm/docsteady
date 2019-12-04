@@ -123,33 +123,30 @@ The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ tes
 \section{Personnel}
 \label{sect:personnel}
 
-The following personnel are involved in this test activity:
+The personnel involved in the test campaign is shown in the following table.
 
-\begin{itemize}
-\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
-\item Test Cycles:
-\begin{itemize}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
+\hline
+\multicolumn{2}{r}{Test Plan ({{ testplan.key }}) owner:} &
+\multicolumn{2}{l}{\textbf{ {{ testplan.owner }} } }\\\hline
 {% for cycle in testcycles %}
-  \item {{ cycle.key }} owner: 
+\multicolumn{2}{r}{ {{ cycle.key }} owner:} &
+\multicolumn{2}{l}{\textbf{
   {% if cycle.owner %}
     {{ cycle.owner }}
   {% else %}
     Undefined
   {% endif %}
-  \begin{itemize}
+}
+} \\\hline
+\textbf{Test Case} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
   {% for test_item in cycle.test_items %}
-    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }} tester: {{ test_item.user }}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+& {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
+{\small {{ testcases_map[test_item.test_case_key].test_personnel }} } \\ \hline
   {% endfor %}
-  \end{itemize}
 {% endfor %}
-\end{itemize}
-\item Additional Test Personnel involved:
-  \begin{itemize}
-  {% for testcase in testcases_map %}
-    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ testcase }}{{ '}' }}{{ '{' }}{{ testcase }}{{ '}' }}: {{ testcases_map[testcase].test_personnel }}
-  {% endfor %}
-  \end{itemize}
-\end{itemize}
+\end{longtable}
 
 \newpage
 
