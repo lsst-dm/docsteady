@@ -178,8 +178,16 @@ The personnel involved in the test campaign is shown in the following table.
     {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
     \medskip
     \end{minipage}
-    & {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
+    &
+    {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
       \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+    {% endfor %}
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
+      {% if script_result['result_issues'] %}
+        {% for issue in script_result['result_issues'] %}
+          \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
+        {% endfor %}
+      {% endif %}
     {% endfor %}
     \\\hline
   {% endfor %}
@@ -269,7 +277,7 @@ test case in Jira.
     \begin{longtable}{p{1cm}p{2cm}p{13cm}}
     \hline
     {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
-    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
       {{ loop.index }} & Description &
 
       \begin{minipage}[t]{13cm}{\footnotesize
