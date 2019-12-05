@@ -145,6 +145,9 @@ def download_and_rewrite_images(value):
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
+        # print(img)
+        img_style = urljoin(rest_location, img["style"])
+        img_width = re.sub('[^0-9]','', img_style)
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path)
@@ -169,14 +172,14 @@ def download_and_rewrite_images(value):
                 fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
-        im = Image.open(fs_path)
-        width, height = im.size
-        if width > Config.MAX_IMG_PIXELS:
-            print(f"[WARNING] Image {fs_path} width greater than {Config.MAX_IMG_PIXELS} pixels.")
-            img["width"] = f"{Config.MAX_IMG_PIXELS}px"
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
+        # fixing the aspect ratio of th images is working only with pandic 1.19.1
+        #
+        img["width"] = f"{img_width}px"
+        img["display"] = "block"
+        img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
 
