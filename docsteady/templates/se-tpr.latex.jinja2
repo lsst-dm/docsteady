@@ -195,7 +195,7 @@ The personnel involved in the test campaign is shown in the following table.
     \\\hline
   {% endfor %}
 {% endfor %}
-\caption{Test Results Summary}
+\caption{Test Campaign Summary}
 \label{table:summary}
 \end{longtable}
 
@@ -281,7 +281,6 @@ Detailed steps results:
 {{ loop.index }} & Description \\
  & \begin{minipage}[t]{15cm}
 {\footnotesize
-\smallskip
 {{ script_result['description'] }}
 \medskip }
 \end{minipage}
@@ -290,7 +289,6 @@ Detailed steps results:
       {% if 'example_code' in script_result.custom_field_values %}
  & Example Code \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-\smallskip
 {{ script_result.custom_field_values.example_code }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
@@ -298,22 +296,26 @@ Detailed steps results:
       {% if script_result['testdata'] %}
  & Test Data \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-\smallskip
 {{ script_result['testdata'] }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
+      {% endif %}
+      {% if script_result['example_code'] %}
+ & Example Code \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result['example_code'] }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
       {% endif %}
 
  & Expected Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-\smallskip
 {{ script_result['expected_result'] }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
 
  & Actual Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-\smallskip
 {{ script_result['comment'] }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
@@ -321,7 +323,6 @@ Detailed steps results:
       {% if script_result['result_issues'] %}
  & Issues found executing this step:  \\
  & \begin{minipage}[t]{13cm}{\footnotesize
-\smallskip
         {% for issue in script_result['result_issues'] %}
 \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
         {% endfor %}
