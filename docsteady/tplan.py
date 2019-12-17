@@ -25,7 +25,7 @@ import requests
 from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
-from docsteady.spec import Issue, TestCase
+from docsteady.spec import TestCase
 from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField
 from .config import Config
 
