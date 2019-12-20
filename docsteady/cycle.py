@@ -36,6 +36,7 @@ class TestCycleItem(Schema):
                                     load_from='testCaseKey', required=True)
     user_id = fields.String(load_from="userKey")
     user = fields.Function(load_from="userKey", deserialize=lambda obj: owner_for_id(obj))
+    assignee = fields.Function(load_from="assignedTo", deserialize=lambda obj: owner_for_id(obj))
     execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
     status = fields.String(required=True)
 
@@ -81,6 +82,7 @@ class ScriptResult(Schema):
     description = MarkdownableHtmlPandocField(load_from='description')
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
+    testdata = MarkdownableHtmlPandocField(load_from='testData')
     # result_issue_keys are actually jira issue keys (not HTTP links)
     result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
     result_issues = fields.Nested(Issue, many=True)
@@ -147,7 +149,7 @@ class TestResult(Schema):
         # Need to do this here because we need result_issue_keys _and_ key
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
-        data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
+        data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
         return data
 
     def process_issues(self, data):

@@ -25,7 +25,7 @@ import requests
 from marshmallow import Schema, fields, pre_load
 
 from docsteady.cycle import TestCycle, TestResult
-from docsteady.spec import Issue, TestCase
+from docsteady.spec import TestCase
 from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField
 from .config import Config
 
@@ -139,6 +139,8 @@ def build_tpr_model(tplan_id):
         testresults, errors = TestResult().load(resp.json(), many=True)
         test_results_map[cycle_key] = {}
         for result in testresults:
+            result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
+            # result['sorted'] = result['script_results']
             test_results_map[cycle_key][result['test_case_key']] = result
 
         # Get all the test cases from the test items

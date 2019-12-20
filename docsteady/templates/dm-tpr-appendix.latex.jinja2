@@ -1,0 +1,17 @@
+\section{Traceability}
+
+\begin{longtable}{p{3cm}p{3cm}p{9cm}}
+\hline
+\textbf{Test Case} & \textbf{VE Key} & \textbf{VE Summary} \\ \hline
+{% for testcase in testcases_map %}
+  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ testcase }}{{ '}' }}{{ '{' }}{{ testcase }}{{ '}' }} &
+{% for lvv in testcases_map[testcase]['requirements'] %}
+    {% if loop.index != 1 %}
+      &
+    {% endif %}
+  \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ lvv['key'] }}{{ "}" }}{{ "{" }}{{ lvv['key'] }}{{ "}" }}
+  & {{ lvv['summary'] }} \\ \cdashline{2-3}
+{% endfor %}
+\hline
+{% endfor %}
+\end{longtable}

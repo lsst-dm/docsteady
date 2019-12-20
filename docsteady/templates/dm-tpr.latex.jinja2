@@ -17,6 +17,8 @@
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
+\setcounter{tocdepth}{4}
+
 \begin{document}
 
 \def\milestoneName{{ '{' }}{{ testplan.milestone_name }}{{ '}' }}
@@ -35,7 +37,8 @@
 
 
 \setDocAbstract{
-This is the test plan and report for {{ testplan.milestone_id }} ({{ testplan.milestone_name }}), an LSST level 2 milestone pertaining to the Data Management Subsystem.
+This is the test plan and report for {{ testplan.milestone_id }} ({{ testplan.milestone_name }}),
+an LSST level 2 milestone pertaining to the Data Management Subsystem.
 }
 
 
@@ -73,12 +76,15 @@ This document was generated from Jira, obtaining the relevant information from t
 {% endfor %}
 ).
 
-Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
+Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}),
+the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
 Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
-%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
+%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases,
+including all relevant information that fully describes the test campaign.
 
-Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary},
+an overall assessment statement and suggestions for possible improvements.
 Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
 The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ testplan['status'] }} }.
@@ -123,61 +129,76 @@ The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ tes
 \section{Personnel}
 \label{sect:personnel}
 
-The following personnel are involved in this test activity:
+The personnel involved in the test campaign are shown in the following table.
 
-\begin{itemize}
-\item Test Plan ({{ testplan.key }}) owner: {{ testplan.owner }}
-\item Test Cycles:
-\begin{itemize}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
+\hline
+\multicolumn{2}{r}{Test Plan ({{ testplan.key }}) owner:} &
+\multicolumn{2}{l}{\textbf{ {{ testplan.owner }} } }\\\hline
 {% for cycle in testcycles %}
-  \item {{ cycle.key }} owner: 
+\multicolumn{2}{r}{ {{ cycle.key }} owner:} &
+\multicolumn{2}{l}{\textbf{
   {% if cycle.owner %}
     {{ cycle.owner }}
   {% else %}
     Undefined
   {% endif %}
-  \begin{itemize}
+}
+} \\\hline
+\textbf{Test Case} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
   {% for test_item in cycle.test_items %}
-    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }} tester: {{ test_item.user }}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+& {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small {{ testcases_map[test_item.test_case_key].test_personnel }} }
+\medskip
+\end{minipage}
+\\ \hline
   {% endfor %}
-  \end{itemize}
 {% endfor %}
-\end{itemize}
-\item Additional Test Personnel involved:
-  \begin{itemize}
-  {% for testcase in testcases_map %}
-    \item Test case \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ testcase }}{{ '}' }}{{ '{' }}{{ testcase }}{{ '}' }}: {{ testcases_map[testcase].test_personnel }}
-  {% endfor %}
-  \end{itemize}
-\end{itemize}
+\end{longtable}
 
 \newpage
 
-\section{Overview of the Test Results}
+\section{Test Campaign Overview}
 \label{sect:overview}
 
 \subsection{Summary}
 \label{sect:summarytable}
 
-\begin{longtable}{p{0.12\textwidth}p{0.2\textwidth}p{0.56\textwidth}p{0.12\textwidth}}
+\begin{longtable}{p{2cm}p{2.5cm}p{9cm}p{2.5cm}}
 \toprule
+\multicolumn{3}{l}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
 {% for cycle in testcycles %}
 
-  \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
+  \multicolumn{3}{l}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
 
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
 
   {% for test_item in testcycles_map[cycle.key].test_items %}
-    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
-    & {{ test_item['status'] }} & {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }} &
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
+    & {{ test_item['status'] }} &
+    \begin{minipage}[]{9cm}
+    \smallskip
+    {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+    \medskip
+    \end{minipage}
+    &
     {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
       \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+    {% endfor %}
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
+      {% if script_result['result_issues'] %}
+        {% for issue in script_result['result_issues'] %}
+          \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
+        {% endfor %}
+      {% endif %}
     {% endfor %}
     \\\hline
   {% endfor %}
 {% endfor %}
-
-\caption{Test Results Summary}
+\caption{Test Campaign Summary}
 \label{table:summary}
 \end{longtable}
 
@@ -204,112 +225,117 @@ Not yet available.
 \label{sect:detailedtestresults}
 
 {% for cycle in testcycles %}
-
-  \subsection{Test Cycle {{ cycle.key }} }
+\subsection{Test Cycle {{ cycle.key }} }
 
 Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
 
-  {{ cycle.name }}\\
-  Status: {{cycle.status }}
+{{ cycle.name }}\\
+Status: {{ cycle.status }}
 
-  {{ cycle.description }}
+{{ cycle.description }}
 
-  \subsubsection{Software Version/Baseline}
+\subsubsection{Software Version/Baseline}
   {% if cycle.software_version %}
-    {{cycle.software_version}}
+{{cycle.software_version}}
   {% else %}
-    Not provided.
+Not provided.
   {% endif %}
 
-  \subsubsection{Configuration}
+\subsubsection{Configuration}
   {% if cycle.configuration %}
-    {{ cycle.configuration }}
+{{ cycle.configuration }}
   {% else %}
-    Not provided.
+Not provided.
   {% endif %}
 
-  \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
+\subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
   {% for test_item in testcycles_map[cycle.key].test_items %}
-
-    \paragraph{Test Case {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
+\paragraph{Test Case {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
 
 Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
 test case in Jira.
 
-    {{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
+{{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
 
-    \textbf{ Preconditions}:\\
-    {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
+\textbf{ Preconditions}:\\
+{{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-    Execution status: {\bf {{  test_item['status'] }} }
+Execution status: {\bf {{  test_item['status'] }} }
 
-    Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
 
     {% if testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
-      Issues found during the execution of {{ test_item['test_case_key'] }} test case:
+Issues found during the execution of {{ test_item['test_case_key'] }} test case:
 
-      \begin{itemize}
+\begin{itemize}
       {% for issue in testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
-        \item {{ issue['id'] }}: {{ issue['summary'] }}
+\item \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
       {% endfor %}
-      \end{itemize}
+\end{itemize}
     {% endif %}
 
-    Detailed step results:
+Detailed steps results:
 
-    \begin{longtable}{p{1cm}p{2cm}p{13cm}}
-    \hline
-    {Step} & \multicolumn{2}{c}{Description, Results and Status}\\ \hline
-    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
-      {{ loop.index }} & Description &
-
-      \begin{minipage}[t]{13cm}{\footnotesize
-      {{ script_result['description'] }}
-      \vspace{\dp0}
-      } \end{minipage} \\
-      \\ \cdashline{2-3}
+\begin{longtable}{p{1cm}p{15cm}}
+\hline
+{Step} & Step Details\\ \hline
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
+{{ loop.index }} & Description \\
+ & \begin{minipage}[t]{15cm}
+{\footnotesize
+{{ script_result['description'] }}
+\medskip }
+\end{minipage}
+\\ \cdashline{2-2}
 
       {% if 'example_code' in script_result.custom_field_values %}
-      & Example Code &
-
-      \begin{minipage}[t]{13cm}{\footnotesize
-      {{ script_result.custom_field_values.example_code }}
-      \vspace{\dp0}
-      } \end{minipage} \\
-      \\ \cdashline{2-3}
+ & Example Code \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result.custom_field_values.example_code }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
+      {% endif %}
+      {% if script_result['testdata'] %}
+ & Test Data \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result['testdata'] }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
+      {% endif %}
+      {% if script_result['example_code'] %}
+ & Example Code \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result['example_code'] }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
       {% endif %}
 
-      & Expected Result &
+ & Expected Result \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result['expected_result'] }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
 
-      \begin{minipage}[t]{13cm}{\footnotesize
-      {{ script_result['expected_result'] }}
-      \vspace{\dp0}
-      } \end{minipage} \\
-      \\ \cdashline{2-3}
-
-      & \begin{minipage}[t]{2cm}{Actual\\ Result}\end{minipage}   & 
-      \begin{minipage}[t]{13cm}{\footnotesize
-      {{ script_result['comment'] }}
-      \vspace{\dp0}
-      } \end{minipage} \\
-      \\ \cdashline{2-3}
+ & Actual Result \\
+ & \begin{minipage}[t]{15cm}{\footnotesize
+{{ script_result['comment'] }}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
 
       {% if script_result['result_issues'] %}
-        & Issues        &
-        \begin{minipage}[t]{13cm}{\footnotesize
+ & Issues found executing this step:  \\
+ & \begin{minipage}[t]{13cm}{\footnotesize
         {% for issue in script_result['result_issues'] %}
-          \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
+\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
         {% endfor %}
-        \vspace{\dp0}
-        } \end{minipage} \\
-        \\ \cdashline{2-3}
+\medskip }
+\end{minipage} \\ \cdashline{2-2}
       {% endif %}
-
-      & Status          & {{ script_result['status'] }} \\ \hline
+ & Status: \textbf{ {{ script_result['status'] }} } \\ \hline
 
     {% endfor %}
-    \end{longtable}
+\end{longtable}
 
   {% endfor %}
 {% endfor %}
