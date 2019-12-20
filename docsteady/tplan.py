@@ -140,6 +140,7 @@ def build_tpr_model(tplan_id):
         test_results_map[cycle_key] = {}
         for result in testresults:
             result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
+            # result['sorted'] = result['script_results']
             test_results_map[cycle_key][result['test_case_key']] = result
 
         # Get all the test cases from the test items

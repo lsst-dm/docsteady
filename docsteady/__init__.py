@@ -201,26 +201,6 @@ def generate_report(format, username, password, trace, plan, path):
     file = open(path, "w") if path else sys.stdout
     print(_as_output_format(text), file=file or sys.stdout)
 
-    # Will exit if it can't find a template
-    appendix_template = _try_appendix_template(target, env)
-    if not appendix_template:
-        click.echo(f"No Appendix Template Found, skipping...", err=True)
-        sys.exit(0)
-
-    metadata["template"] = appendix_template.filename
-    appendix_file = _get_appendix_output(path)
-
-    appendix_text = appendix_template.render(
-        metadata=metadata,
-        testplan=testplan,
-        testcycles=list(testcycles_map.values()),  # For convenience (sorted by item key)
-        testcycles_map=testcycles_map,
-        testresults=list(testresults_map.values()),  # For convenience (sorted by item key)
-        testresults_map=testresults_map,
-        testcases_map=testcases_map)
-
-    print(_as_output_format(appendix_text), file=appendix_file)
-
     if trace:
         # Will exit if it can't find a template
         appendix_template = _try_appendix_template(target, env)

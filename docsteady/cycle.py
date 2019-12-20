@@ -149,7 +149,7 @@ class TestResult(Schema):
         # Need to do this here because we need result_issue_keys _and_ key
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
-        data['script_results'] = sorted(data["script_results"], key=lambda i: i["index"])
+        data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
         return data
 
     def process_issues(self, data):

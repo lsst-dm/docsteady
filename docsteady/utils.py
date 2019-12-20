@@ -145,9 +145,7 @@ def download_and_rewrite_images(value):
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
-        # print(img)
-        img_style = urljoin(rest_location, img["style"])
-        img_width = re.sub('[^0-9]','', img_style)
+        img_width = re.sub('[^0-9]', '', img["style"])
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path)
