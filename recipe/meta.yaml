@@ -16,34 +16,35 @@ build:
 
 requirements:
   host:
-    - python
-    - pip
-    - click
     - arrow
+    - BeautifulSoup4
+    - click
+    - jinja2
     - marshmallow 2.18
+    - pillow
+    - pip
+    - pandoc 1.19.2.1
+    - pymysql
+    - pypandoc
+    - python 3.7.*
+    - requests
     - setuptools_scm
     - sphinx
-    - sphinx-click
-    - sphinx-rtd-theme
-    - requests
-    - jinja2
-    - BeautifulSoup4
-    - pyandoc
-    - pandoc 1.19.1
-    - pymysql
-    - pillow
+    - pip:
+        - sphinx-click
+        - sphinx-rtd-theme
   run:
-    - python
-    - requests
-    - jinja2
-    - click
-    - BeautifulSoup4
-    - marshmallow 2.18
-    - pyandoc
     - arrow
-    - pandoc 1.19.1
-    - pymysql
+    - BeautifulSoup4
+    - click
+    - jinja2
+    - marshmallow 2.18
     - pillow
+    - pandoc 1.19.2.1
+    - pymysql
+    - pypandoc
+    - python 3.7.*
+    - requests
 
 about:
   home: https://github.com/lsst-dm/docsteady
