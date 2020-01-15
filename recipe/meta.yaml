@@ -24,14 +24,11 @@ requirements:
     - pillow
     - pip
     - pandoc 1.19.2.1
+    - pyandoc
     - pymysql
-    - pypandoc
     - python 3.7.*
     - requests
     - setuptools_scm
-    - sphinx
-    - sphinx-click
-    - sphinx-rtd-theme
   run:
     - arrow
     - BeautifulSoup4

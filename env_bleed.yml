@@ -1,0 +1,18 @@
+#
+name: docsteady-dev-bleed
+channels:
+    - defaults
+dependencies:
+    - arrow
+    - BeautifulSoup4
+    - click
+    - jinja2
+    - marshmallow 2.18
+    - pillow
+    - pip
+    - pandoc 1.19.2.1
+    - pymysql
+    - pyandoc
+    - python 3.7.*
+    - requests
+    - setuptools_scm
