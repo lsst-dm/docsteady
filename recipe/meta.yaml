@@ -30,9 +30,8 @@ requirements:
     - requests
     - setuptools_scm
     - sphinx
-    - pip:
-        - sphinx-click
-        - sphinx-rtd-theme
+    - sphinx-click
+    - sphinx-rtd-theme
   run:
     - arrow
     - BeautifulSoup4
