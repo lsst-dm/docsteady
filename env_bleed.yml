@@ -12,7 +12,6 @@ dependencies:
     - pip
     - pandoc 1.19.2.1
     - pymysql
-    - pyandoc
     - python 3.7.*
     - requests
     - setuptools_scm

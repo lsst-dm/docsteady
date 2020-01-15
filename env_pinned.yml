@@ -31,7 +31,6 @@ dependencies:
   - pandoc=1.19.2.1=ha5e8f32_1
   - pillow=7.0.0=py37h4655f20_0
   - pip=19.3.1=py37_0
-  - pyandoc=0.2.0=py37_1
   - pycparser=2.19=py37_0
   - pymysql=0.9.3=py37_0
   - pyopenssl=19.1.0=py37_0

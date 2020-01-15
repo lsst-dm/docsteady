@@ -24,7 +24,6 @@ requirements:
     - pillow
     - pip
     - pandoc 1.19.2.1
-    - pyandoc
     - pymysql
     - python 3.7.*
     - requests
@@ -37,7 +36,6 @@ requirements:
     - marshmallow 2.18
     - pillow
     - pandoc 1.19.2.1
-    - pyandoc
     - pymysql
     - python 3.7.*
     - requests
