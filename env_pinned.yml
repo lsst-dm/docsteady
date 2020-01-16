@@ -34,6 +34,7 @@ dependencies:
   - pycparser=2.19=py37_0
   - pymysql=0.9.3=py37_0
   - pyopenssl=19.1.0=py37_0
+  - pypandoc=1.4=py37_1
   - pysocks=1.7.1=py37_0
   - python=3.7.6=h359304d_2
   - python-dateutil=2.8.1=py_0

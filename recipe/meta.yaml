@@ -25,6 +25,7 @@ requirements:
     - pip
     - pandoc 1.19.2.1
     - pymysql
+    - pypandoc
     - python 3.7.*
     - requests
     - setuptools_scm
@@ -37,6 +38,7 @@ requirements:
     - pillow
     - pandoc 1.19.2.1
     - pymysql
+    - pypandoc
     - python 3.7.*
     - requests
 
