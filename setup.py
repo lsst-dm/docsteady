@@ -2,6 +2,7 @@ from setuptools import setup
 
 requires = [
     'requests',
+    'pypandoc',
     'arrow',
     'jinja2',
     'click',
