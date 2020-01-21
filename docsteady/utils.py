@@ -32,7 +32,6 @@ from marshmallow import fields
 import pypandoc
 
 from .config import Config
-from PIL import Image
 import requests
 from urllib.parse import *
 
@@ -240,6 +239,7 @@ def get_folders(target_folder):
             if len(child["children"]):
                 collect_children(child["children"], child_path, folders)
     resp = requests.get(Config.FOLDERTREE_API, auth=Config.AUTH)
+    resp.raise_for_status()
     foldertree_json = resp.json()
 
     folders = []
