@@ -226,6 +226,7 @@ def build_spec_model(folder):
         testcase, errors = TestCase().load(testcase_resp)
         if errors:
             raise Exception("Unable to process errors: " + str(errors))
+        testcase["name"] = testcase["name"].rstrip()
         if testcase["key"] not in Config.CACHED_TESTCASES:
             Config.CACHED_TESTCASES["key"] = testcase
         if testcase['status'] == 'Deprecated':
