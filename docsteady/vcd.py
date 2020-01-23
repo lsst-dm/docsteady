@@ -84,7 +84,7 @@ class Coverage_Count:
 def runstatus(trs):
     if trs == "Pass":
         status = 'passed'
-    elif trs == "Conditional Pass":
+    elif trs == "Pass w/ Deviation":
         status = 'cndpass'
     elif trs == "Fail":
         status = 'failed'
@@ -694,9 +694,18 @@ def vcdsql(comp, usr, pwd, RSP):
                     if ve['tcs'][tc]['tspec'] == test_f or test_f == "":
                         tc_number = int(tc[5:])  # strip off LVV-T
                         lastR = ve['tcs'][tc]['lastR']
+                        if lastR and "status" in lastR.keys():
+                            if lastR["status"] not in ('passed', 'notexec', 'failed'):
+                                print(lastR["status"])
                         executed[tc_number] = lastR is not None and (
                         lastR['status'] == "passed" or lastR['status'] == "cndpass")
-                        by_priority[ve['Requirement Priority']][tc_number] = 1
+                        if 'Requirement Priority' in ve.keys():
+                            by_priority[ve['Requirement Priority']][tc_number] = 1
+                            # print(ve)
+                        else:
+                            print("No Req Priority for VE", ve["jkey"], ". Looking for VE priority.")
+                            if "priority" in ve.keys() and ve['priority'] != "Undefined":
+                                by_priority[ve['priority']][tc_number] = 1
         for priority in sorted(by_priority.keys()):
             print(f"Priority: {priority}")
             tc_list = []
