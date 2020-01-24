@@ -21,9 +21,6 @@
 import os
 import re
 
-import pandoc
-
-
 class Config:
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
     JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
@@ -49,7 +46,6 @@ class Config:
     AUTH = None
     REQID_FIELD = "customfield_12001"
     HIGH_LEVEL_REQS_FIELD = "customfield_13515"
-    DOC = pandoc.Document()
     OUTPUT_FORMAT = None
     CACHED_TESTCASES = {}
     CACHED_LIBTESTCASES = {}

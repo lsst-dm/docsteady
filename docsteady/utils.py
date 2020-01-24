@@ -29,9 +29,9 @@ from os.path import dirname, exists
 import arrow
 from bs4 import BeautifulSoup
 from marshmallow import fields
+import pypandoc
 
 from .config import Config
-from PIL import Image
 import requests
 from urllib.parse import *
 
@@ -47,8 +47,7 @@ class HtmlPandocField(fields.String):
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             value = download_and_rewrite_images(value)
-            Config.DOC.html = value.encode("utf-8")
-            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+            value = pypandoc.convert_text(value, Config.TEMPLATE_LANGUAGE, format="html")
             if Config.TEMPLATE_LANGUAGE == 'latex':
                 value = cite_docushare_handles(value)
         return value
@@ -68,8 +67,7 @@ class SubsectionableHtmlPandocField(fields.String):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             value = download_and_rewrite_images(value)
             value = rewrite_strong_to_subsection(value, self.extractable)
-            Config.DOC.html = value.encode("utf-8")
-            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+            value = pypandoc.convert_text(value, Config.TEMPLATE_LANGUAGE, format="html")
             if Config.TEMPLATE_LANGUAGE == 'latex':
                 value = cite_docushare_handles(value)
         return value
@@ -78,7 +76,13 @@ class SubsectionableHtmlPandocField(fields.String):
 def cite_docushare_handles(text):
     """This will find matching docushare handles and replace
     the text with the ``\citeds{text}``."""
-    return Config.DOCUSHARE_DOC_PATTERN.sub(r"\\citeds{\1\2}", text)
+    output_tex = ""
+    for entry in text.split(" "):
+        if not ( "href" in entry or "url" in entry):
+            output_tex = output_tex + " " + Config.DOCUSHARE_DOC_PATTERN.sub(r"\\citeds{\1\2}", entry)
+        else:
+            output_tex = output_tex + " " + entry
+    return output_tex
 
 
 class MarkdownableHtmlPandocField(fields.String):
@@ -91,16 +95,15 @@ class MarkdownableHtmlPandocField(fields.String):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
             value = download_and_rewrite_images(value)
-            soup = BeautifulSoup(value, "html.parser", from_encoding="utf-8")
+            soup = BeautifulSoup(value, "html.parser")
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
             # matches `[markdown]: #` at the top of description
             if re.match("\\[markdown\\].*:.*#(.*)", description_txt.splitlines()[0]):
                 # Assume github-flavored markdown
-                Config.DOC.gfm = description_txt.encode("utf-8")
+                value = pypandoc.convert_text(description_txt, Config.TEMPLATE_LANGUAGE, format="gfm")
             else:
-                Config.DOC.html = value.encode("utf-8")
-            value = getattr(Config.DOC, Config.TEMPLATE_LANGUAGE).decode("utf-8")
+                value = pypandoc.convert_text(value, Config.TEMPLATE_LANGUAGE, format="html")
         return value
 
 
@@ -142,7 +145,7 @@ def test_case_for_key(test_case_key):
 
 
 def download_and_rewrite_images(value):
-    soup = BeautifulSoup(value.encode("utf-8"), "html.parser", from_encoding="utf-8")
+    soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
         img_width = re.sub('[^0-9]', '', img["style"])
@@ -192,7 +195,7 @@ def rewrite_strong_to_subsection(content, extractable):
     """
     # The default is to preserve order,
     preserve_order = True
-    soup = BeautifulSoup(content, "html.parser", from_encoding="utf-8")
+    soup = BeautifulSoup(content, "html.parser")
     element_neighbor_text = ""
     seen_name = None
     shelved = []
@@ -242,6 +245,7 @@ def get_folders(target_folder):
             if len(child["children"]):
                 collect_children(child["children"], child_path, folders)
     resp = requests.get(Config.FOLDERTREE_API, auth=Config.AUTH)
+    resp.raise_for_status()
     foldertree_json = resp.json()
 
     folders = []

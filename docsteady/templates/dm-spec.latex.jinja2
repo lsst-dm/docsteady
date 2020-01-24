@@ -39,8 +39,7 @@ This section documents all active test cases that have a status in the Jira/ATM 
 
 {% for testcase in testcases %}
 
-\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
-    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+\subsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -49,6 +48,7 @@ Version & Status & Priority & Verification Type & Owner
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
 {{ testcase.verification_type }} & {{ testcase.owner }}
 \\\bottomrule
+\multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
 \subsubsection{Verification Elements}
@@ -192,8 +192,7 @@ Also, these test cases shall not call other reusable test cases in their script.
 
 {% for testcase in libtestcases %}
 
-\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
-    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+\subsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -202,6 +201,7 @@ Version & Status & Priority & Verification Type & Owner
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
 {{ testcase.verification_type }} & {{ testcase.owner }}
 \\\bottomrule
+\multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
 \subsubsection{Test Items}
@@ -236,8 +236,7 @@ For this reason it is important to keep them in the baseline as a reference.
 
 {% for testcase in deprecated %}
 
-\subsection{{ '{' }}{{ href(testcase.jira_url, testcase.key) }}
-    - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+\subsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -246,6 +245,7 @@ Version & Status & Priority & Verification Type & Owner
 {{ testcase.version }} & {{ testcase.status }} & {{ testcase.priority }} &
 {{ testcase.verification_type }} & {{ testcase.owner }}
 \\\bottomrule
+\multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
 \subsubsection{Verification Elements}

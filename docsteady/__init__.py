@@ -25,7 +25,6 @@ from tempfile import TemporaryFile
 
 import arrow
 import click
-import pandoc
 from jinja2 import Environment, PackageLoader, TemplateNotFound, ChoiceLoader, FileSystemLoader
 from pkg_resources import get_distribution, DistributionNotFound
 
@@ -40,10 +39,6 @@ try:
 except DistributionNotFound:
     # package is not installed
     pass
-
-# Hack because pandoc doesn't have gfm yet
-pandoc.Document.OUTPUT_FORMATS = tuple(list(pandoc.Document.OUTPUT_FORMATS) + ['gfm'])
-
 
 @click.group()
 @click.option('--namespace', default='dm', help='Project namespace (dm, ts, example, etc..). '
