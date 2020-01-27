@@ -33,6 +33,7 @@ from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
 from .vcd import build_vcd_model, vcdsql, summary
+from .ve_baseline import do_ve_model
 
 try:
     __version__ = get_distribution(__name__).version
@@ -310,3 +311,25 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
 
 if __name__ == '__main__':
     cli()
+
+
+@cli.command("baseline-ve")
+@click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
+@click.option('--password', prompt="Jira Password", hide_input=True,
+              envvar="JIRA_PASSWORD", help="Jira Password")
+@click.argument('component')
+@click.argument('subcomponent')
+@click.argument('path', required=False, type=click.Path())
+def baseline_ve(format, username, password, component, subcomponent, path):
+    """Given a specific subsystem (component), and subcomponent,
+    a document is generated including all corresponding Verification Elements
+    and related Test Cases.
+    This is not a Verification Control Document: no Test Result information is provided
+    """
+    global OUTPUT_FORMAT
+    OUTPUT_FORMAT = format
+    Config.AUTH = (username, password)
+    target = "ve"
+
+    ve_model = do_ve_model(component, subcomponent)
