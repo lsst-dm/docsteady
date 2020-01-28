@@ -55,14 +55,14 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(key, ", ", end="", flush=True)
-    # print(key)
+    # print(key, end=" ", flush=True)
+    print(" - ", key)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
     ve_details, errors = VerificationE().load(jve_res)
     ve_details["summary"] = ve_details["summary"].strip()
-    # @post_load is not working, try to populate test_cases
+    # @post_load is not working, try to populate test_cases and upper level reqs
     if "raw_test_cases" in ve_details.keys():
         if ve_details["raw_test_cases"] != "":
             # print(" - raw - ", ve_details["raw_test_cases"])
@@ -84,10 +84,11 @@ def get_ve_details(rs, key):
             for ur in ureqs:
                 # print("   - ", ur)
                 urs = ur.split('textbar')
-                u_id = urs[0].strip('{[]}\\')
+                u_id = urs[0].lstrip('\{\[\}.- ').rstrip('\\')
                 urs = ur.split(':\n')
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
+                print(upper)
                 ve_details["upper_reqs"].append(upper)
 
     return ve_details

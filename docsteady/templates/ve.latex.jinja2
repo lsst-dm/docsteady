@@ -73,7 +73,34 @@ Upper Level Requirement &
     {% set tc = test_cases[testc[0]] %}
 \subsubsection{[{{ tc.key }}] {{ tc.name }} }
 
+\begin{longtable}{cccccc}
+\hline
+\multicolumn{6}{c}{\textbf{Test Case Suppary}} \\ \hline
+\textbf{Jira Link} & \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} &
+\textbf{Verification Type} \\ \hline
+{{ atmtc(tc.key) }} &
+{{ tc.woner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
+\\ \hline
+\end{longtable}
+
+\textbf{Objective:} \\
 {{ tc.objective }}
+
+    {% if tc.precondition %}
+\textbf{Precondition:} \\
+{{ tc.precondition }}
+    {% endif %}
+
+    {% if tc.predecessors %}
+\textbf{Predecessors:} \\
+{{ tc.predecessors }}
+    {% endif %}
+
+    {% if tc.test_personnel %}
+\textbf{Test Personnel:} \\
+{{ tc.test_personnel }}
+    {% endif %}
+
   {% endfor %}
 
 {% endfor %}
