@@ -28,23 +28,25 @@ import re
 from marshmallow import Schema, fields, pre_load, post_load
 
 from .config import Config
-from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec
+from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec, HtmlPandocField
 
 
 class VerificationE(Schema):
     key = fields.String(required=True)
-    summary = MarkdownableHtmlPandocField()
+    summary = HtmlPandocField()
     jira_url = fields.String()
     assignee = fields.String()
-    description = MarkdownableHtmlPandocField()
+    description = HtmlPandocField()
     ve_status = fields.String()
     ve_priority = fields.String()
     req_id = fields.String()
-    req_spec = MarkdownableHtmlPandocField()
-    req_discussion = MarkdownableHtmlPandocField()
+    req_spec = HtmlPandocField()
+    req_discussion = HtmlPandocField()
     req_priority = fields.String()
-    upper_req = MarkdownableHtmlPandocField()
-    raw_test_cases = MarkdownableHtmlPandocField()
+    req_params = HtmlPandocField()
+    raw_upper_req = HtmlPandocField()
+    upper_reqs = fields.List(fields.String(), missing=list())
+    raw_test_cases = HtmlPandocField()
     test_cases = fields.List(fields.String(), missing=list())
 
     @pre_load(pass_many=False)
@@ -55,31 +57,15 @@ class VerificationE(Schema):
         data["assignee"] = data_fields["assignee"]["displayName"]
         data["description"] = data_fields["description"]
         data["ve_status"] = data_fields["status"]["name"]
-        data["ve_priority"] = data_fields["priority"]
+        data["ve_priority"] = data_fields["priority"]["name"]
+        data["req_params"] = data_fields["customfield_13512"]
         data["req_id"] = data_fields["customfield_15502"]
         data["req_spec"] = data_fields["customfield_13513"]
         data["req_discussion"] = data_fields["customfield_13510"]
         data["req_priority"] = data_fields["customfield_15204"]["value"]
-        data["upper_req"] = data_fields["customfield_13515"]
+        data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
         return data
-
-    @post_load
-    def postprocess(self, data):
-        # to extract test case key and summary
-        data['test_cases'] = self.process_test_cases(data)
-        return data
-
-    def process_test_cases(self, data):
-        test_cases = []
-        if "raw_test_cases" in data:
-            regex = r"\{(.*?)|}"
-            matches = re.findall(regex, data["raw_test_cases"])
-            for matchNum, match in enumerate(matches):
-                if matchNum % 2 == 0:
-                    continue
-                test_cases.append(match)
-        return test_cases
 
 
 class Coverage_Count:
@@ -444,7 +430,7 @@ def get_ves(comp, jc):
 
 
 def get_tspec_r(jc, fid):
-    """recursively browse the folders until findind the test spec of the root (NULL)"""
+    """recursively browse the folders until finding the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(jc, query)

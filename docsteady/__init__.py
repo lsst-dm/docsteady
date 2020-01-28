@@ -333,3 +333,33 @@ def baseline_ve(format, username, password, component, subcomponent, path):
     target = "ve"
 
     ve_model = do_ve_model(component, subcomponent)
+
+    # for ve in ve_model:
+    #    print(ve, ve_model[ve]["upper_reqs"])
+
+    file = open(path, "w") if path else sys.stdout
+
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(Config.TEMPLATE_DIRECTORY),
+        PackageLoader('docsteady', 'templates')
+        ]),
+        lstrip_blocks=True, trim_blocks=True,
+        autoescape=None
+    )
+
+    try:
+        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template = env.get_template(template_path)
+    except TemplateNotFound as e:
+        click.echo(f"No Template Found: {template_path}", err=True)
+        sys.exit(1)
+
+    metadata = _metadata()
+    metadata["component"] = component
+    metadata["subcomponent"] = subcomponent
+    metadata["template"] = template.filename
+    text = template.render(metadata=metadata,
+                           velements=ve_model,
+                           test_cases=Config.CACHED_TESTCASES)
+
+    print(_as_output_format(text), file=file)

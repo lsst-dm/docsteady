@@ -1,0 +1,79 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro atmtc(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do not edit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{ {{ metadata.component }} {{ metadata.subcomponent }} Verification Elements }
+{{ label("sec:ves") }}
+
+Follows the list of verification elements defined in the context of {{ metadata.component }} subsystem,
+{{ metadata.subcomponent }} component.
+
+{% for vek in velements %}
+{% set ve = velements[vek] %}
+\newpage
+\subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
+
+\begin{longtable}{ccccc}
+\hline
+\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Priority} & \textbf{Test Cases}\\ \hline
+\href{{ curlies(ve.jira_url) }}{{ curlies(ve.key) }} &
+{{ ve.assignee }} & {{ ve.ve_status }} & {{ ve.ve_priority }} &
+\begin{tabular}{c}
+  {% for tc in ve.test_cases %}
+{{ tc[0] }} \\
+  {% endfor %}
+\end{tabular}
+\\
+\hline
+\end{longtable}
+
+\textbf{Verification Element Description:} \\
+{{ ve.description }}
+
+{\footnotesize
+\begin{longtable}{p{3cm}p{13cm}}
+\hline
+\multicolumn{2}{c}{\textbf{Upstream Requirements}}\\ \hline
+Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
+Requirement Description & {{ ve.req_spec }} \\ \cdashline{1-2}
+  {% if ve.req_params %}
+Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
+  {% endif %}
+  {% if ve.req_discussion %}
+Requirement Discussion & {{ ve.req_discussion }} \\ \cdashline{1-2}
+  {% endif %}
+Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
+Upper Level Requirement &
+\begin{tabular}{cl}
+  {% for ureq in ve.upper_reqs %}
+{{ ureq[0] }} & {{ ureq[1] }} \\
+  {% endfor %}
+\end{tabular}
+\\ \hline
+\end{longtable}
+}
+
+  {% for testc in ve.test_cases %}
+    {% set tc = test_cases[testc[0]] %}
+\subsubsection{[{{ tc.key }}] {{ tc.name }} }
+
+{{ tc.objective }}
+  {% endfor %}
+
+{% endfor %}

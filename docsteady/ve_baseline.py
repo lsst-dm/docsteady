@@ -23,11 +23,29 @@ Subroutines required to baseline the Verification Elements
 """
 
 import requests
+import re
 from base64 import b64encode
 
 from .config import Config
 from .vcd import VerificationE
+from .spec import TestCase
 
+
+def get_testcase(rs, tckey):
+    """
+
+    :param rs:
+    :param key:
+    :return:
+    """
+    tc_detail = dict()
+    # print(Config.TESTCASE_URL.format(testcase=tckey))
+    tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
+    jtc_res = tc_res.json()
+    tc_detail, error = TestCase().load(jtc_res)
+    # print(tc_detail)
+
+    return tc_detail
 
 def get_ve_details(rs, key):
     """
@@ -37,12 +55,40 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(Config.ISSUE_URL.format(issue=key))
+    print(key, ", ", end="", flush=True)
+    # print(key)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
     ve_details, errors = VerificationE().load(jve_res)
-    print(" - ", ve_details["raw_test_cases"])
+    ve_details["summary"] = ve_details["summary"].strip()
+    # @post_load is not working, try to populate test_cases
+    if "raw_test_cases" in ve_details.keys():
+        if ve_details["raw_test_cases"] != "":
+            # print(" - raw - ", ve_details["raw_test_cases"])
+            # regex to get content between {}
+            regex = r"\{([^}]+)\}"
+            matches = re.findall(regex, ve_details["raw_test_cases"])
+            # print(" - matches - ", matches)
+            for matchNum, match in enumerate(matches):
+                if matchNum % 2 == 1:
+                    tc_split = match.split(":")
+                    tc_split[1] = tc_split[1].strip().replace("\n", " ")
+                    ve_details["test_cases"].append(tc_split)
+                    if tc_split[0] not in Config.CACHED_TESTCASES:
+                        Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(rs, tc_split[0])
+    if "raw_upper_req" in ve_details.keys():
+        if ve_details["raw_upper_req"] != "":
+            # print(" - ", ve_details["raw_upper_req"])
+            ureqs = ve_details["raw_upper_req"].split(',\n')
+            for ur in ureqs:
+                # print("   - ", ur)
+                urs = ur.split('textbar')
+                u_id = urs[0].strip('{[]}\\')
+                urs = ur.split(':\n')
+                u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
+                upper = (u_id, u_sum)
+                ve_details["upper_reqs"].append(upper)
 
     return ve_details
 
@@ -55,7 +101,7 @@ def get_ves(rs, cmp, subcmp):
     :param subcmp:
     :return:
     """
-    ve_list = []
+    # ve_list = []
     ve_details = dict()
 
     max = 1000
@@ -63,11 +109,12 @@ def get_ves(rs, cmp, subcmp):
     result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp,subcmp=subcmp,maxR=max))
     jresult=result.json()
     for i in jresult["issues"]:
-        ve_list.append(i["key"])
+        # ve_list.append(i["key"])
         ve_details[i["key"]] = get_ve_details(rs, i["key"])
+    print("")
     # need to hiterate if there are more issues than max
 
-    return ve_list
+    return ve_details
 
 
 def do_ve_model(component, subcomponent):
@@ -80,7 +127,7 @@ def do_ve_model(component, subcomponent):
 
     ves = dict()
 
-    print(f"Looking for all Verificatino element in component {component}, sub-component {subcomponent}.")
+    print(f"Looking for all Verification Elements in component {component}, sub-component {subcomponent}.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
@@ -95,6 +142,8 @@ def do_ve_model(component, subcomponent):
 
     # get all VEs details
     ves = get_ves(rs, component, subcomponent)
+
+    print(" Found ", len(ves), " Verification Elements.")
 
     # need to get the corresponding test cases
 
