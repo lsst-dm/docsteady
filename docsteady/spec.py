@@ -120,7 +120,7 @@ class TestCase(Schema):
         _set_if("verification_type", "Verification Type")
         _set_if("verification_configuration", "Verification Configuration")
         _set_if("predecessors", "Predecessors")
-        _set_if("critical_event", "Critical Event?")
+        _set_if("critical_event", "Critical Event")
         _set_if("associated_risks", "Associated Risks")
         _set_if("unit_under_test", "Unit Under Test")
         _set_if("required_software", "Required Software")

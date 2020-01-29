@@ -50,7 +50,7 @@ class HtmlPandocField(fields.String):
             value = pypandoc.convert_text(value, Config.TEMPLATE_LANGUAGE, format="html")
             if Config.TEMPLATE_LANGUAGE == 'latex':
                 value = cite_docushare_handles(value)
-        return value
+        return value.strip()
 
 
 class SubsectionableHtmlPandocField(fields.String):

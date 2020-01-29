@@ -52,10 +52,10 @@ Follows the list of verification elements defined in the context of {{ metadata.
 \multicolumn{2}{c}{\textbf{Upstream Requirements}}\\ \hline
 Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
 Requirement Description & {{ ve.req_spec }} \\ \cdashline{1-2}
-  {% if ve.req_params %}
+  {% if ve.req_params|length %}
 Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
   {% endif %}
-  {% if ve.req_discussion %}
+  {% if ve.req_discussion|length %}
 Requirement Discussion & {{ ve.req_discussion }} \\ \cdashline{1-2}
   {% endif %}
 Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
@@ -79,24 +79,24 @@ Upper Level Requirement &
 \textbf{Jira Link} & \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} &
 \textbf{Verification Type} \\ \hline
 {{ atmtc(tc.key) }} &
-{{ tc.woner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
+{{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
 \\ \hline
 \end{longtable}
 
 \textbf{Objective:} \\
 {{ tc.objective }}
 
-    {% if tc.precondition %}
+    {% if tc.precondition != "" %}
 \textbf{Precondition:} \\
 {{ tc.precondition }}
     {% endif %}
 
-    {% if tc.predecessors %}
+    {% if tc.predecessors != "" %}
 \textbf{Predecessors:} \\
 {{ tc.predecessors }}
     {% endif %}
 
-    {% if tc.test_personnel %}
+    {% if tc.test_personnel != "" %}
 \textbf{Test Personnel:} \\
 {{ tc.test_personnel }}
     {% endif %}
@@ -104,3 +104,38 @@ Upper Level Requirement &
   {% endfor %}
 
 {% endfor %}
+
+\newpage
+\appendix
+\section{Traceability}
+\label{sec:trace}
+
+\begin{longtable}{ccc}
+\hline
+\textbf{Requirements} & \textbf{Verification Elements} & \textbf{Test Cases} \\ \hline
+{% for req in reqs %}
+{{ req }} &
+   {% set nve = reqs[req]|length %}
+   {% for vek in reqs[req] %}
+      {% set rowloop = loop %}
+      {% set ve = velements[vek] %}
+      {% if rowloop.index != 1 %}
+ & {{ vek }}({\scriptsize {{ ve.assignee}} }) &
+      {% else %}
+ {{ vek }}({\scriptsize {{ ve.assignee}} }) &
+      {% endif %}
+      {% for testc in ve.test_cases %}
+         {% set tc = test_cases[testc[0]] %}
+         {% if loop.index != 1 %}
+ & & {{ tc.key }} ({\scriptsize {{ ve.assignee}} }) \\
+         {% else %}
+ {{ tc.key }} ({\scriptsize {{ ve.assignee}} }) \\
+         {% endif %}
+      {% endfor %}
+      {% if rowloop.index != nve %}
+\cdashline{2-3}
+      {% endif %}
+   {% endfor %}
+\hline
+{% endfor %}
+\end{longtable}

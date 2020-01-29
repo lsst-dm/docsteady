@@ -334,9 +334,6 @@ def baseline_ve(format, username, password, component, subcomponent, path):
 
     ve_model = do_ve_model(component, subcomponent)
 
-    # for ve in ve_model:
-    #    print(ve, ve_model[ve]["upper_reqs"])
-
     file = open(path, "w") if path else sys.stdout
 
     env = Environment(loader=ChoiceLoader([
@@ -360,6 +357,7 @@ def baseline_ve(format, username, password, component, subcomponent, path):
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
                            velements=ve_model,
+                           reqs=Config.CACHED_REQS_FOR_VES,
                            test_cases=Config.CACHED_TESTCASES)
 
     print(_as_output_format(text), file=file)

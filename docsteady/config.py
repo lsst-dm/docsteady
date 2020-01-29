@@ -26,7 +26,7 @@ class Config:
     JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
     ATMT_API = f"{JIRA_INSTANCE}/rest/tests/1.0"
-    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}"
+    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
     USER_URL = f"{JIRA_API}/user?username={{username}}"
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
@@ -51,7 +51,8 @@ class Config:
     CACHED_TESTCASES = {}
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
-    CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
+    CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue] --> this should be renamed in CACHED_VERIFICATIONELEMENTS
+    CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"

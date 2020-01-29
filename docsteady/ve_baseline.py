@@ -38,12 +38,10 @@ def get_testcase(rs, tckey):
     :param key:
     :return:
     """
-    tc_detail = dict()
     # print(Config.TESTCASE_URL.format(testcase=tckey))
     tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
     jtc_res = tc_res.json()
     tc_detail, error = TestCase().load(jtc_res)
-    # print(tc_detail)
 
     return tc_detail
 
@@ -55,17 +53,17 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    # print(key, end=" ", flush=True)
-    print(" - ", key)
+    print(key, end=" ", flush=True)
+    # print(" - ", key)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
     ve_details, errors = VerificationE().load(jve_res)
     ve_details["summary"] = ve_details["summary"].strip()
-    # @post_load is not working, try to populate test_cases and upper level reqs
+    # @post_load is not working
+    # populate test_cases from raw_test_cases
     if "raw_test_cases" in ve_details.keys():
         if ve_details["raw_test_cases"] != "":
-            # print(" - raw - ", ve_details["raw_test_cases"])
             # regex to get content between {}
             regex = r"\{([^}]+)\}"
             matches = re.findall(regex, ve_details["raw_test_cases"])
@@ -77,19 +75,21 @@ def get_ve_details(rs, key):
                     ve_details["test_cases"].append(tc_split)
                     if tc_split[0] not in Config.CACHED_TESTCASES:
                         Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(rs, tc_split[0])
+    # populate upper level reqs from raw_upper_reqs
     if "raw_upper_req" in ve_details.keys():
         if ve_details["raw_upper_req"] != "":
-            # print(" - ", ve_details["raw_upper_req"])
             ureqs = ve_details["raw_upper_req"].split(',\n')
             for ur in ureqs:
-                # print("   - ", ur)
                 urs = ur.split('textbar')
                 u_id = urs[0].lstrip('\{\[\}.- ').rstrip('\\')
                 urs = ur.split(':\n')
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
-                print(upper)
                 ve_details["upper_reqs"].append(upper)
+    # cache reqs
+    if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
+         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
+    Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
 
     return ve_details
 
