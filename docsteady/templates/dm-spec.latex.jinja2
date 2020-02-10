@@ -160,7 +160,7 @@ Version & Status & Priority & Verification Type & Owner
             {% if step.example_code %}
                 & Example Code &
                 \begin{minipage}[t]{13cm}{\footnotesize
-                \texttt{ {{ step.example_code }} }
+                {{ step.example_code }}
                 \vspace{\dp0}
                 } \end{minipage} \\ \cline{2-3}
             {% endif %}
@@ -216,12 +216,87 @@ Version & Status & Priority & Verification Type & Owner
 {% endfor %}
 {% endif %}
 
+\subsubsection{Test Procedure}
+{% if testcase.test_script %}
+    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
+    %\toprule
+    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+    \endhead
+    {% for step in testcase.test_script %}
+        {% set rowloop = loop %}
+        {% if step.test_case_key %}
+            {% set step_testcase = testcases_map[step.test_case_key] %}
+            {% for substep in step_testcase.test_script %}
+
+                \multirow{3}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
+                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
+                {{ curlies(step_testcase.key) }} } } }
+
+                & {\small Description} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {{ substep.description }}
+                \vspace{\dp0}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Test Data} &
+                \begin{minipage}[t]{13cm}{\scriptsize
+                {% if substep.test_data %}
+                    {{ substep.test_data }}
+                    \vspace{\dp0}
+                {% endif %}
+                } \end{minipage} \\ \cdashline{2-3}
+                & {\small Expected Result} &
+                {% if substep.expected_result %}
+                    \begin{minipage}[t]{13cm}{\scriptsize
+                    {{ substep.expected_result }}
+                    \vspace{\dp0}
+                    } \end{minipage}
+                {% endif %}
+                \\ \hdashline
+
+            {% endfor %}
+
+        {% else %}
+
+            \multirow{3}{*}{ {{ rowloop.index }} } & Description &
+            \begin{minipage}[t]{13cm}{\footnotesize
+            {{ step.description }}
+            \vspace{\dp0}
+            } \end{minipage} \\ \cline{2-3}
+            & Test Data &
+            \begin{minipage}[t]{13cm}{\footnotesize
+            {% if step.test_data %}
+                {{ step.test_data }}
+                \vspace{\dp0}
+            {% else %}
+                No data.
+                \vspace{\dp0}
+            {% endif %}
+            } \end{minipage} \\ \cline{2-3}
+            {% if step.example_code %}
+                & Example Code &
+                \begin{minipage}[t]{13cm}{\footnotesize
+                {{ step.example_code }}
+                \vspace{\dp0}
+                } \end{minipage} \\ \cline{2-3}
+            {% endif %}
+            & Expected Result &
+            {% if step.expected_result %}
+                \begin{minipage}[t]{13cm}{\footnotesize
+                {{ step.expected_result }}
+                \vspace{\dp0}
+                } \end{minipage}
+            {% endif %}
+        {% endif %}
+        \\ \midrule
+    {% endfor %}
+    \end{longtable}
+{% endif %}
+
 {% endfor %}
 
 {% else %}
   \textit{No reusable test cases found.}
 {% endif %}
-
 
 
 
