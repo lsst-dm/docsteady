@@ -112,13 +112,15 @@ def generate_spec(format, username, password, folder, path):
         click.echo(f"No Template Found: {template_path}", err=True)
         sys.exit(1)
 
+    libtestcases = sorted(Config.CACHED_LIBTESTCASES.values(), key=lambda testc: testc["keyid"])
+
     metadata = _metadata()
     metadata["folder"] = folder
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
                            testcases=testcases['active'],
                            deprecated=testcases['deprecated'],
-                           libtestcases=Config.CACHED_LIBTESTCASES.values(),
+                           libtestcases=libtestcases,
                            requirements_to_testcases=requirements_to_testcases,
                            requirements_map=requirements,
                            testcases_map=Config.CACHED_TESTCASES)

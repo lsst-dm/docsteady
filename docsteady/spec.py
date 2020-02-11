@@ -70,6 +70,7 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
+    keyid = fields.Integer()
     name = HtmlPandocField(required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     owner_id = fields.String(load_from="owner", required=True)
@@ -135,6 +136,8 @@ class TestCase(Schema):
     def postprocess(self, data):
         # Need to do this here because we need requirement_issue_keys _and_ key
         data['requirements'] = self.process_requirements(data)
+        # need the numeric key of the test case
+        data['keyid'] = int(data["key"].strip("LVV-T"))
         return data
 
     def process_requirements(self, data):

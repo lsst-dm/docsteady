@@ -216,6 +216,35 @@ Version & Status & Priority & Verification Type & Owner
 {% endfor %}
 {% endif %}
 
+{% if testcase.predecessors %}
+\subsubsection{Predecessors}
+{{ testcase.predecessors }}
+{% endif %}
+
+{% if testcase.required_software or testcase.test_equipment %}
+\subsubsection{Environment Needs}
+{% endif %}
+
+{% if testcase.required_software %}
+\paragraph{Software}
+{{ testcase.required_software }}
+{% endif %}
+
+{% if testcase.test_equipment %}
+\paragraph{Hardware}
+{{ testcase.test_equipment }}
+{% endif %}
+
+{% if testcase.precondition %}
+\subsubsection{Input Specification}
+{{ testcase.precondition }}
+{% endif %}
+
+{% if testcase.postcondition %}
+\subsubsection{Output Specification}
+{{ testcase.postcondition }}
+{% endif %}
+
 \subsubsection{Test Procedure}
 {% if testcase.test_script %}
     \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
