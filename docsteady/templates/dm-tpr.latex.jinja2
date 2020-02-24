@@ -169,10 +169,10 @@ The personnel involved in the test campaign are shown in the following table.
 
 \begin{longtable}{p{2cm}p{2.5cm}p{9cm}p{2.5cm}}
 \toprule
-\multicolumn{3}{l}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
+\multicolumn{3}{p{13.5cm}}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
 {% for cycle in testcycles %}
 
-  \multicolumn{3}{l}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
+  \multicolumn{3}{p{13.5cm}}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
 
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
 
