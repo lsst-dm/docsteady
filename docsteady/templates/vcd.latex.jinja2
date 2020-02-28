@@ -1,40 +1,44 @@
 {%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro label(text) -%}
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro hyperlink(text) -%}
 \hyperlink{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro hypertarget(text) -%}
 \hypertarget{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro ndr(text) -%}
 \vcdDocRef{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro njr(text) -%}
 \vcdJiraRef{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{######################################}
 {%- macro atmtc(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
+{######################################}
 {%- macro atmtp(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
+{######################################}
 {%- macro atmcycle(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
+{######################################}
+
 
 
 
