@@ -113,23 +113,20 @@ Upper Level Requirement &
 \hline
 \textbf{Requirements} & \textbf{Verification Elements} & \textbf{Test Cases} \\ \hline
 {% for req in reqs %}
-{{ req }} &
    {% set nve = reqs[req]|length %}
    {% for vek in reqs[req] %}
       {% set rowloop = loop %}
       {% set ve = velements[vek] %}
-      {% if rowloop.index != 1 %}
- & {{ vek }}({\scriptsize {{ ve.assignee}} }) &
-      {% else %}
- {{ vek }}({\scriptsize {{ ve.assignee}} }) &
-      {% endif %}
       {% for testc in ve.test_cases %}
          {% set tc = test_cases[testc[0]] %}
-         {% if loop.index != 1 %}
- & & {{ tc.key }} ({\scriptsize {{ ve.assignee}} }) \\
-         {% else %}
- {{ tc.key }} ({\scriptsize {{ ve.assignee}} }) \\
+         {% if rowloop.index == 1 && loop.index == 1 %}
+ {req}
          {% endif %}
+ &
+         {% if loop.index == 1 %}
+ {{ vek }}({\scriptsize {{ ve.assignee}} })
+         {% endif %}
+ & {{ tc.key }} ({\scriptsize {{ ve.assignee}} }) \\
       {% endfor %}
       {% if rowloop.index != nve %}
 \cdashline{2-3}
