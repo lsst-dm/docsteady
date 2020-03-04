@@ -1,0 +1,130 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+{%- macro atmtc(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do not edit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{ {{ metadata.component }} {{ metadata.subcomponent }} Verification Elements }
+{{ label("sec:ves") }}
+
+The following is the list of verification elements defined in the context of the {{ metadata.subcomponent }} component of the {{ metadata.component }} subsystem.
+
+{% for vek in velements %}
+{% set ve = velements[vek] %}
+\newpage
+\subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
+
+\begin{longtable}{ccccc}
+\hline
+\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Priority} & \textbf{Test Cases}\\ \hline
+\href{{ curlies(ve.jira_url) }}{{ curlies(ve.key) }} &
+{{ ve.assignee }} & {{ ve.ve_status }} & {{ ve.ve_priority }} &
+\begin{tabular}{c}
+  {% for tc in ve.test_cases %}
+{{ tc[0] }} \\
+  {% endfor %}
+\end{tabular}
+\\
+\hline
+\end{longtable}
+
+\textbf{Verification Element Description:} \\
+{{ ve.description }}
+
+{\footnotesize
+\begin{longtable}{p{3cm}p{13cm}}
+\hline
+\multicolumn{2}{c}{\textbf{Upstream Requirements}}\\ \hline
+Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
+Requirement Description & {{ ve.req_spec }} \\ \cdashline{1-2}
+  {% if ve.req_params|length %}
+Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
+  {% endif %}
+  {% if ve.req_discussion|length %}
+Requirement Discussion & {{ ve.req_discussion }} \\ \cdashline{1-2}
+  {% endif %}
+Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
+Upper Level Requirement &
+\begin{tabular}{cl}
+  {% for ureq in ve.upper_reqs %}
+{{ ureq[0] }} & {{ ureq[1] }} \\
+  {% endfor %}
+\end{tabular}
+\\ \hline
+\end{longtable}
+}
+
+  {% for testc in ve.test_cases %}
+    {% set tc = test_cases[testc[0]] %}
+\subsubsection{[{{ tc.key }}] {{ tc.name }} }
+
+\begin{longtable}{cccccc}
+\hline
+\multicolumn{6}{c}{\textbf{Test Case Summary}} \\ \hline
+\textbf{Jira Link} & \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} &
+\textbf{Verification Type} \\ \hline
+{{ atmtc(tc.key) }} &
+{{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
+\\ \hline
+\end{longtable}
+
+\textbf{Objective:} \\
+{{ tc.objective }}
+
+    {% if tc.precondition != "" %}
+\textbf{Precondition:} \\
+{{ tc.precondition }}
+    {% endif %}
+
+    {% if tc.predecessors != "" %}
+\textbf{Predecessors:} \\
+{{ tc.predecessors }}
+    {% endif %}
+
+    {% if tc.test_personnel != "" %}
+\textbf{Test Personnel:} \\
+{{ tc.test_personnel }}
+    {% endif %}
+
+  {% endfor %}
+
+{% endfor %}
+
+\newpage
+\appendix
+\section{Traceability}
+\label{sec:trace}
+
+\begin{longtable}{ccc}
+\hline
+\textbf{Requirements} & \textbf{Verification Elements} & \textbf{Test Cases} \\ \hline
+{% for req in reqs %}
+   {% set nve = reqs[req]|length %}
+   {% for vek in reqs[req] %}
+      {% set rowloop = loop %}
+      {% set ve = velements[vek] %}
+      {% for testc in ve.test_cases %}
+         {% set tc = test_cases[testc[0]] %}
+{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
+{{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
+      {% endfor %}
+{% if rowloop.index != nve %} \cdashline{2-3} {% endif %}
+   {% endfor %}
+\hline
+{% endfor %}
+\end{longtable}

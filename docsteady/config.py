@@ -26,7 +26,7 @@ class Config:
     JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
     ATMT_API = f"{JIRA_INSTANCE}/rest/tests/1.0"
-    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}"
+    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
     USER_URL = f"{JIRA_API}/user?username={{username}}"
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
@@ -42,6 +42,7 @@ class Config:
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
     VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511,customfield_13513,customfield_12002,customfield_12206,customfield_13703&maxResults={{maxR}}"
+    VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%20Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -51,6 +52,8 @@ class Config:
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
+                              # TODO: DM-23715 this should be renamed in CACHED_VERIFICATIONELEMENTS
+    CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
     TIMEZONE = "US/Pacific"

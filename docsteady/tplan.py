@@ -78,23 +78,24 @@ class TestPlan(Schema):
         schema definition appropriately.
         """
 
-        # Handle custom fields first
-        custom_fields = data["customFields"]
-
         def _set_if(target_field, custom_field):
             if custom_field in custom_fields:
                 data[target_field] = custom_fields[custom_field]
 
-        _set_if("system_overview", "System Overview")
-        _set_if("verification_environment", "Verification Environment")
-        _set_if("exit_criteria", "Exit Criteria")
-        _set_if("entry_criteria", "Entry Criteria")
-        _set_if("pmcs_activity", "PMCS Activity")
-        _set_if("observing_required", "Observing Required")
-        _set_if("verification_artifacts", "Verification Artifacts")
-        _set_if("overall_assessment", "Overall Assessment")
-        _set_if("recommended_improvements", "Recommended Improvements")
-        # Note: Add More custom fields above here
+        # Handle custom fields first
+        if "customFields" in data.keys():
+            custom_fields = data["customFields"]
+
+            _set_if("system_overview", "System Overview")
+            _set_if("verification_environment", "Verification Environment")
+            _set_if("exit_criteria", "Exit Criteria")
+            _set_if("entry_criteria", "Entry Criteria")
+            _set_if("pmcs_activity", "PMCS Activity")
+            _set_if("observing_required", "Observing Required")
+            _set_if("verification_artifacts", "Verification Artifacts")
+            _set_if("overall_assessment", "Overall Assessment")
+            _set_if("recommended_improvements", "Recommended Improvements")
+            # Note: Add More custom fields above here
 
         # Derived fields
         # Extract milestone information

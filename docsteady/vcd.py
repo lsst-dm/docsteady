@@ -24,23 +24,47 @@ Code for VCD
 
 import pymysql
 import requests
-from marshmallow import Schema, fields, pre_load
+import re
+from marshmallow import Schema, fields, pre_load, post_load
 
-from docsteady.utils import MarkdownableHtmlPandocField, get_tspec
 from .config import Config
-from .utils import jhost, jdb
+from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec, HtmlPandocField
 
 
 class VerificationE(Schema):
     key = fields.String(required=True)
-    summary = MarkdownableHtmlPandocField()
+    summary = HtmlPandocField()
     jira_url = fields.String()
+    assignee = fields.String()
+    description = HtmlPandocField()
+    ve_status = fields.String()
+    ve_priority = fields.String()
+    req_id = fields.String()
+    req_spec = HtmlPandocField()
+    req_discussion = HtmlPandocField()
+    req_priority = fields.String()
+    req_params = HtmlPandocField()
+    raw_upper_req = HtmlPandocField()
+    upper_reqs = fields.List(fields.String(), missing=list())
+    raw_test_cases = HtmlPandocField()
+    test_cases = fields.List(fields.String(), missing=list())
 
     @pre_load(pass_many=False)
     def extract_fields(self, data):
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
+        data["assignee"] = data_fields["assignee"]["displayName"]
+        data["description"] = data['renderedFields']["description"]
+        data["ve_status"] = data_fields["status"]["name"]
+        data["ve_priority"] = data_fields["priority"]["name"]
+        data["req_id"] = data_fields["customfield_15502"]
+        data["req_spec"] = data['renderedFields']["customfield_13513"]
+        data["req_discussion"] = data['renderedFields']["customfield_13510"]
+        data["req_priority"] = data_fields["customfield_15204"]["value"]
+        data["req_params"] = data['renderedFields']["customfield_13512"]
+        data["raw_upper_req"] = data_fields["customfield_13515"]
+        data["raw_test_cases"] = data_fields["customfield_15106"]
         return data
 
 
@@ -406,7 +430,7 @@ def get_ves(comp, jc):
 
 
 def get_tspec_r(jc, fid):
-    """recursively browse the folders until findind the test spec of the root (NULL)"""
+    """recursively browse the folders until finding the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(jc, query)

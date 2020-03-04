@@ -50,7 +50,7 @@ class HtmlPandocField(fields.String):
             value = pypandoc.convert_text(value, Config.TEMPLATE_LANGUAGE, format="html")
             if Config.TEMPLATE_LANGUAGE == 'latex':
                 value = cite_docushare_handles(value)
-        return value
+        return value.strip()
 
 
 class SubsectionableHtmlPandocField(fields.String):
@@ -115,11 +115,17 @@ def owner_for_id(owner_id):
     if owner_id not in Config.CACHED_USERS:
         resp = requests.get(Config.USER_URL.format(username=owner_id),
                             auth=Config.AUTH)
-        resp.raise_for_status()
-        user_resp = resp.json()
-        Config.CACHED_USERS[owner_id] = user_resp
-    user_resp = Config.CACHED_USERS[owner_id]
-    return user_resp["displayName"]
+        if resp.status_code == 404:
+            Config.CACHED_USERS[owner_id] = {'displayName': owner_id}
+            user_resp = {'displayName': owner_id}
+        else:
+            resp.raise_for_status()
+            user_resp = resp.json()
+            Config.CACHED_USERS[owner_id] = user_resp
+    else:
+        user_resp = Config.CACHED_USERS[owner_id]
+    displayName = user_resp['displayName']
+    return displayName
 
 
 def test_case_for_key(test_case_key):

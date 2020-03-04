@@ -1,14 +1,51 @@
 {%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro label(text) -%}
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro write_step(index, from, content) -%}
+\multirow{3}{*}{\parbox{1.3cm}{ {{ index }}
+    {% if from != "" %}
+{\scriptsize from \hyperref[{{ from.lower() }}]{{ curlies(from) }} }
+    {% endif %}
+} }
+& {\small Description} &
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.description }}
+\vspace{\dp0}
+} \end{minipage} \\ \cdashline{2-3}
+& {\small Test Data} &
+    {% if content.test_data %}
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.test_data }}
+\vspace{\dp0}
+} \end{minipage}
+    {% endif %}
+\\ \cdashline{2-3}
+    {% if content.example_code %}
+& Example Code &
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ content.example_code }}
+\vspace{\dp0}
+} \end{minipage} \\ \cline{2-3}
+    {% endif %}
+& {\small Expected Result} &
+    {% if content.expected_result %}
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.expected_result }}
+\vspace{\dp0}
+} \end{minipage}
+    {% endif %}
+\\ \hdashline
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
@@ -160,7 +197,7 @@ Version & Status & Priority & Verification Type & Owner
             {% if step.example_code %}
                 & Example Code &
                 \begin{minipage}[t]{13cm}{\footnotesize
-                \texttt{ {{ step.example_code }} }
+                {{ step.example_code }}
                 \vspace{\dp0}
                 } \end{minipage} \\ \cline{2-3}
             {% endif %}
@@ -216,12 +253,63 @@ Version & Status & Priority & Verification Type & Owner
 {% endfor %}
 {% endif %}
 
+{% if testcase.predecessors %}
+\subsubsection{Predecessors}
+{{ testcase.predecessors }}
+{% endif %}
+
+{% if testcase.required_software or testcase.test_equipment %}
+\subsubsection{Environment Needs}
+{% endif %}
+
+{% if testcase.required_software %}
+\paragraph{Software}
+{{ testcase.required_software }}
+{% endif %}
+
+{% if testcase.test_equipment %}
+\paragraph{Hardware}
+{{ testcase.test_equipment }}
+{% endif %}
+
+{% if testcase.precondition %}
+\subsubsection{Input Specification}
+{{ testcase.precondition }}
+{% endif %}
+
+{% if testcase.postcondition %}
+\subsubsection{Output Specification}
+{{ testcase.postcondition }}
+{% endif %}
+
+\subsubsection{Test Procedure}
+{% if testcase.test_script %}
+    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
+    %\toprule
+    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+    \endhead
+    {% for step in testcase.test_script %}
+        {% set rowloop = loop %}
+        {% if step.test_case_key %}
+            {% set step_testcase = testcases_map[step.test_case_key] %}
+            {% for substep in step_testcase.test_script %}
+                {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
+                {{ write_step(id, step_testcase.key, substep) }}
+            {% endfor %}
+
+        {% else %}
+            {{ write_step(rowloop.index, "", step) }}
+        {% endif %}
+        \\ \midrule
+    {% endfor %}
+    \end{longtable}
+{% endif %}
+
 {% endfor %}
 
 {% else %}
   \textit{No reusable test cases found.}
 {% endif %}
-
 
 
 

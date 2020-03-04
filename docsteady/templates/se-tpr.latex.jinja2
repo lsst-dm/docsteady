@@ -1,11 +1,18 @@
 {%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
+{%- macro removeLongtable(text) -%}
+{# replace longtable with tabular in order to render test steps in a longtable #}
+{% set text1 = text|replace("begin{longtable}", "begin{tabular}") %}
+{% set text2 = text1|replace("end{longtable}", "end{tabular}\\\\[\\baselineskip]") %}
+{{ text2|replace("\endhead", "%\endhead") }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 \documentclass[SE,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
@@ -166,10 +173,10 @@ The personnel involved in the test campaign is shown in the following table.
 
 \begin{longtable}{p{2cm}p{2.5cm}p{9cm}p{2.5cm}}
 \toprule
-\multicolumn{3}{l}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
+\multicolumn{3}{p{13.5cm}}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
 {% for cycle in testcycles %}
 
-  \multicolumn{3}{l}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
+  \multicolumn{3}{p{13.5cm}}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
 
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
 
@@ -281,7 +288,7 @@ Detailed steps results:
 {{ loop.index }} & Description \\
  & \begin{minipage}[t]{15cm}
 {\footnotesize
-{{ script_result['description'] }}
+{{ removeLongtable(script_result['description']) }}
 \medskip }
 \end{minipage}
 \\ \cdashline{2-2}
@@ -296,27 +303,27 @@ Detailed steps results:
       {% if script_result['testdata'] %}
  & Test Data \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['testdata'] }}
+{{ removeLongtable(script_result['testdata']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
       {% endif %}
       {% if script_result['example_code'] %}
  & Example Code \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['example_code'] }}
+{{ removeLongtable(script_result['example_code']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
       {% endif %}
 
  & Expected Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['expected_result'] }}
+{{ removeLongtable(script_result['expected_result']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
 
  & Actual Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['comment'] }}
+{{ removeLongtable(script_result['comment']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
 

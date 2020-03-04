@@ -70,9 +70,10 @@ class TestStep(Schema):
 
 class TestCase(Schema):
     key = fields.String(required=True)
+    keyid = fields.Integer()
     name = HtmlPandocField(required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    owner_id = fields.String(load_from="owner", required=True)
+    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj), default="Unassigned")
+    owner_id = fields.String(load_from="owner")
     jira_url = fields.String()
     component = fields.String()
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
@@ -120,7 +121,7 @@ class TestCase(Schema):
         _set_if("verification_type", "Verification Type")
         _set_if("verification_configuration", "Verification Configuration")
         _set_if("predecessors", "Predecessors")
-        _set_if("critical_event", "Critical Event?")
+        _set_if("critical_event", "Critical Event")
         _set_if("associated_risks", "Associated Risks")
         _set_if("unit_under_test", "Unit Under Test")
         _set_if("required_software", "Required Software")
@@ -135,6 +136,8 @@ class TestCase(Schema):
     def postprocess(self, data):
         # Need to do this here because we need requirement_issue_keys _and_ key
         data['requirements'] = self.process_requirements(data)
+        # need the numeric key of the test case
+        data['keyid'] = int(data["key"].strip("LVV-T"))
         return data
 
     def process_requirements(self, data):
