@@ -117,22 +117,13 @@ Upper Level Requirement &
    {% for vek in reqs[req] %}
       {% set rowloop = loop %}
       {% set ve = velements[vek] %}
-      {% if rowloop.index == 1 %}
- {{ req }} & {{ vek }}({\scriptsize {{ ve.assignee}} })
-      {% else %}
-           & {{ vek }}({\scriptsize {{ ve.assignee}} })
-      {% endif %}
       {% for testc in ve.test_cases %}
          {% set tc = test_cases[testc[0]] %}
-         {% if loop.index == 1 %}
- & {{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
-         {% else %}
- & & {{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
-         {% endif %}
+{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
+{{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
       {% endfor %}
-      {% if rowloop.index != nve %}
-\cdashline{2-3}
-      {% endif %}
+{% if rowloop.index != nve %} \cdashline{2-3} {% endif %}
    {% endfor %}
 \hline
 {% endfor %}
