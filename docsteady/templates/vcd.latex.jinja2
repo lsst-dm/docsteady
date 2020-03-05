@@ -104,7 +104,7 @@ and requirements or verification elements may be related to multiple test cases.
 \endhead
 {% for req in vcd_dict[1] %}
   \begin{tabular}{@{}l@{}}
-  {{ req }} \\ {{ ndr(vcd_dict[1][req]['reqDoc']) }}
+  {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny (p. {{ vcd_dict[1][req]['priority'] }})}
   \end{tabular} &
   {% set nve = vcd_dict[1][req]['VEs']| length %}
   {% for ve in vcd_dict[1][req]['VEs'] %}
@@ -112,7 +112,8 @@ and requirements or verification elements may be related to multiple test cases.
       &
     {% endif %}
     \begin{tabular}{@{}l@{}}
-    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}
+    \\{{ njr(vcd_dict[0][ve]['jkey']) }}~{\tiny (p. {{ vcd_dict[0][ve]['priority'] }})}
     \end{tabular} &
     {% set ntc = vcd_dict[0][ve]['tcs']| length %}
     {% set ntby = 0 %}
