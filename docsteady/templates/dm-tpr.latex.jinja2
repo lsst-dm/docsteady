@@ -1,11 +1,18 @@
 {%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
+{%- macro removeLongtable(text) -%}
+{# replace longtable with tabular in order to render test steps in a longtable #}
+{% set text1 = text|replace("begin{longtable}", "begin{tabular}") %}
+{% set text2 = text1|replace("end{longtable}", "end{tabular}\\\\[\\baselineskip]") %}
+{{ text2|replace("\endhead", "%\endhead") }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 \documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
@@ -80,7 +87,7 @@ Section \ref{sect:intro} provides an overview of the test campaign, the system u
 the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
 Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
-%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases,
+Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases,
 including all relevant information that fully describes the test campaign.
 
 Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary},
@@ -92,7 +99,7 @@ The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ tes
 \subsection{References}
 \label{sect:references}
 \renewcommand{\refname}{}
-\bibliography{lsst,refs,books,refs_ads}
+\bibliography{lsst,refs,books,refs_ads,local}
 \section{Test Configuration}
 \label{sect:configuration}
 
@@ -129,8 +136,9 @@ The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ tes
 \section{Personnel}
 \label{sect:personnel}
 
-The personnel involved in the test campaign are shown in the following table.
+The personnel involved in the test campaign is shown in the following table.
 
+{\small
 \begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
 \hline
 \multicolumn{2}{r}{Test Plan ({{ testplan.key }}) owner:} &
@@ -158,6 +166,7 @@ The personnel involved in the test campaign are shown in the following table.
   {% endfor %}
 {% endfor %}
 \end{longtable}
+}
 
 \newpage
 
@@ -167,40 +176,40 @@ The personnel involved in the test campaign are shown in the following table.
 \subsection{Summary}
 \label{sect:summarytable}
 
-\begin{longtable}{p{2cm}p{2.5cm}p{9cm}p{2.5cm}}
+{\small
+\begin{longtable}{p{2cm}cp{2.3cm}p{8.6cm}p{2.3cm}}
 \toprule
-\multicolumn{3}{p{13.5cm}}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
+\multicolumn{4}{p{13.5cm}}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
 {% for cycle in testcycles %}
-
-  \multicolumn{3}{p{13.5cm}}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
-
-  {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
-
+\multicolumn{4}{p{13.5cm}}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
+{\bf test case} &  \textbf{Ver.} &{\bf status} & {\bf comment} & {\bf issues} \\\toprule
   {% for test_item in testcycles_map[cycle.key].test_items %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+&  {{ testcases_map[test_item.test_case_key].version }}
     & {{ test_item['status'] }} &
-    \begin{minipage}[]{9cm}
-    \smallskip
-    {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
-    \medskip
-    \end{minipage}
-    &
+\begin{minipage}[]{9cm}
+\smallskip
+{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+\medskip
+\end{minipage}
+&
     {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
-      \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
     {% endfor %}
     {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
       {% if script_result['result_issues'] %}
         {% for issue in script_result['result_issues'] %}
-          \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
+\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
         {% endfor %}
       {% endif %}
     {% endfor %}
-    \\\hline
+\\\hline
   {% endfor %}
 {% endfor %}
 \caption{Test Campaign Summary}
 \label{table:summary}
 \end{longtable}
+}
 
 \subsection{Overall Assessment}
 \label{sect:overallassessment}
@@ -251,8 +260,9 @@ Not provided.
 \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
   {% for test_item in testcycles_map[cycle.key].test_items %}
-\paragraph{Test Case {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
+\paragraph{ {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
 
+Version \textbf{{ "{" }}{{ testcases_map[ test_item['test_case_key'] ]['version'] }}{{ "}" }}.
 Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
 test case in Jira.
 
@@ -284,7 +294,7 @@ Detailed steps results:
 {{ loop.index }} & Description \\
  & \begin{minipage}[t]{15cm}
 {\footnotesize
-{{ script_result['description'] }}
+{{ removeLongtable(script_result['description']) }}
 \medskip }
 \end{minipage}
 \\ \cdashline{2-2}
@@ -299,27 +309,27 @@ Detailed steps results:
       {% if script_result['testdata'] %}
  & Test Data \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['testdata'] }}
+{{ removeLongtable(script_result['testdata']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
       {% endif %}
       {% if script_result['example_code'] %}
  & Example Code \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['example_code'] }}
+{{ removeLongtable(script_result['example_code']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
       {% endif %}
 
  & Expected Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['expected_result'] }}
+{{ removeLongtable(script_result['expected_result']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
 
  & Actual Result \\
  & \begin{minipage}[t]{15cm}{\footnotesize
-{{ script_result['comment'] }}
+{{ removeLongtable(script_result['comment']) }}
 \medskip }
 \end{minipage} \\ \cdashline{2-2}
 
