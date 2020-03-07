@@ -20,6 +20,7 @@
 
 import os
 import re
+from collections import Counter
 
 class Config:
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
@@ -71,6 +72,10 @@ class Config:
     DOWNLOAD_IMAGES = True
     MAX_IMG_PIXELS = 450
     MIN_IMG_PIXELS = 32
+
+    REQ_STATUS_COUNT = Counter()
+    VE_STATUS_COUNT = Counter()
+    TEST_STATUS_COUNT = Counter()
 
     coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "name": "No TCs", "label": "sec:notcs"},

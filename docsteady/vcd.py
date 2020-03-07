@@ -24,8 +24,8 @@ Code for VCD
 
 import pymysql
 import requests
-import re
 from marshmallow import Schema, fields, pre_load, post_load
+from collections import Counter
 
 from .config import Config
 from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec, HtmlPandocField
@@ -441,6 +441,36 @@ def get_tspec_r(jc, fid):
     return tspec
 
 
+def do_ve_coverage(tcs, results):
+    """
+
+    :param tcs: test cases results
+    :return: coverage
+    """
+    ntc = len(tcs)
+    if ntc == 0:
+        coverage = '-NotCovered'
+    else:
+        tccount = Counter()
+        for tc in tcs.keys():
+            if results[tc]['lastR']:
+                tccount.update([results[tc]['lastR']['status']])
+            else:
+                tccount.update(['notexec'])
+        if tccount['failed'] and tccount['failed'] > 0:
+            coverage = '-WithFailures'
+        else:
+            if tccount['passed'] + tccount['cndpass'] == ntc:
+                coverage = '-FullyVerified'
+            else:
+                if tccount['notexec'] == ntc:
+                    coverage = '-NotVerified'
+                else:
+                    coverage = '-PartiallyVerified'
+
+    return coverage
+
+
 def summary(dictionary, comp, user, passwd):
     """generate and print summary information"""
     global tcases
@@ -458,6 +488,38 @@ def summary(dictionary, comp, user, passwd):
     mtrs['nr'] = len(reqs)
     mtrs['nv'] = len(verification_elements)
     mtrs['nt'] = len(tcases)
+
+    for req in dictionary[1].values():
+        # print(req)
+        Config.REQ_STATUS_COUNT.update([req["reqDoc"]])
+        Config.REQ_STATUS_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+        for ve in req['VEs']:
+            Config.VE_STATUS_COUNT.update(["p"+dictionary[0][ve]['priority']])
+            Config.VE_STATUS_COUNT.update([req["reqDoc"]])
+            Config.VE_STATUS_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+            if 'verifiedby' in dictionary[0][ve].keys():
+                # I calculate the coverage looking at the test cases associated with the verifing VEs
+                vbytcs = dict()
+                for vby in dictionary[0][ve]['verifiedby']:
+                    vbytcs.update(dictionary[0][vby]['tcs'])
+                coverage = do_ve_coverage(vbytcs, dictionary[3])
+            else:
+                coverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
+            Config.VE_STATUS_COUNT.update([coverage])
+            dictionary[0][ve]['coverage'] = coverage
+    # notexec cndpass passed failed
+
+
+    # print("counts:", Config.REQ_STATUS_COUNT)
+    for entry in Config.REQ_STATUS_COUNT.items():
+        print(entry)
+    print("--VEs-------")
+    for entry in Config.VE_STATUS_COUNT.items():
+        print(entry)
+    print("--Tests-----")
+    # for entry in Config.TEST_STATUS_COUNT.items():
+    #    print(entry)
+
 
     # get TC status and result
     # metric testcases results
