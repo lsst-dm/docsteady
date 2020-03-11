@@ -38,10 +38,6 @@
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {######################################}
-
-
-
-
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting data for component: "{{ metadata.component }}"
@@ -58,29 +54,46 @@
 The following table provides an overview of the relationships between requirements, verification elements, and test results.
 
 % Summary of Summaries
-\begin{longtable}{rrrr}
-&
-\begin{tabular}{@{}l@{}} Count of \\ LSE-61 1a \\ Requirements \end{tabular} &
-\begin{tabular}{@{}l@{}} Count of ALL \\ Requirements \end{tabular} &
-\begin{tabular}{@{}l@{}} Count of \\ Verification \\Elements \end{tabular} \\ \hline
-Not related to any Test Case  & {{ sum_dict[5][0] }} & {{ sum_dict[4][0] }} & {{ sum_dict[2].notcs }} \\ \hline
-Related to NOT executed Test Cases  & {{ sum_dict[5][1] }} & {{ sum_dict[4][1] }} & {{ sum_dict[2].noexectcs }} \\ \hline
-Related to Failed Test Cases  & {{ sum_dict[5][2] }} & {{ sum_dict[4][2] }} & {{ sum_dict[2].failedtcs }} \\ \hline
-Related to Passed Test Cases  & {{ sum_dict[5][3] }} & {{ sum_dict[4][3] }} & {{ sum_dict[2].passedtcs }} \\ \hline
-Total & {{ sum_dict[6][3] }} & {{ sum_dict[6][0] }} & {{ sum_dict[2].total_count() }} \\
-\bottomrule
+\begin{longtable}{p{2cm}p{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
+ &
+{% for cov in ncoverage %}
+ & \rotatebox[origin=l]{60}{ \textbf{ {{ cov['name'] }} } }
+{% endfor %}
+ & \rotatebox[origin=l]{60}{ \textbf{ Total } }
+\\ \hline
+\multicolumn{2}{p{4cm}}{\textbf{Verif. Elements}}
+{% for cov in ncoverage %}
+ & {{ sum_dict[1][ cov["key"] ] }}
+{% endfor %}
+ & {{ sum_dict[6][1] }}
+\\ \hline
+\multicolumn{2}{p{4cm}}{\textbf{All Requirements}}
+{% for cov in ncoverage %}
+ & {{ sum_dict[2][ cov["key"] ] }}
+{% endfor %}
+ & {{ sum_dict[6][0] }}
+\\ \hline
+
 \end{longtable}
+
 
 
 The following table provides the Test Cases result summary.
 
-\begin{longtable}{rr}
-\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
+\begin{longtable}{rp{2cm}p{2cm}p{2cm}p{2cm}}
+{# \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline #}
 {% for r in tcresults %}
-  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ tcresults[ r["id"] ]["key"] ] }} \\ \hline
+{#  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ tcresults[ r["id"] ]["key"] ] }} \\ \hline #}
+& \textbf{ {{ r["name"] }} }
 {% endfor %}
+\\ \hline
+Test Cases Results
+{% for r in tcresults %}
+& {{ sum_dict[0][ r["key"] ] }}
+{% endfor %}
+\\ \hline
 %   ----------------------
-Total & {{ sum_dict[6][2] }} \\
+Total & \multicolumn{4}{l}{\textbf{ {{ sum_dict[6][2] }} } }\\
 \bottomrule
 \end{longtable}
 

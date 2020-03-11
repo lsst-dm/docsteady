@@ -303,7 +303,7 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
     metadata["component"] = component
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
-                           coverage=Config.coverage,
+                           ncoverage=Config.new_coverage,
                            tcresults=Config.tcresults,
                            sum_dict=sum_dict,
                            vcd_dict=vcd_dict)

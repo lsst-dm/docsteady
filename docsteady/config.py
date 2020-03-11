@@ -78,22 +78,18 @@ class Config:
     VE_STATUS_COUNT = Counter()
     TEST_STATUS_COUNT = Counter()
 
-    coverage = [   # Coverage for requirements and verification elements
-        {"id": 0, "name": "No TCs", "label": "sec:notcs"},
-        {"id": 1, "name": "No Executed TCs", "label": "sec:noexectcs"},
-        {"id": 2, "name": "Failed TCs", "label": "sec:failedtcs"},
-        {"id": 3, "name": "Passed TCs", "label": "sec:passedtcs"},
+    new_coverage = [   # Coverage for requirements and verification elements
+        {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},
+        {"id": 1, "key": "PartiallyVerified", "name": "Partially Verified", "label": "sec:partiallyverified"},
+        {"id": 2, "key": "WithFailures", "name": "With Failed TCs", "label": "sec:withfaulres"},
+        {"id": 3, "key": "NotVerified", "name": "Not Verified", "label": "sec:notverified"},
+        {"id": 4, "key": "NotCovered", "name": "Not Cov. by TCs", "label": "sec:notcovered"},
     ]
 
     tcresults = [  # Results for Test cases
-        {"id": 0, "key": "NotExecuted", "name": "Not Executed", "label": "sec:notexec"},
-        {"id": 1, "key": "cndpass", "name": "Passed w/Deviations", "label": "sec:condpass"},
-        {"id": 2, "key": "failed", "name": "Fail", "label": "sec:fail"},
-        {"id": 3, "key": "passed", "name": "Pass", "label": "sec:pass"},
+        {"id": 0, "key": "passed", "name": "Passed", "label": "sec:pass"},
+        {"id": 1, "key": "cndpass", "name": "P. w/Dev.", "label": "sec:condpass"},
+        {"id": 2, "key": "failed", "name": "Failed", "label": "sec:fail"},
+        {"id": 3, "key": "NotExecuted", "name": "Not Ex.", "label": "sec:notexec"},
     ]
 
-    coverage_texts = {'notcs': {'name': 'No TCs', 'label': 'sec:noexectcs'},
-                      'noexectcs': {'name': 'No Executed TCs', 'label': 'sec:noexectcs'},
-                      'failedtcs': {'name': 'Failed TCs', 'label': 'sec:failedtcs'},
-                      'passedtcs': {'name': 'Passed TCs', 'label': 'sec:passedtcs'},
-                      'totalcount': {'name': 'Total Count', 'label': 'sec:totalcount'}}
