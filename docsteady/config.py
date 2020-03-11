@@ -74,6 +74,7 @@ class Config:
     MIN_IMG_PIXELS = 32
 
     REQ_STATUS_COUNT = Counter()
+    REQ_STATUS_PER_DOC_COUNT = Counter()
     VE_STATUS_COUNT = Counter()
     TEST_STATUS_COUNT = Counter()
 
@@ -85,10 +86,10 @@ class Config:
     ]
 
     tcresults = [  # Results for Test cases
-        {"id": 0, "name": "Not Executed", "label": "sec:notexec"},
-        {"id": 1, "name": "Conditional Pass", "label": "sec:condpass"},
-        {"id": 2, "name": "Fail", "label": "sec:fail"},
-        {"id": 3, "name": "Pass", "label": "sec:pass"},
+        {"id": 0, "key": "NotExecuted", "name": "Not Executed", "label": "sec:notexec"},
+        {"id": 1, "key": "cndpass", "name": "Passed w/Deviations", "label": "sec:condpass"},
+        {"id": 2, "key": "failed", "name": "Fail", "label": "sec:fail"},
+        {"id": 3, "key": "passed", "name": "Pass", "label": "sec:pass"},
     ]
 
     coverage_texts = {'notcs': {'name': 'No TCs', 'label': 'sec:noexectcs'},

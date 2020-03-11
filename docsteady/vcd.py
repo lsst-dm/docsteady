@@ -449,7 +449,7 @@ def do_ve_coverage(tcs, results):
     """
     ntc = len(tcs)
     if ntc == 0:
-        coverage = '-NotCovered'
+        coverage = 'NotCovered'
     else:
         tccount = Counter()
         for tc in tcs.keys():
@@ -458,17 +458,45 @@ def do_ve_coverage(tcs, results):
             else:
                 tccount.update(['notexec'])
         if tccount['failed'] and tccount['failed'] > 0:
-            coverage = '-WithFailures'
+            coverage = 'WithFailures'
         else:
             if tccount['passed'] + tccount['cndpass'] == ntc:
-                coverage = '-FullyVerified'
+                coverage = 'FullyVerified'
             else:
                 if tccount['notexec'] == ntc:
-                    coverage = '-NotVerified'
+                    coverage = 'NotVerified'
                 else:
-                    coverage = '-PartiallyVerified'
+                    coverage = 'PartiallyVerified'
 
     return coverage
+
+
+def do_req_coverage(ves, ve_coverage):
+    """
+    Calculate the coverage level of a requirement
+    based on the downstram verification elements.
+    :param ves:
+    :param ve_coverage:
+    :return:
+    """
+    nves = len(ves)
+    vecount = Counter()
+    for ve in ves:
+        vecount.update([ve_coverage[ve]['coverage']])
+    if vecount['WithFailures'] and vecount['WithFailures'] > 0:
+        rcoverage = "WithFailures"
+    else:
+        if vecount['FullyVerified'] and vecount['FullyVerified'] == nves:
+            rcoverage = "FullyVerified"
+        else:
+            if vecount["NotVerified"] == nves:
+                rcoverage = "NotVerified"
+            else:
+                if vecount['NotCovered'] == nves:
+                    rcoverage = 'NotCovered'
+                else:
+                    rcoverage = "PartiallyVerified"
+    return rcoverage
 
 
 def summary(dictionary, comp, user, passwd):
@@ -490,76 +518,48 @@ def summary(dictionary, comp, user, passwd):
     mtrs['nt'] = len(tcases)
 
     for req in dictionary[1].values():
-        # print(req)
-        Config.REQ_STATUS_COUNT.update([req["reqDoc"]])
-        Config.REQ_STATUS_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
         for ve in req['VEs']:
-            Config.VE_STATUS_COUNT.update(["p"+dictionary[0][ve]['priority']])
-            Config.VE_STATUS_COUNT.update([req["reqDoc"]])
-            Config.VE_STATUS_COUNT.update([req["reqDoc"]+"."+req["priority"]])
             if 'verifiedby' in dictionary[0][ve].keys():
                 # I calculate the coverage looking at the test cases associated with the verifing VEs
                 vbytcs = dict()
                 for vby in dictionary[0][ve]['verifiedby']:
                     vbytcs.update(dictionary[0][vby]['tcs'])
-                coverage = do_ve_coverage(vbytcs, dictionary[3])
+                vcoverage = do_ve_coverage(vbytcs, dictionary[3])
             else:
-                coverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
-            Config.VE_STATUS_COUNT.update([coverage])
-            dictionary[0][ve]['coverage'] = coverage
+                vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
+            Config.VE_STATUS_COUNT.update([vcoverage])
+            dictionary[0][ve]['coverage'] = vcoverage
+        # Calculating the requirement coverage based on the VE coverage
+        rcoverage = do_req_coverage(req['VEs'], dictionary[0])
+        Config.REQ_STATUS_COUNT.update([rcoverage])
+    for tc in tcases.values():
+        if 'lastR' in tc.keys() and tc['lastR']:
+            Config.TEST_STATUS_COUNT.update([tc['lastR']['status']])
+        else:
+            Config.TEST_STATUS_COUNT.update([tc['status']])
     # notexec cndpass passed failed
 
 
-    # print("counts:", Config.REQ_STATUS_COUNT)
+    # print("--REQs-------")
+    new_req_coverage = dict()
     for entry in Config.REQ_STATUS_COUNT.items():
-        print(entry)
-    print("--VEs-------")
+        # print(entry)
+        new_req_coverage[entry[0]] = entry[1]
+    # print("--VEs-------")
+    new_ve_coverage = dict()
     for entry in Config.VE_STATUS_COUNT.items():
-        print(entry)
-    print("--Tests-----")
-    # for entry in Config.TEST_STATUS_COUNT.items():
-    #    print(entry)
-
-
-    # get TC status and result
-    # metric testcases results
-    # [ 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked', 'Unknown' ]
-    mtcres = [0, 0, 0, 0, 0, 0, 0]
-    # metric testcases status:
-    mtcstatus = {"count": [0, 0, 0, 0],
-                 "name": ['Draft', 'Defined', 'Approved', 'Deprecated'],
-                 "id": [0, 1, 2, 3]}
-    for tc in tcases.keys():
-        if not tcases[tc]['lastR']:  # not executed
-            mtcres[0] += 1
+        # print(entry)
+        new_ve_coverage[entry[0]] = entry[1]
+    # print("--Tests-----")
+    new_tc_status = dict()
+    new_tc_status['NotExecuted'] = 0
+    for entry in Config.TEST_STATUS_COUNT.items():
+        # print(entry)
+        if entry[0] in ('Draft', 'Approved', 'Defined', 'notexec', 'Deprecated'):
+            new_tc_status['NotExecuted'] = new_tc_status['NotExecuted'] + entry[1]
         else:
-            if not tcases[tc]['lastR']['status']:
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "notexec":
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "passed":
-                mtcres[3] += 1
-            elif tcases[tc]['lastR']['status'] == "failed":
-                mtcres[2] += 1
-            elif tcases[tc]['lastR']['status'] == "inprogress":
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "cndpass":
-                mtcres[1] += 1
-            elif tcases[tc]['lastR']['status'] == "blocked":
-                mtcres[0] += 1
-            else:
-                print('Unknown test case result:', tcases[tc]['lastR']['status'])
-                mtcres[6] += 1
-        if tcases[tc]['status'] == 'Draft':
-            mtcstatus["count"][0] += 1
-        elif tcases[tc]['status'] == 'Defined':
-            mtcstatus["count"][1] += 1
-        elif tcases[tc]['status'] == 'Approved':
-            mtcstatus["count"][2] += 1
-        elif tcases[tc]['status'] == 'Deprecated':
-            mtcstatus["count"][3] += 1
-        else:
-            print('Test case status unknown:', tcases[tc]['status'])
+            new_tc_status[entry[0]] = entry[1]
 
     # get VE versus status
     query = ("select ji.issuestatus, count(*) from jiraissue ji "
@@ -688,10 +688,16 @@ def summary(dictionary, comp, user, passwd):
 
     size = [len(reqs), len(verification_elements), len(tcases), len(reqs_lse61_1a)]
 
-    print(ve_coverage.notcs, ve_coverage.noexectcs, ve_coverage.failedtcs, ve_coverage.passedtcs,
+    print("-----------------------------------------------------------------")
+    print("REQ", reqcoverage)
+    print("NREQ", new_req_coverage)
+    print("-----------------------------------------------------------------")
+    print("VE  >", ve_coverage.notcs, ve_coverage.noexectcs, ve_coverage.failedtcs, ve_coverage.passedtcs, "<",
           ve_coverage.total_count())
+    print("NVE", new_ve_coverage)
+    print("-----------------------------------------------------------------")
 
-    return [mtcres, mtcstatus, ve_coverage, ve_status, reqcoverage, req1acoverage, size]
+    return [new_tc_status, [], ve_coverage, ve_status, reqcoverage, req1acoverage, size]
 
 
 def check_acronyms(reqs):

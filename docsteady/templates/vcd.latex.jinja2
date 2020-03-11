@@ -77,7 +77,7 @@ The following table provides the Test Cases result summary.
 \begin{longtable}{rr}
 \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
 {% for r in tcresults %}
-  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
+  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ tcresults[ r["id"] ]["key"] ] }} \\ \hline
 {% endfor %}
 %   ----------------------
 Total & {{ sum_dict[6][2] }} \\
