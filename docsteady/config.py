@@ -81,9 +81,9 @@ class Config:
     new_coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},
         {"id": 1, "key": "PartiallyVerified", "name": "Partially Verified", "label": "sec:partiallyverified"},
-        {"id": 2, "key": "WithFailures", "name": "With Failed TCs", "label": "sec:withfaulres"},
+        {"id": 2, "key": "WithFailures", "name": "With Failures", "label": "sec:withfaulres"},
         {"id": 3, "key": "NotVerified", "name": "Not Verified", "label": "sec:notverified"},
-        {"id": 4, "key": "NotCovered", "name": "Not Cov. by TCs", "label": "sec:notcovered"},
+        {"id": 4, "key": "NotCovered", "name": "Not Covered", "label": "sec:notcovered"},
     ]
 
     tcresults = [  # Results for Test cases

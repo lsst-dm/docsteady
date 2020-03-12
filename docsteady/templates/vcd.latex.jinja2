@@ -38,6 +38,10 @@
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {######################################}
+{%- macro citeds(text) -%}
+\citeds{{ '{' }}{{ text }}{{ '}'}}
+{%- endmacro -%}
+{######################################}
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting data for component: "{{ metadata.component }}"
@@ -54,51 +58,97 @@
 The following table provides an overview of the relationships between requirements, verification elements, and test results.
 
 % Summary of Summaries
-\begin{longtable}{p{2cm}p{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
- &
+\begin{longtable}{rp{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
+ & \rotatebox[origin=l]{60}{ \textbf{Priority}  }
 {% for cov in ncoverage %}
- & \rotatebox[origin=l]{60}{ \textbf{ {{ cov['name'] }} } }
+ & \rotatebox[origin=l]{60}{ \textbf{ {{ cov['name'] }} } {\scriptsize \ref{{ '{' }}{{ cov['label'] }}{{ '}' }} } }
 {% endfor %}
  & \rotatebox[origin=l]{60}{ \textbf{ Total } }
-\\ \hline
-\multicolumn{2}{p{4cm}}{\textbf{Verif. Elements}}
+\\ \toprule
+\textbf{ {{metadata.component}} Verification E.} & (All)
 {% for cov in ncoverage %}
  & {{ sum_dict[1][ cov["key"] ] }}
 {% endfor %}
- & {{ sum_dict[6][1] }}
+ & \textbf{ {{ sum_dict[6][1] }} }
 \\ \hline
-\multicolumn{2}{p{4cm}}{\textbf{All Requirements}}
+\textbf{ {{metadata.component}} Requirements} & (All)
 {% for cov in ncoverage %}
- & {{ sum_dict[2][ cov["key"] ] }}
+ & {{ sum_dict[2][cov["key"]] }}
 {% endfor %}
- & {{ sum_dict[6][0] }}
-\\ \hline
-
+ & \textbf{ {{ sum_dict[6][0] }} }
+\\ \toprule
+{% for doc, dcounts in sum_dict[3].items() %}
+  {% set doc_loop = loop%}
+  {% set NP = dcounts|length - 2 %}
+  {% for priority, pcounts in dcounts.items() %}
+    {% if priority != "count" and priority != "zAll" %}
+ {% if loop.index == 1 %}{{ citeds(doc) }}{% endif %} & {{ priority }} {% for cov in ncoverage %} & {{ pcounts[cov["key"]] }} {% endfor %}
+ & \textbf{ {{ pcounts.count }} }
+      {% if NP == 1 %}
+ \\ \hline
+      {% else %}
+ \\ \cdashline{2-8}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if NP > 1 %}
+ & (All) {% for cov in ncoverage %} & {{ dcounts["zAll"][cov["key"]] }} {% endfor %}
+ & \textbf{ {{ dcounts['count'] }} }
+ \\ \hline
+  {% endif %}
+{% endfor %}
 \end{longtable}
 
 
 
 The following table provides the Test Cases result summary.
 
-\begin{longtable}{rp{2cm}p{2cm}p{2cm}p{2cm}}
+\begin{longtable}{rp{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
 {# \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline #}
 {% for r in tcresults %}
-{#  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ tcresults[ r["id"] ]["key"] ] }} \\ \hline #}
-& \textbf{ {{ r["name"] }} }
+& \rotatebox[origin=l]{60}{ \textbf{ {{ r["name"] }} } }
 {% endfor %}
-\\ \hline
+& \rotatebox[origin=l]{60}{ \textbf{Total}}
+\\ \toprule
 Test Cases Results
 {% for r in tcresults %}
 & {{ sum_dict[0][ r["key"] ] }}
 {% endfor %}
-\\ \hline
-%   ----------------------
-Total & \multicolumn{4}{l}{\textbf{ {{ sum_dict[6][2] }} } }\\
+ & \textbf{ {{ sum_dict[6][2] }} } \\
 \bottomrule
 \end{longtable}
 
 Note that test cases may be related to multiple requirements or verification elements,
 and requirements or verification elements may be related to multiple test cases.
+
+
+\subsection{Fully Verified}\label{{ '{' }}{{ ncoverage[0]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements, in which all related Test Cases have been successfully executed.
+The last execution status for all test cases shall be \textbf{Passed} or \textbf{Passed w/Deviation}.
+
+
+\subsection{Partially Verified}\label{{ '{' }}{{ ncoverage[1]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements, in which some of the related Test Cases have been successfully executed.
+The last execution status of the test cases shall be \textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
+
+
+\subsection{With Failures}\label{{ '{' }}{{ ncoverage[2]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements, in which at least one of the related Test Cases
+has a \textbf{Failure} as execution result.
+
+
+\subsection{Not Verified}\label{{ '{' }}{{ ncoverage[3]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements, in which all related Test Cases have not been executed.
+
+
+\subsection{Not Covered}\label{{ '{' }}{{ ncoverage[4]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements which are not related to any Test Cases.
+
 
 \newpage
 \section{Verification Control} \label{sec:vcd}

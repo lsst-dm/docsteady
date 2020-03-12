@@ -363,6 +363,7 @@ def get_ves(comp, jc):
 
     v = 0
     for ve in raw_ves:
+        print(".", end="", flush=True)
         if ve[3] != '11713':  # ignore DESCOPED VEs
             v = v + 1
             tmpve = dict()
@@ -518,6 +519,7 @@ def summary(dictionary, comp, user, passwd):
     mtrs['nt'] = len(tcases)
 
     for req in dictionary[1].values():
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
         for ve in req['VEs']:
             if 'verifiedby' in dictionary[0][ve].keys():
@@ -533,6 +535,8 @@ def summary(dictionary, comp, user, passwd):
         # Calculating the requirement coverage based on the VE coverage
         rcoverage = do_req_coverage(req['VEs'], dictionary[0])
         Config.REQ_STATUS_COUNT.update([rcoverage])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])
     for tc in tcases.values():
         if 'lastR' in tc.keys() and tc['lastR']:
             Config.TEST_STATUS_COUNT.update([tc['lastR']['status']])
@@ -540,29 +544,44 @@ def summary(dictionary, comp, user, passwd):
             Config.TEST_STATUS_COUNT.update([tc['status']])
     # notexec cndpass passed failed
 
-
-    # print("--REQs-------")
     new_req_coverage = dict()
     for entry in Config.REQ_STATUS_COUNT.items():
-        # print(entry)
         new_req_coverage[entry[0]] = entry[1]
-    # print("--VEs-------")
     new_ve_coverage = dict()
     for entry in Config.VE_STATUS_COUNT.items():
-        print(entry)
         new_ve_coverage[entry[0]] = entry[1]
-    # print("--Tests-----")
     new_tc_status = dict()
     new_tc_status['NotExecuted'] = 0
     for entry in Config.TEST_STATUS_COUNT.items():
-        #print(entry)
         if entry[0] in ('Draft', 'Approved', 'Defined', 'notexec', 'Deprecated'):
             new_tc_status['NotExecuted'] = new_tc_status['NotExecuted'] + entry[1]
         new_tc_status[entry[0]] = entry[1]
+    rec_count_per_doc = dict()
+    for entry in Config.REQ_STATUS_PER_DOC_COUNT.items():
+        split0 = entry[0].split(".")
+        doc = split0[0]
+        if doc not in rec_count_per_doc.keys():
+            rec_count_per_doc[doc] = dict()
+        if len(split0) == 1:
+            rec_count_per_doc[doc]['count'] = entry[1]
+        else:
+            priority = split0[1]
+            if priority not in rec_count_per_doc[doc].keys():
+                rec_count_per_doc[doc][priority] = dict()
+            if len(split0) == 2:
+                rec_count_per_doc[doc][priority]['count'] = entry[1]
+            else:
+                rec_count_per_doc[doc][priority][split0[2]] = entry[1]
+    # sorting the priority dictionary
+    for doc in rec_count_per_doc.keys():
+        tmp_doc = dict()
+        for key in sorted(rec_count_per_doc[doc].keys()):
+            tmp_doc[key] = rec_count_per_doc[doc][key]
+        rec_count_per_doc[doc] = tmp_doc
 
     size = [len(reqs), len(verification_elements), len(tcases)]
 
-    return [new_tc_status, new_ve_coverage, new_req_coverage, [], [], [], size]
+    return [new_tc_status, new_ve_coverage, new_req_coverage, rec_count_per_doc, [], [], size]
 
 
 def check_acronyms(reqs):
@@ -618,7 +637,7 @@ def vcdsql(comp, usr, pwd, RSP):
             req_f = RSP
             test_f = ""
         print(f"Test cases related to {{spec}} grouped per priority.\n".format(spec=RSP),
-              " '*' indicates that the test case the execution result is 'Passed' or 'Conditinoal-Passed'")
+              " '*' indicates that the test case the execution result is 'Passed' or 'Conditional-Passed'")
         by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
         executed = {}
         for ve in ves.values():
