@@ -29,6 +29,7 @@ from base64 import b64encode
 from .config import Config
 from .vcd import VerificationE
 from .spec import TestCase
+from .utils import create_folders
 
 
 def get_testcase(rs, tckey):
@@ -125,6 +126,8 @@ def do_ve_model(component, subcomponent):
     :param subcomponent:
     :return:
     """
+    # create folders for images and attachments if not already there
+    create_folders()
 
     ves = dict()
 

@@ -28,6 +28,7 @@ from docsteady.cycle import TestCycle, TestResult
 from docsteady.spec import TestCase
 from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField
 from .config import Config
+from .utils import create_folders
 
 
 class TestPlan(Schema):
@@ -118,6 +119,10 @@ class TestPlan(Schema):
 
 
 def build_tpr_model(tplan_id):
+
+    # create folders for images and attachments if not already there
+    create_folders()
+
     resp = requests.get(Config.TESTPLAN_URL.format(testplan=tplan_id),
                         auth=Config.AUTH)
     resp.raise_for_status()

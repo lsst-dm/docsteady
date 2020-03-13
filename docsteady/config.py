@@ -72,6 +72,8 @@ class Config:
     DOWNLOAD_IMAGES = True
     MAX_IMG_PIXELS = 450
     MIN_IMG_PIXELS = 32
+    IMAGE_FOLDER = "jira_imgs/"
+    ATTACHMENT_FOLDER = "jira_atts/"
 
     REQ_STATUS_COUNT = Counter()
     REQ_STATUS_PER_DOC_COUNT = Counter()

@@ -30,7 +30,7 @@ from marshmallow import Schema, fields, post_load, pre_load
 from .config import Config
 from .formatters import as_anchor, alphanum_key
 from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField, test_case_for_key, get_folders
+    MarkdownableHtmlPandocField, test_case_for_key, get_folders, create_folders
 
 
 class Issue(Schema):
@@ -207,6 +207,9 @@ def build_spec_model(folder):
     folders_quoted = [f'"{folder}"' for folder in folders]
     folders_inside = ", ".join(folders_quoted)
     query = f"folder IN ({folders_inside})"
+
+    # create folders for images and attachments if not already there
+    create_folders()
 
     max_tests = 2000
     resp = requests.get(

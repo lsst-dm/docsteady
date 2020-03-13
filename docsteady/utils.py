@@ -158,7 +158,7 @@ def download_and_rewrite_images(value):
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path)
-        fs_path = "jira_imgs/" + img_name
+        fs_path = Config.IMAGE_FOLDER + img_name
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
             existing_files = os.listdir(dirname(fs_path))
@@ -189,6 +189,21 @@ def download_and_rewrite_images(value):
         img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
+
+
+def create_folders():
+    """
+    Create attachment and image folders if missing
+    :return:
+    """
+    os.makedirs(dirname(Config.IMAGE_FOLDER), exist_ok=True)
+    os.makedirs(dirname(Config.ATTACHMENT_FOLDER), exist_ok=True)
+    # creating empty files so the folder can be added to Git
+    with open(Config.IMAGE_FOLDER + '.empty', 'w'):
+        pass
+    with open(Config.ATTACHMENT_FOLDER + '.empty', 'w'):
+        pass
+
 
 
 def rewrite_strong_to_subsection(content, extractable):
