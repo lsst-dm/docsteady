@@ -191,7 +191,7 @@ def download_and_rewrite_images(value):
     return str(soup)
 
 
-def create_folders():
+def create_folders_and_files():
     """
     Create attachment and image folders if missing
     :return:
@@ -199,10 +199,21 @@ def create_folders():
     os.makedirs(dirname(Config.IMAGE_FOLDER), exist_ok=True)
     os.makedirs(dirname(Config.ATTACHMENT_FOLDER), exist_ok=True)
     # creating empty files so the folder can be added to Git
-    with open(Config.IMAGE_FOLDER + '.empty', 'w'):
-        pass
-    with open(Config.ATTACHMENT_FOLDER + '.empty', 'w'):
-        pass
+    imgs_empty_file = Config.IMAGE_FOLDER + '.empty'
+    atts_empty_file = Config.ATTACHMENT_FOLDER + '.empty'
+    local_bib_file = 'local.bib'
+    # create empty files in them so they can be added to Git
+    if not os.path.isfile(imgs_empty_file):
+        with open(imgs_empty_file, 'w'):
+            pass
+    if not os.path.isfile(atts_empty_file):
+        with open(atts_empty_file, 'w'):
+            pass
+    # create local.bib so the build don't fails
+    if not os.path.isfile(local_bib_file):
+        with open(local_bib_file, 'w'):
+            pass
+
 
 
 

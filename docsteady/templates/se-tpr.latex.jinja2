@@ -13,6 +13,14 @@
 {{ text2|replace("\endhead", "%\endhead") }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
+{%- macro tplan_href(tplan) -%}
+\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro tcycle_href(tcycle) -%}
+\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCycle/" ~ tcycle }}{{ "}" }}{{ curlies(tcycle) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 \documentclass[SE,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
@@ -75,23 +83,23 @@ an LSST milestone pertaining to the System Engineering Subsystem.
 \subsection{Document Overview}
 \label{sect:docoverview}
 
-This document was generated from Jira, obtaining the relevant information from the 
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
+This document was generated from Jira, obtaining the relevant information from the
+{{ tplan_href(testplan['key']) }}
 ~Jira Test Plan and related Test Cycles (
 {% for cycle in testcycles %}
-  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCycle/{{ cycle.key }}{{ '}' }}{{ '{' }}{{ cycle.key }}{{ '}' }}
+{{ tcycle_href(cycle.key) }}
 {% endfor %}
 ).
+
 
 Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}), the applicable documentation, and explains how this document is organized.
 Section \ref{sect:configuration}  describes the configuration used for this test.
 Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
-%Section \ref{sect:plannedtestactivities} provides the list of planned test cycles and test cases, including all relevant information that fully describes the test campaign.
 
 Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary}, an overall assessment statement and suggestions for possible improvements.
 Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
 
-The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ testplan['status'] }} }.
+The current status of test plan {{ tplan_href(testplan['key']) }} in Jira is \textbf{ {{ testplan['status'] }} }.
 
 \subsection{References}
 \label{sect:references}
@@ -124,10 +132,32 @@ The current status of test plan {{ testplan['key'] }} in Jira is \textbf{ {{ tes
   {{ testplan.exit_criteria }}
 {% endif %}
 
-{% if testplan.pmcs_activity %}
-  \subsection{PMCS Activity}
-  {{ testplan.pmcs_activity }}
+
+\subsection{DocuShare Colections}
+
+Docushare Colections related to the test campaign (Verification Artifacts in Jira test plan).
+
+{% if testplan.verification_artifacts %}
+{{ testplan.verification_artifacts }}
+{% else %}
+\begin{itemize}
+\item None
+\end{itemize}
 {% endif %}
+
+
+\subsection{PMCS Activity}
+
+Primavera milestones related to the test campaign.
+
+{% if testplan.pmcs_activity %}
+{{ testplan.pmcs_activity }}
+{% else %}
+\begin{itemize}
+\item None
+\end{itemize}
+{% endif %}
+
 
 \newpage
 \section{Personnel}
@@ -138,19 +168,15 @@ The personnel involved in the test campaign is shown in the following table.
 {\small
 \begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
 \hline
-\multicolumn{2}{r}{Test Plan ({{ testplan.key }}) owner:} &
+\multicolumn{2}{r}{T. Plan {{ tplan_href(testplan.key) }} owner:} &
 \multicolumn{2}{l}{\textbf{ {{ testplan.owner }} } }\\\hline
 {% for cycle in testcycles %}
-\multicolumn{2}{r}{ {{ cycle.key }} owner:} &
+\multicolumn{2}{r}{T. Cycle {{ tcycle_href(cycle.key) }} owner:} &
 \multicolumn{2}{l}{\textbf{
-  {% if cycle.owner %}
-    {{ cycle.owner }}
-  {% else %}
-    Undefined
-  {% endif %}
+  {% if cycle.owner %}{{ cycle.owner }} {% else %}Undefined {% endif %}
 }
 } \\\hline
-\textbf{Test Case} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
   {% for test_item in cycle.test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
 & {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
@@ -176,10 +202,12 @@ The personnel involved in the test campaign is shown in the following table.
 {\small
 \begin{longtable}{p{2cm}cp{2.3cm}p{8.6cm}p{2.3cm}}
 \toprule
-\multicolumn{4}{p{13.5cm}}{ Test Plan {\bf {{ testplan['key'] }}: {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
+\multicolumn{2}{r}{ T. Plan {{ tplan_href(testplan['key']) }}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
 {% for cycle in testcycles %}
-\multicolumn{4}{p{13.5cm}}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} & {{ cycle.status }} \\\hline
-\textbf{test case} & \textbf{Ver.} & \textbf{status} & \textbf{comment} & \textbf{issues} \\\toprule
+\multicolumn{2}{r}{ T. Cycle {{ tcycle_href(cycle.key) }}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ {{ cycle.name }} }} & {{ cycle.status }} \\\hline
+\textbf{Test Cases} & \textbf{Ver.} & \textbf{status} & \textbf{comment} & \textbf{issues} \\\toprule
   {% for test_item in testcycles_map[cycle.key].test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_item['test_case_key'] }}{{ '}' }}
 &  {{ testcases_map[test_item.test_case_key].version }}
