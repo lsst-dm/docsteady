@@ -147,7 +147,9 @@ The documentation related to this test campaign should be provided in the follow
 (as per Verification Artifacts in Jira test plan {{ testplan.key }}).
 
 {% if testplan.verification_artifacts %}
-{{ testplan.verification_artifacts }}
+\begin{itemize}
+\item {{ testplan.verification_artifacts }}
+\end{itemize}
 {% else %}
 \begin{itemize}
 \item Not Specified
