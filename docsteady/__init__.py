@@ -194,6 +194,7 @@ def generate_report(format, username, password, trace, plan, path):
                            testcycles_map=testcycles_map,
                            testresults=list(testresults_map.values()),  # For convenience (sorted)
                            testresults_map=testresults_map,
+                           attachments=plan_dict['attachments'],
                            testcases_map=testcases_map)
 
     file = open(path, "w") if path else sys.stdout

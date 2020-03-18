@@ -23,12 +23,13 @@ Code for Test Report (Run) Model Generation
 """
 import requests
 from marshmallow import Schema, fields, pre_load
+from base64 import b64encode
 
-from docsteady.cycle import TestCycle, TestResult
-from docsteady.spec import TestCase
-from docsteady.utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField
+from .cycle import TestCycle, TestResult
+from .spec import TestCase
+from .utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField, create_folders_and_files, \
+    download_attachments
 from .config import Config
-from .utils import create_folders_and_files
 
 
 class TestPlan(Schema):
@@ -118,48 +119,77 @@ class TestPlan(Schema):
         return data
 
 
-def build_tpr_model(tplan_id):
+def build_tpr_model(tplan_key):
 
     # create folders for images and attachments if not already there
     create_folders_and_files()
-    resp = requests.get(Config.TESTPLAN_URL.format(testplan=tplan_id),
-                        auth=Config.AUTH)
-    resp.raise_for_status()
-    testplan, errors = TestPlan().load(resp.json())
 
     # get a list of extra fields
     # not possible now.
 
+    # initialize connection to Jira REST API
+    usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+    headers = {
+        'accept': 'application/json',
+        'authorization': 'Basic %s' % connection_str,
+        'Connection': 'close'
+    }
+    rs = requests.Session()
+    rs.headers = headers
+
     test_cycles_map = {}
     test_results_map = {}
     test_cases_map = {}
+    attachments = {}
 
+    # get test plan information
+    # print("test Plan:", Config.TESTPLAN_URL.format(testplan=tplan_key))
+    resp = rs.get(Config.TESTPLAN_URL.format(testplan=tplan_key))
+    resp.raise_for_status()
+    testplan, errors = TestPlan().load(resp.json())
+    attachments[tplan_key] = download_attachments(rs, Config.TESTPLAN_ATTACHMENTS.format(tplan_KEY=tplan_key))
+    n_attachments = len(attachments[tplan_key])
+
+    # get test cycles and results information
+    attachments['cycles'] = dict()
+    attachments['results'] = dict()
     for cycle_key in testplan['cycles']:
-        resp = requests.get(Config.TESTCYCLE_URL.format(testrun=cycle_key), auth=Config.AUTH)
+        # print("Test Cycle:", Config.TESTCYCLE_URL.format(testrun=cycle_key))
+        resp = rs.get(Config.TESTCYCLE_URL.format(testrun=cycle_key))
         test_cycle, error = TestCycle().load(resp.json())
         test_cycles_map[cycle_key] = test_cycle
+        attachments['cycles'][cycle_key] = \
+            download_attachments(rs, Config.TESTCYCLE_ATTACHMENTS.format(tcycle_KEY=cycle_key))
+        n_attachments = n_attachments + len(attachments['cycles'][cycle_key])
 
-        resp = requests.get(Config.TESTRESULTS_URL.format(testrun=cycle_key), auth=Config.AUTH)
+        # print("Test Results:", Config.TESTRESULTS_URL.format(testrun=cycle_key))
+        resp = rs.get(Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp.raise_for_status()
         testresults, errors = TestResult().load(resp.json(), many=True)
         test_results_map[cycle_key] = {}
         for result in testresults:
+            # print(result['key'], result['id'])
             result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
-            # result['sorted'] = result['script_results']
             test_results_map[cycle_key][result['test_case_key']] = result
+            attachments['results'][result['id']] = \
+                download_attachments(rs, Config.TESTRESULT_ATTACHMENTS.format(result_ID=result['id']))
+            n_attachments = n_attachments + len(attachments['results'][result['id']])
 
         # Get all the test cases from the test items
         for test_item in test_cycle['test_items']:
             if test_item['test_case_key'] not in test_cases_map.keys():
-                resp = requests.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']),
-                                    auth=Config.AUTH)
+                resp = rs.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']))
                 testcase, errors = TestCase().load(resp.json())
                 test_cases_map[test_item['test_case_key']] = testcase
+    attachments['n_attachments'] = n_attachments
 
+    # print(attachments)
     tpr = {}
     tpr['tplan'] = testplan
     tpr['test_cycles_map'] = test_cycles_map
     tpr['test_results_map'] = test_results_map
     tpr['test_cases_map'] = test_cases_map
+    tpr['attachments'] = attachments
 
     return tpr

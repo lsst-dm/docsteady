@@ -182,13 +182,39 @@ def download_and_rewrite_images(value):
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
-        # fixing the aspect ratio of th images is working only with pandic 1.19.1
-        #
+        # fixing the aspect ratio of th images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
+
+
+def download_attachments(rs, link):
+    """
+    download the
+    :param link: attachment resource location in the Jira server
+    :return: none
+    """
+    attachments = []
+    resp = rs.get(link)
+    for doc in resp.json():
+        # prepare information
+        attachment_url = doc['url']
+        url_path = urlparse(attachment_url).path[1:]
+        attachment_name = doc['filename'].replace(" ", "")
+        fs_path = Config.ATTACHMENT_FOLDER + attachment_name
+
+        # download the attachment
+        resp = requests.get(attachment_url, auth=Config.AUTH)
+        resp.raise_for_status()
+        with open(fs_path, "w+b") as att_f:
+            att_f.write(resp.content)
+
+        # add attachment information to the list
+        attachments.append({'id': doc['id'], 'filename': attachment_name, 'filesize': doc['filesize'],
+                            'filepath': fs_path})
+    return attachments
 
 
 def create_folders_and_files():

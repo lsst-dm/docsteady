@@ -21,14 +21,18 @@
 \href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCycle/" ~ tcycle }}{{ "}" }}{{ curlies(tcycle) }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
+
 \documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
 \usepackage{enumitem}
 \usepackage{arydshln}
+\usepackage{attachfile}
 
 \input meta.tex
 
+\newcommand{\attachmentsTagUrl}{https://github.com/\gitorganization/\lsstDocType-\lsstDocNum/tree/v\issuenumber/attachments}
+\newcommand{\attachmentsMasterUrl}{https://github.com/\gitorganization/\lsstDocType-\lsstDocNum/tree/master/attachments}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
@@ -45,10 +49,9 @@
 \title{ {{ testplan.milestone_id }} {{ testplan.milestone_name }} Test Plan and Report}
 \setDocRef{\lsstDocType-\lsstDocNum}
 \date{\vcsdate}
-\setDocUpstreamLocation{\url{https://github.com/lsst/lsst-texmf/examples}}
 \author{ {{ testplan['owner'] }} }
 
-\input history_and_info.tex
+\input{history_and_info.tex}
 
 
 \setDocAbstract{
@@ -93,7 +96,8 @@ This document was generated from Jira, obtaining the relevant information from t
 
 Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}),
 the applicable documentation, and explains how this document is organized.
-Section \ref{sect:configuration}  describes the configuration used for this test.
+Section \ref{sect:testplan} provides additional information about the test plan, like for example the configuration
+used for this test or related documentation.
 Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
 
 Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary},
@@ -106,8 +110,12 @@ The current status of test plan {{ tplan_href(testplan['key']) }} in Jira is \te
 \label{sect:references}
 \renewcommand{\refname}{}
 \bibliography{lsst,refs,books,refs_ads,local}
-\section{Test Configuration}
-\label{sect:configuration}
+
+
+\newpage
+\section{Test Plan Details}
+\label{sect:testplan}
+
 
 \subsection{Data Collection}
 
@@ -133,16 +141,45 @@ The current status of test plan {{ tplan_href(testplan['key']) }} in Jira is \te
   {{ testplan.exit_criteria }}
 {% endif %}
 
-\subsection{DocuShare Colections}
 
-Docushare Colections related to the test campaign (Verification Artifacts in Jira test plan).
+\subsection{Related Documentation}
+
+The documentation related to this test campaign should be provided in the following DocuShare Collection
+(as per Verification Artifacts in Jira test plan {{ testplan.key }}).
 
 {% if testplan.verification_artifacts %}
 {{ testplan.verification_artifacts }}
 {% else %}
 \begin{itemize}
-\item None
+\item Not Specified
 \end{itemize}
+{% endif %}
+
+{% if attachments.n_attachments > 0 %}
+\begin{longtable}{rp{10cm}l}
+\multicolumn{3}{c}{Jira Attachments
+\footnote{Please note that Jira is not a versioning tool, therefore documents should not be attached to
+Jira test plans/cycles/cases/player, but should be added to the relevant DocuShare collection specified above.
+Note also that sometimes, depending on the pdf viewer, it may not be possible to view/open the attached documents.
+In that case, the attached documents can be found in the corresponding Github repository,
+in the \href{\attachmentsTagUrl}{attachments} folder (Use \href{\attachmentsMasterUrl}{this link} if the document
+is not issued.}
+} \\ \hline
+  {% for document in  attachments[testplan.key] %}
+{{ testplan.key }} & {{ document.filename }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
+  {% endfor %}
+  {% for cycle in testcycles %}
+     {% for document in attachments.cycles[cycle.key] %}
+{{ cycle.key }} & {{ document.filename }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
+     {% endfor %} {# cycle docs for #}
+       {% for test_item in testcycles_map[cycle.key].test_items %}
+       {% set result_id = testresults_map[cycle.key][test_item['test_case_key']]['id'] %}
+       {% for document in attachments.results[result_id] %}
+{{ cycle.key }} results & {{ document.filename }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
+       {% endfor %} {# results for #}
+     {% endfor %} {# test_item for #}
+\end{longtable}
+  {% endfor %} {# cycle for #}
 {% endif %}
 
 
@@ -176,7 +213,7 @@ The personnel involved in the test campaign is shown in the following table.
   {% if cycle.owner %}{{ cycle.owner }} {% else %}Undefined {% endif %}
 }
 } \\\hline
-\textbf{Test cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
   {% for test_item in cycle.test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
 & {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
@@ -207,11 +244,11 @@ The personnel involved in the test campaign is shown in the following table.
 {% for cycle in testcycles %}
 \multicolumn{2}{r}{ T. Cycle {{ tcycle_href(cycle.key) }}:} &
 \multicolumn{2}{p{10.9cm}}{\textbf{ {{ cycle.name }} }} & {{ cycle.status }} \\\hline
-{\bf Test cases} &  \textbf{Ver.} &{\bf status} & {\bf comment} & {\bf issues} \\\toprule
+\textbf{Test Cases} &  \textbf{Ver.} & \textbf{Status} & \textbf{Comment} & \textbf{Issues} \\\toprule
   {% for test_item in testcycles_map[cycle.key].test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
 &  {{ testcases_map[test_item.test_case_key].version }}
-    & {{ test_item['status'] }} &
+& {{ test_item['status'] }} &
 \begin{minipage}[]{9cm}
 \smallskip
 {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
@@ -263,7 +300,7 @@ Not yet available.
 
 Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
 
-{{ cycle.name }}\\
+Test Cycle name: {{ cycle.name }}\\
 Status: {{ cycle.status }}
 
 {{ cycle.description }}

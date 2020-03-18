@@ -39,7 +39,10 @@ class Config:
     ISSUETCASES_URL = f"{ATM_API}/issuelink/{{issuekey}}/testcases"
     TESTCASERESULT_URL = f"{ATM_API}/testcase/{{tcid}}/testresult/latest"
     TESTPLANCYCLE_URL = f"{ATMT_API}/testresult/{{trk}}?fields=testRun(key,testPlan(key))"
-    TPLANCF_URL = f"{ATM_API}//testplan/{{tpk}}?fields=customFields"
+    TPLANCF_URL = f"{ATM_API}/testplan/{{tpk}}?fields=customFields"
+    TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
+    TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
+    TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
     VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511,customfield_13513,customfield_12002,customfield_12206,customfield_13703&maxResults={{maxR}}"
@@ -73,7 +76,7 @@ class Config:
     MAX_IMG_PIXELS = 450
     MIN_IMG_PIXELS = 32
     IMAGE_FOLDER = "jira_imgs/"
-    ATTACHMENT_FOLDER = "jira_atts/"
+    ATTACHMENT_FOLDER = "attachments/"
 
     REQ_STATUS_COUNT = Counter()
     REQ_STATUS_PER_DOC_COUNT = Counter()
