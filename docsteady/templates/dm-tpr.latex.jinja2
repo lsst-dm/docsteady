@@ -31,7 +31,7 @@
 
 \input meta.tex
 
-\newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/tree/\gitref/attachments}
+\newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/blob/\gitref/attachments}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
@@ -169,7 +169,7 @@ The documentation related to this test campaign should be provided in the follow
        {% for test_item in testcycles_map[cycle.key].test_items %}
        {% set result_id = testresults_map[cycle.key][test_item['test_case_key']]['id'] %}
        {% for document in attachments.results[result_id] %}
-To {{ cycle.key }} results & \href{{ "{" }}\attachmentsUrl/{{ document.filename }}{{ "}" }}{{ curlies(document.filename) }} &
+To {{ cycle.key }} results & \href{{ "{" }}\attachmentsUrl/{{ document.filename }}?raw=true{{ "}" }}{{ curlies(document.filename) }} &
 \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
        {% endfor %} {# results for #}
      {% endfor %} {# test_item for #}

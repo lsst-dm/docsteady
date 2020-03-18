@@ -200,13 +200,11 @@ def download_attachments(rs, link):
     resp = rs.get(link)
     for doc in resp.json():
         # prepare information
-        attachment_url = doc['url']
-        url_path = urlparse(attachment_url).path[1:]
         attachment_name = doc['filename'].replace(" ", "")
         fs_path = Config.ATTACHMENT_FOLDER + attachment_name
 
         # download the attachment
-        resp = requests.get(attachment_url, auth=Config.AUTH)
+        resp = requests.get(doc['url'], auth=Config.AUTH)
         resp.raise_for_status()
         with open(fs_path, "w+b") as att_f:
             att_f.write(resp.content)
