@@ -31,8 +31,7 @@
 
 \input meta.tex
 
-\newcommand{\attachmentsTagUrl}{https://github.com/\gitorganization/\lsstDocType-\lsstDocNum/tree/v\issuenumber/attachments}
-\newcommand{\attachmentsMasterUrl}{https://github.com/\gitorganization/\lsstDocType-\lsstDocNum/tree/master/attachments}
+\newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/tree/\gitref/attachments}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
@@ -158,14 +157,7 @@ The documentation related to this test campaign should be provided in the follow
 
 {% if attachments.n_attachments > 0 %}
 \begin{longtable}{rp{10cm}l}
-\multicolumn{3}{c}{Jira Attachments
-\footnote{Please note that Jira is not a versioning tool, therefore documents should not be attached to
-Jira test plans/cycles/cases/player, but should be added to the relevant DocuShare collection specified above.
-Note also that sometimes, depending on the pdf viewer, it may not be possible to view/open the attached documents.
-In that case, the attached documents can be found in the corresponding Github repository,
-in the \href{\attachmentsTagUrl}{attachments} folder (Use \href{\attachmentsMasterUrl}{this link} if the document
-is not issued.}
-} \\ \hline
+\multicolumn{3}{c}{Jira Attachments} \\ \hline
   {% for document in  attachments[testplan.key] %}
 {{ testplan.key }} & {{ document.filename }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
   {% endfor %}
@@ -176,11 +168,16 @@ is not issued.}
        {% for test_item in testcycles_map[cycle.key].test_items %}
        {% set result_id = testresults_map[cycle.key][test_item['test_case_key']]['id'] %}
        {% for document in attachments.results[result_id] %}
-{{ cycle.key }} results & {{ document.filename }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
+To {{ cycle.key }} results & \href{{ "{" }}\attachmentsUrl/{{ document.filename }}{{ "}" }}{{ curlies(document.filename) }} &
+\attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
        {% endfor %} {# results for #}
      {% endfor %} {# test_item for #}
 \end{longtable}
   {% endfor %} {# cycle for #}
+
+All documents provided as attachments in Jira are downloaded to Github and linked here for convenience.
+However, since they are not properly versioned, they should be considered informal and therefore
+not be part of the verification baseline.
 {% endif %}
 
 
