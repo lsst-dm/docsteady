@@ -307,6 +307,7 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
                            ncoverage=Config.new_coverage,
                            tcresults=Config.tcresults,
                            sum_dict=sum_dict,
+                           spec_to_reqs=Config.REQ_PER_DOC,
                            vcd_dict=vcd_dict)
 
     print(_as_output_format(text), file=file)

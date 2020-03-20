@@ -68,7 +68,11 @@ an LSST level 2 milestone pertaining to the Data Management Subsystem.
 \subsection{Objectives}
 \label{sect:objectives}
 
+{% if testplan['objective'] %}
 {{ testplan['objective'] }}
+{% else %}
+Test Plab Objective Not provided.
+{% endif %}
 
 {% for extraField in testplan['objective']['extraFields'] %}
 
@@ -152,7 +156,7 @@ The documentation related to this test campaign should be provided in the follow
 \end{itemize}
 {% else %}
 \begin{itemize}
-\item Not Specified
+\item DocuShare Collection Not Specified
 \end{itemize}
 {% endif %}
 

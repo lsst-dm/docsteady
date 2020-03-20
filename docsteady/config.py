@@ -82,6 +82,7 @@ class Config:
     REQ_STATUS_PER_DOC_COUNT = Counter()
     VE_STATUS_COUNT = Counter()
     TEST_STATUS_COUNT = Counter()
+    REQ_PER_DOC = dict()
 
     new_coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},

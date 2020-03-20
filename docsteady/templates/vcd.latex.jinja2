@@ -55,7 +55,7 @@
 
 \section{Summary Information}\label{sec:summary}
 
-The following table provides an overview of the relationships between requirements, verification elements, and test results.
+The following table provides an overview of the requirements and verification elements coverage.
 
 % Summary of Summaries
 \begin{longtable}{rp{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
@@ -65,12 +65,6 @@ The following table provides an overview of the relationships between requiremen
 {% endfor %}
  & \rotatebox[origin=l]{60}{ \textbf{ Total } }
 \\ \toprule
-\textbf{ {{metadata.component}} Verification E.} & (All)
-{% for cov in ncoverage %}
- & {{ sum_dict[1][ cov["key"] ] }}
-{% endfor %}
- & \textbf{ {{ sum_dict[6][1] }} }
-\\ \hline
 \textbf{ {{metadata.component}} Requirements} & (All)
 {% for cov in ncoverage %}
  & {{ sum_dict[2][cov["key"]] }}
@@ -97,6 +91,12 @@ The following table provides an overview of the relationships between requiremen
  \\ \hline
   {% endif %}
 {% endfor %}
+\textbf{ {{metadata.component}} Verification E.} & (All)
+{% for cov in ncoverage %}
+ & {{ sum_dict[1][ cov["key"] ] }}
+{% endfor %}
+ & \textbf{ {{ sum_dict[6][1] }} }
+\\ \hline
 \end{longtable}
 
 
@@ -106,7 +106,7 @@ The following table provides the Test Cases result summary.
 \begin{longtable}{rp{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
 {# \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline #}
 {% for r in tcresults %}
-& \rotatebox[origin=l]{60}{ \textbf{ {{ r["name"] }} } }
+& \rotatebox[origin=l]{60}{ \textbf{ {{ r["name"] }} }{\scriptsize \ref{{ '{' }}{{ r['label'] }}{{ '}' }} } }
 {% endfor %}
 & \rotatebox[origin=l]{60}{ \textbf{Total}}
 \\ \toprule
@@ -122,36 +122,68 @@ Note that test cases may be related to multiple requirements or verification ele
 and requirements or verification elements may be related to multiple test cases.
 
 
-\subsection{Fully Verified}\label{{ '{' }}{{ ncoverage[0]['label'] }}{{ '}' }}
+\subsection{Coverage Description}
+
+\subsubsection{Fully Verified}\label{{ '{' }}{{ ncoverage[0]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements, in which all related Test Cases have been successfully executed.
 The last execution status for all test cases shall be \textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
-\subsection{Partially Verified}\label{{ '{' }}{{ ncoverage[1]['label'] }}{{ '}' }}
+\subsubsection{Partially Verified}\label{{ '{' }}{{ ncoverage[1]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements, in which some of the related Test Cases have been successfully executed.
 The last execution status of the test cases shall be \textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
-\subsection{With Failures}\label{{ '{' }}{{ ncoverage[2]['label'] }}{{ '}' }}
+\subsubsection{With Failures}\label{{ '{' }}{{ ncoverage[2]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements, in which at least one of the related Test Cases
 has a \textbf{Failure} as execution result.
 
 
-\subsection{Not Verified}\label{{ '{' }}{{ ncoverage[3]['label'] }}{{ '}' }}
+\subsubsection{Not Verified}\label{{ '{' }}{{ ncoverage[3]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements, in which all related Test Cases have not been executed.
 
 
-\subsection{Not Covered}\label{{ '{' }}{{ ncoverage[4]['label'] }}{{ '}' }}
+\subsubsection{Not Covered}\label{{ '{' }}{{ ncoverage[4]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements which are not related to any Test Cases.
 
 
+\subsection{Test Executions Description}
+
+
+\subsubsection{Passed}\label{{ '{' }}{{ tcresults[0]['label'] }}{{ '}' }}
+
+Test cases that have been executed without any problems.
+Issues may have been found during the execution, and linked to the test case, but they are not
+affecting the verification process.
+
+
+\subsubsection{Passed with Deviation}\label{{ '{' }}{{ tcresults[1]['label'] }}{{ '}' }}
+
+Test cases which execution can be considered successful, but a deviation to the requirement is needed.
+The deviation shall be recorded in a Jira issue, type \textit{Deviation} and linked to the test.
+
+
+\subsubsection{Failed}\label{{ '{' }}{{ tcresults[2]['label'] }}{{ '}' }}
+
+The test case execution failed. One or more Jira issues shall be filed and related with the test.
+
+
+\subsubsection{Not Executed}\label{{ '{' }}{{ tcresults[3]['label'] }}{{ '}' }}
+
+The test case has not been executed yet.
+
+
 \newpage
 \section{Verification Control} \label{sec:vcd}
+
+{% for spec in spec_to_reqs %}
+
+\subsection{{ '{' }}{{ spec }} Requirements Coverage{{ '}' }}
 
 \setlength\LTleft{-0.25in}
 \setlength\LTright{-0.5in}
@@ -160,12 +192,13 @@ These are the Verification Elements and Requirements which are not related to an
 \setlength{\LTcapwidthold}{\LTcapwidth}
 \setlength{\LTcapwidth}{\textheight} #}
 \begin{longtable}{lllll}
-\caption{ {{ metadata.component }} VCD Table.} \\
+\caption{ {{ metadata.component }} {{ spec }} Requirements.} \\
 \toprule
 \textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
 \toprule
 \endhead
-{% for req in vcd_dict[1] %}
+{# {% for req in vcd_dict[1] %} #}
+{% for req in spec_to_reqs[spec] %}
   \begin{tabular}{@{}l@{}}
   {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny (p. {{ vcd_dict[1][req]['priority'] }})}
   \end{tabular} &
@@ -239,4 +272,6 @@ These are the Verification Elements and Requirements which are not related to an
 \label{tab:dmvcd}
 \end{longtable}
 }
+
+{% endfor %}
 

@@ -24,6 +24,7 @@ Code for VCD
 
 import pymysql
 import requests
+import os
 from marshmallow import Schema, fields, pre_load, post_load
 from collections import Counter
 
@@ -623,7 +624,8 @@ def vcdsql(comp, usr, pwd, RSP):
     print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
           format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
 
-    check_acronyms(reqs)
+    if os.path.isfile("acronyms.tex"):
+        check_acronyms(reqs)
 
     # Credit: KTL
     # print out the list of test cases, sorted per corresponding requirement priority
@@ -667,5 +669,17 @@ def vcdsql(comp, usr, pwd, RSP):
                     tc_name += "*"
                 tc_list.append(tc_name)
             print(", ".join(tc_list))
+
+    # creating the lookup Specs to Reqs
+    for req, values in reqs.items():
+        # print(" - ", req)
+        if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
+            Config.REQ_PER_DOC[values['reqDoc']] = []
+        Config.REQ_PER_DOC[values['reqDoc']].append(req)
+
+    # for spec in Config.REQ_PER_DOC.keys():
+    #    print(spec, "-----------------------")
+    #    for req in Config.REQ_PER_DOC[spec]:
+    #        print("    ", reqs[req])
 
     return [ves, reqs, veduplicated, tcases]
