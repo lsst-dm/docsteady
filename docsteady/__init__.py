@@ -322,10 +322,11 @@ if __name__ == '__main__':
 @click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
+@click.option('--details', default=False, help='If true, an extra detailed report will be produced')
 @click.argument('component')
 @click.argument('subcomponent')
 @click.argument('path', required=False, type=click.Path())
-def baseline_ve(format, username, password, component, subcomponent, path):
+def baseline_ve(format, username, password, details, component, subcomponent, path):
     """Given a specific subsystem (component), and subcomponent,
     a document is generated including all corresponding Verification Elements
     and related Test Cases.
@@ -339,8 +340,6 @@ def baseline_ve(format, username, password, component, subcomponent, path):
     ve_model = do_ve_model(component, subcomponent)
 
     file = open(path, "w") if path else sys.stdout
-    details_file_name = f"{subcomponent}-details.tex"
-    details_file = open(details_file_name, "w")
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -370,16 +369,19 @@ def baseline_ve(format, username, password, component, subcomponent, path):
     file.close()
 
     # Writing detailed VE document
-    try:
-        template_path = f"{target}-details.{Config.TEMPLATE_LANGUAGE}.jinja2"
-        template_details = env.get_template(template_path)
-    except TemplateNotFound as e:
-        click.echo(f"No Detailed templace found: {template_path}", err=True)
+    if details:
+        details_file_name = f"{subcomponent}-details.tex"
+        details_file = open(details_file_name, "w")
+        try:
+            template_path = f"{target}-details.{Config.TEMPLATE_LANGUAGE}.jinja2"
+            template_details = env.get_template(template_path)
+        except TemplateNotFound as e:
+            click.echo(f"No Detailed templace found: {template_path}", err=True)
 
-    text_details = template_details.render(metadata=metadata,
-                                           velements=ve_model,
-                                           reqs=Config.CACHED_REQS_FOR_VES,
-                                           test_cases=Config.CACHED_TESTCASES)
+        text_details = template_details.render(metadata=metadata,
+                                               velements=ve_model,
+                                               reqs=Config.CACHED_REQS_FOR_VES,
+                                               test_cases=Config.CACHED_TESTCASES)
 
-    print(_as_output_format(text_details), file=details_file)
-    details_file.close()
+        print(_as_output_format(text_details), file=details_file)
+        details_file.close()

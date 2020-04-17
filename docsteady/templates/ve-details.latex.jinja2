@@ -76,6 +76,8 @@
 
 \begin{document}
 
+\date{\today}
+
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
@@ -85,11 +87,22 @@
 \title{Verification Elelements Details for the {{ metadata.subcomponent }} Component in {{ metadata.component }} Subsystem}
 \mkshorttitle
 
-This is a detailed view of the Verification Elements and relevant associated information, for the specified subcomponent.
-The Verification Elements are baselined as per {\lsstDocType}-{lsstDocNum} and each time a new draft is produced,
-this view is updated with the correct information. However, test cases are baselined in other documents, and
-will be updated during future test activities. Therefore, in some cases, the  information shown here for the
-test cases may be outdated.
+This is a detailed overview of the Verification Elements and relevant associated information,
+the {{ metadata.subcomponent }} component in {{ metadata.component }} subsystem.
+It is provided for convenience as a working document.
+The information presented here is officially baselined in {\lsstDocType}-{\lsstDocNum} --
+the Verification Elements baseline document -- available at
+\url{{ '{' }}https://\lsstDocType-\lsstDocNum.lsst.io{{ '}' }}.
+Test case information is baselined in the  {\testspec} test specification, available at
+\url{{ '{' }}https://\testspec.lsst.io{{ '}' }}.
+Official releases of both documents are also available in Docushare.
+Please always use {\lsstDocType}-{\lsstDocNum} and {\testspec} official releases for reference.
+
+This report is updated together with the the verification elements baseline document, {\lsstDocType}-{\lsstDocNum}.
+Therefore, verification elements information will be always up-to-date.
+Test cases information instead may be outdated, since test cases may be subject to changes during future phases
+of the V\&V activities.
+
 
 \section{Summary Overview}
 
