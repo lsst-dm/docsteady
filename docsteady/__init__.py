@@ -376,7 +376,7 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
             template_path = f"{target}-details.{Config.TEMPLATE_LANGUAGE}.jinja2"
             template_details = env.get_template(template_path)
         except TemplateNotFound as e:
-            click.echo(f"No Detailed templace found: {template_path}", err=True)
+            click.echo(f"No Detailed template found: {template_path}", err=True)
 
         text_details = template_details.render(metadata=metadata,
                                                velements=ve_model,

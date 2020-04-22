@@ -300,9 +300,9 @@ def get_tc_results(jc, tc):
              "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
              "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
              "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
-             "join AO_4D28DD_RESULT_STATUS rs on tc.`LAST_TEST_RESULT_STATUS_ID` = rs.id "
+             "join AO_4D28DD_RESULT_STATUS rs on tr.`TEST_RESULT_STATUS_ID` = rs.id "
              "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
-             "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 ")
+             "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 and tr.`EXECUTION_DATE` is not NULL")
     trdet = db_get(jc, query)
     if len(trdet) != 0:
         results['status'] = runstatus(trdet[0][0])
@@ -676,10 +676,5 @@ def vcdsql(comp, usr, pwd, RSP):
         if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
             Config.REQ_PER_DOC[values['reqDoc']] = []
         Config.REQ_PER_DOC[values['reqDoc']].append(req)
-
-    # for spec in Config.REQ_PER_DOC.keys():
-    #    print(spec, "-----------------------")
-    #    for req in Config.REQ_PER_DOC[spec]:
-    #        print("    ", reqs[req])
 
     return [ves, reqs, veduplicated, tcases]
