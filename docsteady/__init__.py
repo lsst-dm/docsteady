@@ -370,7 +370,7 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
 
     # Writing detailed VE document
     if details:
-        details_file_name = f"{subcomponent}-details.tex"
+        details_file_name = "ve_details.tex"
         details_file = open(details_file_name, "w")
         try:
             template_path = f"{target}-details.{Config.TEMPLATE_LANGUAGE}.jinja2"
