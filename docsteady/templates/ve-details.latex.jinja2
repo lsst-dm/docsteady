@@ -51,7 +51,7 @@
 \vspace{\dp0}
 } \end{minipage}
     {% endif %}
-\\ \hdashline
+\\ %\hdashline
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -200,7 +200,7 @@ Upper Level Requirement &
         {% else %}
             {{ write_step(rowloop.index, "", step) }}
         {% endif %}
-        \\ \midrule
+        \midrule
     {% endfor %}
     \end{longtable}
     {% endif %}
