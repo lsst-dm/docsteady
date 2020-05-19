@@ -53,7 +53,7 @@ class TestPlan(Schema):
 
     # Derived fields
     milestone_id = fields.String()
-    milestone_name = fields.String()
+    milestone_name = HtmlPandocField()
     product = fields.String()
 
     # custom fields
