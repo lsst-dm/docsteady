@@ -55,7 +55,7 @@
 
 \section{Summary Information}\label{sec:summary}
 
-The following table provides an overview of the requirements and verification elements coverage.
+The following table \ref{table:summary} provides an overview of the requirements and verification elements coverage.
 
 % Summary of Summaries
 \begin{longtable}{rp{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
@@ -97,11 +97,13 @@ The following table provides an overview of the requirements and verification el
 {% endfor %}
  & \textbf{ {{ sum_dict[6][1] }} }
 \\ \hline
+\caption{Summary overview of all {{ metadata.component }}~requirements and verification elements.}
+\label{table:summary}
 \end{longtable}
 
 
 
-The following table provides the Test Cases result summary.
+The following table \ref{table:testsummary} provides the Test Cases result summary.
 
 \begin{longtable}{rp{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
 {# \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline #}
@@ -116,6 +118,8 @@ Test Cases Results
 {% endfor %}
  & \textbf{ {{ sum_dict[6][2] }} } \\
 \bottomrule
+\caption{Summary overview of {{ metadata.component }}~test cases executions.}
+\label{table:testsummary}
 \end{longtable}
 
 Note that test cases may be related to multiple requirements or verification elements,
@@ -126,30 +130,32 @@ and requirements or verification elements may be related to multiple test cases.
 
 \subsubsection{Fully Verified}\label{{ '{' }}{{ ncoverage[0]['label'] }}{{ '}' }}
 
-These are the Verification Elements and Requirements, in which all related Test Cases have been successfully executed.
-The last execution status for all test cases shall be \textbf{Passed} or \textbf{Passed w/Deviation}.
+These are the Verification Elements and Requirements for which all of the associated Test Cases have been
+successfully executed. The last execution status for all test cases shall be
+\textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
 \subsubsection{Partially Verified}\label{{ '{' }}{{ ncoverage[1]['label'] }}{{ '}' }}
 
-These are the Verification Elements and Requirements, in which some of the related Test Cases have been successfully executed.
-The last execution status of the test cases shall be \textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
+These are the Verification Elements and Requirements for which at least one of the associated Test Cases have been
+successfully executed. The last execution status of the test cases shall be
+\textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
 \subsubsection{With Failures}\label{{ '{' }}{{ ncoverage[2]['label'] }}{{ '}' }}
 
-These are the Verification Elements and Requirements, in which at least one of the related Test Cases
+These are the Verification Elements and Requirements for which at least one of the associated Test Cases
 has a \textbf{Failure} as execution result.
 
 
 \subsubsection{Not Verified}\label{{ '{' }}{{ ncoverage[3]['label'] }}{{ '}' }}
 
-These are the Verification Elements and Requirements, in which all related Test Cases have not been executed.
+These are the Verification Elements and Requirements for which none of the associated Test Cases have been executed.
 
 
 \subsubsection{Not Covered}\label{{ '{' }}{{ ncoverage[4]['label'] }}{{ '}' }}
 
-These are the Verification Elements and Requirements which are not related to any Test Cases.
+These are the Verification Elements and Requirements for which there are not any associated Test Cases.
 
 
 \subsection{Test Executions Description}
@@ -158,13 +164,13 @@ These are the Verification Elements and Requirements which are not related to an
 \subsubsection{Passed}\label{{ '{' }}{{ tcresults[0]['label'] }}{{ '}' }}
 
 Test cases that have been executed without any problems.
-Issues may have been found during the execution, and linked to the test case, but they are not
-affecting the verification process.
+Issues may have been found during the execution, and linked to the test case, but they do not affect
+the verification process.
 
 
 \subsubsection{Passed with Deviation}\label{{ '{' }}{{ tcresults[1]['label'] }}{{ '}' }}
 
-Test cases which execution can be considered successful, but a deviation to the requirement is needed.
+Test cases for which the execution can be considered successful, but a deviation to the requirement is needed.
 The deviation shall be recorded in a Jira issue, type \textit{Deviation} and linked to the test.
 
 
@@ -181,8 +187,16 @@ The test case has not been executed yet.
 \newpage
 \section{Verification Control} \label{sec:vcd}
 
-{% for spec in spec_to_reqs %}
+In the following subsections, a detailed overview of the requirements coverage for each specification is provided.
 
+Where available, the priority is reported in round brackets, under the requirement or verification element identifier.
+For example $(p. 1a)$ denotes a 1a priority requirement.
+Requirements and verification elements for which no priority (p.) is specified inherit the priority for
+the higher-level requirement from which they are derived.
+For a full description of the prioritization levels, see \cite{DMSR}.
+
+
+{% for spec in spec_to_reqs %}
 \subsection{{ '{' }}{{ spec }} Requirements Coverage{{ '}' }}
 
 \setlength\LTleft{-0.25in}
@@ -200,7 +214,9 @@ The test case has not been executed yet.
 {# {% for req in vcd_dict[1] %} #}
 {% for req in spec_to_reqs[spec] %}
   \begin{tabular}{@{}l@{}}
-  {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny (p. {{ vcd_dict[1][req]['priority'] }})}
+  {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny
+  {% if vcd_dict[1][req]['priority'] != "Not Set" %} (p. {{ vcd_dict[1][req]['priority'] }}) {% endif %}
+  }
   \end{tabular} &
   {% set nve = vcd_dict[1][req]['VEs']| length %}
   {% for ve in vcd_dict[1][req]['VEs'] %}
@@ -209,7 +225,9 @@ The test case has not been executed yet.
     {% endif %}
     \begin{tabular}{@{}l@{}}
     {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}
-    \\{{ njr(vcd_dict[0][ve]['jkey']) }}~{\tiny (p. {{ vcd_dict[0][ve]['priority'] }})}
+    \\{{ njr(vcd_dict[0][ve]['jkey']) }}~{\tiny
+    {% if vcd_dict[0][ve]['priority'] != "Undefined" %} (p. {{ vcd_dict[0][ve]['priority'] }}) {% endif %}
+    }
     \end{tabular} &
     {% set ntc = vcd_dict[0][ve]['tcs']| length %}
     {% set ntby = 0 %}
