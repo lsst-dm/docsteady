@@ -60,13 +60,13 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
 % Summary of Summaries
 \begin{longtable}{rp{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
  & \rotatebox[origin=l]{60}{ \textbf{Priority}  }
-{% for cov in ncoverage %}
+{% for cov in coverage %}
  & \rotatebox[origin=l]{60}{ \textbf{ {{ cov['name'] }} } {\scriptsize \ref{{ '{' }}{{ cov['label'] }}{{ '}' }} } }
 {% endfor %}
  & \rotatebox[origin=l]{60}{ \textbf{ Total } }
 \\ \toprule
 \textbf{ {{metadata.component}} Requirements} & (All)
-{% for cov in ncoverage %}
+{% for cov in coverage %}
  & {{ sum_dict[2][cov["key"]] }}
 {% endfor %}
  & \textbf{ {{ sum_dict[6][0] }} }
@@ -76,7 +76,7 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
   {% set NP = dcounts|length - 2 %}
   {% for priority, pcounts in dcounts.items() %}
     {% if priority != "count" and priority != "zAll" %}
- {% if loop.index == 1 %}{{ citeds(doc) }}{% endif %} & {{ priority }} {% for cov in ncoverage %} & {{ pcounts[cov["key"]] }} {% endfor %}
+ {% if loop.index == 1 %}{{ citeds(doc) }}{% endif %} & {{ priority }} {% for cov in coverage %} & {{ pcounts[cov["key"]] }} {% endfor %}
  & \textbf{ {{ pcounts.count }} }
       {% if NP == 1 %}
  \\ \hline
@@ -86,13 +86,13 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
     {% endif %}
   {% endfor %}
   {% if NP > 1 %}
- & (All) {% for cov in ncoverage %} & {{ dcounts["zAll"][cov["key"]] }} {% endfor %}
+ & (All) {% for cov in coverage %} & {{ dcounts["zAll"][cov["key"]] }} {% endfor %}
  & \textbf{ {{ dcounts['count'] }} }
  \\ \hline
   {% endif %}
 {% endfor %}
 \textbf{ {{metadata.component}} Verification E.} & (All)
-{% for cov in ncoverage %}
+{% for cov in coverage %}
  & {{ sum_dict[1][ cov["key"] ] }}
 {% endfor %}
  & \textbf{ {{ sum_dict[6][1] }} }
@@ -128,32 +128,32 @@ and requirements or verification elements may be associated with multiple test c
 
 \subsection{Coverage Description}
 
-\subsubsection{Fully Verified}\label{{ '{' }}{{ ncoverage[0]['label'] }}{{ '}' }}
+\subsubsection{Fully Verified}\label{{ '{' }}{{ coverage[0]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements for which all of the associated Test Cases have been
 successfully executed. The last execution status for all test cases shall be
 \textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
-\subsubsection{Partially Verified}\label{{ '{' }}{{ ncoverage[1]['label'] }}{{ '}' }}
+\subsubsection{Partially Verified}\label{{ '{' }}{{ coverage[1]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements for which at least one of the associated Test Cases have been
 successfully executed. The last execution status of the test cases shall be
 \textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
 
 
-\subsubsection{With Failures}\label{{ '{' }}{{ ncoverage[2]['label'] }}{{ '}' }}
+\subsubsection{With Failures}\label{{ '{' }}{{ coverage[2]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements for which at least one of the associated Test Cases
 has a \textbf{Failure} as execution result.
 
 
-\subsubsection{Not Verified}\label{{ '{' }}{{ ncoverage[3]['label'] }}{{ '}' }}
+\subsubsection{Not Verified}\label{{ '{' }}{{ coverage[3]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements for which none of the associated Test Cases have been executed.
 
 
-\subsubsection{Not Covered}\label{{ '{' }}{{ ncoverage[4]['label'] }}{{ '}' }}
+\subsubsection{Not Covered}\label{{ '{' }}{{ coverage[4]['label'] }}{{ '}' }}
 
 These are the Verification Elements and Requirements for which there are not any associated Test Cases.
 

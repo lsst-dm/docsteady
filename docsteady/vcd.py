@@ -545,18 +545,18 @@ def summary(dictionary, comp, user, passwd):
             Config.TEST_STATUS_COUNT.update([tc['status']])
     # notexec cndpass passed failed
 
-    new_req_coverage = dict()
+    req_coverage = dict()
     for entry in Config.REQ_STATUS_COUNT.items():
-        new_req_coverage[entry[0]] = entry[1]
-    new_ve_coverage = dict()
+        req_coverage[entry[0]] = entry[1]
+    ve_coverage = dict()
     for entry in Config.VE_STATUS_COUNT.items():
-        new_ve_coverage[entry[0]] = entry[1]
-    new_tc_status = dict()
-    new_tc_status['NotExecuted'] = 0
+        ve_coverage[entry[0]] = entry[1]
+    tc_status = dict()
+    tc_status['NotExecuted'] = 0
     for entry in Config.TEST_STATUS_COUNT.items():
         if entry[0] in ('Draft', 'Approved', 'Defined', 'notexec', 'Deprecated'):
-            new_tc_status['NotExecuted'] = new_tc_status['NotExecuted'] + entry[1]
-        new_tc_status[entry[0]] = entry[1]
+            tc_status['NotExecuted'] = tc_status['NotExecuted'] + entry[1]
+        tc_status[entry[0]] = entry[1]
     rec_count_per_doc = dict()
     for entry in Config.REQ_STATUS_PER_DOC_COUNT.items():
         split0 = entry[0].split(".")
@@ -582,7 +582,7 @@ def summary(dictionary, comp, user, passwd):
 
     size = [len(reqs), len(verification_elements), len(tcases)]
 
-    return [new_tc_status, new_ve_coverage, new_req_coverage, rec_count_per_doc, [], [], size]
+    return [tc_status, ve_coverage, req_coverage, rec_count_per_doc, [], [], size]
 
 
 def check_acronyms(reqs):

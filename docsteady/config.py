@@ -84,7 +84,7 @@ class Config:
     TEST_STATUS_COUNT = Counter()
     REQ_PER_DOC = dict()
 
-    new_coverage = [   # Coverage for requirements and verification elements
+    coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},
         {"id": 1, "key": "PartiallyVerified", "name": "Partially Verified", "label": "sec:partiallyverified"},
         {"id": 2, "key": "WithFailures", "name": "With Failures", "label": "sec:withfaulres"},
