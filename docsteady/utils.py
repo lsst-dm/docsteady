@@ -33,7 +33,9 @@ import pypandoc
 
 from .config import Config
 import requests
-from urllib.parse import *
+
+from urllib.parse import urlparse
+from urllib.parse import urljoin
 
 jhost = "140.252.32.64"
 jdb = "jira"
@@ -75,10 +77,10 @@ class SubsectionableHtmlPandocField(fields.String):
 
 def cite_docushare_handles(text):
     """This will find matching docushare handles and replace
-    the text with the ``\citeds{text}``."""
+    the text with the ``\\citeds{text}``."""
     output_tex = ""
     for entry in text.split(" "):
-        if not ( "href" in entry or "url" in entry):
+        if not ("href" in entry or "url" in entry):
             output_tex = output_tex + " " + Config.DOCUSHARE_DOC_PATTERN.sub(r"\\citeds{\1\2}", entry)
         else:
             output_tex = output_tex + " " + entry
@@ -182,7 +184,7 @@ def download_and_rewrite_images(value):
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
-        # fixing the aspect ratio of th images is working only with pandoc 1.19.1
+        # fixing the aspect ratio of images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["height"] = "auto"
@@ -237,8 +239,6 @@ def create_folders_and_files():
     if not os.path.isfile(local_bib_file):
         with open(local_bib_file, 'w'):
             pass
-
-
 
 
 def rewrite_strong_to_subsection(content, extractable):
