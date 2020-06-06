@@ -182,7 +182,8 @@ def get_lvv_details(key):
     -------
     lvv: dictionary
         The LVV information that is not available in the test case.
-        In a first stage, the only information required are the High Level Requirements
+        In a first stage, the only information required are
+        the High Level Requirements
     """
     lvv = dict()
     lvv['high_level_req'] = []

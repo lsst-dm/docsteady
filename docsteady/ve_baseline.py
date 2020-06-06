@@ -46,6 +46,7 @@ def get_testcase(rs, tckey):
 
     return tc_detail
 
+
 def get_ve_details(rs, key):
     """
 
@@ -82,14 +83,14 @@ def get_ve_details(rs, key):
             ureqs = ve_details["raw_upper_req"].split(',\n')
             for ur in ureqs:
                 urs = ur.split('textbar')
-                u_id = urs[0].lstrip('\{\[\}.- ').rstrip('\\')
+                u_id = urs[0].lstrip(r'\{\[\}.- ').rstrip('\\')
                 urs = ur.split(':\n')
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
     # cache reqs
     if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
-         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
     Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
 
     return ve_details
@@ -108,8 +109,8 @@ def get_ves(rs, cmp, subcmp):
 
     max = 1000
 
-    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp,subcmp=subcmp,maxR=max))
-    jresult=result.json()
+    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max))
+    jresult = result.json()
     for i in jresult["issues"]:
         # ve_list.append(i["key"])
         ve_details[i["key"]] = get_ve_details(rs, i["key"])

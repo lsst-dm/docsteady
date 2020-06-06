@@ -27,8 +27,8 @@ from base64 import b64encode
 
 from .cycle import TestCycle, TestResult
 from .spec import TestCase
-from .utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField, create_folders_and_files, \
-    download_attachments
+from .utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField, \
+    create_folders_and_files, download_attachments
 from .config import Config
 
 
@@ -66,7 +66,8 @@ class TestPlan(Schema):
     observing_required = fields.Boolean()
     overall_assessment = HtmlPandocField()
     recommended_improvements = HtmlPandocField()
-    # Note: Add More custom fields above here (and don't forget preprocess_plan)
+    # Note: Add More custom fields above here
+    # (and don't forget preprocess_plan)
 
     @pre_load(pass_many=False)
     def preprocess_plan(self, data):
@@ -161,7 +162,6 @@ def build_tpr_model(tplan_key):
             download_attachments(rs, Config.TESTCYCLE_ATTACHMENTS.format(tcycle_KEY=cycle_key))
         n_attachments = n_attachments + len(attachments['cycles'][cycle_key])
 
-        # print("Test Results:", Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp = rs.get(Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp.raise_for_status()
         testresults, errors = TestResult().load(resp.json(), many=True)

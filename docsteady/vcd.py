@@ -25,11 +25,11 @@ Code for VCD
 import pymysql
 import requests
 import os
-from marshmallow import Schema, fields, pre_load, post_load
+from marshmallow import Schema, fields, pre_load
 from collections import Counter
 
 from .config import Config
-from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec, HtmlPandocField
+from .utils import jhost, jdb, get_tspec, HtmlPandocField
 
 
 class VerificationE(Schema):
@@ -79,7 +79,7 @@ class Coverage_Count:
     passedtcs_label = "sec:passedtcs"
 
     def total_count(self):
-        return self.notcs + self.noexectcs + self.failedtcs  + self.passedtcs
+        return self.notcs + self.noexectcs + self.failedtcs + self.passedtcs
 
 
 def runstatus(trs):
@@ -99,7 +99,7 @@ def runstatus(trs):
 
 
 def build_vcd_model(component):
-    # build the vcd. Only Verification Issues are considered. 
+    # build the vcd. Only Verification Issues are considered.
     global tcases
 
     rs = requests.Session()
@@ -114,7 +114,7 @@ def build_vcd_model(component):
             component_id = c['id']
             break
     if component_id == '':
-        print(f"Error. Component {{c}} not found in LVV project".format(c=component))
+        print(f'Error. Component {component} not found in LVV project')
         exit()
 
     # get the number of issue in the componenet
@@ -242,9 +242,9 @@ def build_vcd_model(component):
     fsum = open("summary.tex", 'w')
     print('\\newpage\n\\section{Summary Information}', file=fsum)
     print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
-    print(f"Number of Requirements: & {{nr}} \\\\".format(nr=len(reqs)), file=fsum)
-    print(f"Number of Verification Elements: & {{ne}} \\\\".format(ne=len(velem)), file=fsum)
-    print(f"Number of Test Cases: & {{ntc}} \\\\".format(ntc=len(tcases)), file=fsum)
+    print(f"Number of Requirements: & {len(reqs)} \\\\", file=fsum)
+    print(f"Number of Verification Elements: & {len(velem)} \\\\", file=fsum)
+    print(f"Number of Test Cases: & {len(tcases)} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
@@ -322,12 +322,12 @@ def get_tcs(jc, veid):
     """for a given VE (id) return the related test cases
        and populate in parallel the global tcases """
     global tcases
-    query = (
-            "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name from AO_4D28DD_TEST_CASE tc "
-            "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
-            "inner join jiraissue ji on il.issue_id = ji.id "
-            "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
-            "where tc.archived = 0 and ji.id = " + str(veid))
+    query = ("select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name "
+             "from AO_4D28DD_TEST_CASE tc "
+             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
+             "inner join jiraissue ji on il.issue_id = ji.id "
+             "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
+             "where tc.archived = 0 and ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
     for tc in rawtc:
@@ -412,8 +412,6 @@ def get_ves(comp, jc):
                     rtmp['priority'] = tmpve['Requirement Priority']
                 else:
                     rtmp['priority'] = "Not Set"
-                # if rtmp['reqDoc'] == 'LSE-61':
-                #    print(tmpve['Requirement ID'], rtmp['reqDoc'], rtmp['priority'])
                 reqs[tmpve['Requirement ID']] = rtmp
             else:
                 if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
@@ -432,7 +430,8 @@ def get_ves(comp, jc):
 
 
 def get_tspec_r(jc, fid):
-    """recursively browse the folders until finding the test spec of the root (NULL)"""
+    """recursively browse the folders
+    until finding the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(jc, query)
@@ -524,7 +523,8 @@ def summary(dictionary, comp, user, passwd):
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
         for ve in req['VEs']:
             if 'verifiedby' in dictionary[0][ve].keys():
-                # I calculate the coverage looking at the test cases associated with the verifying VEs
+                # I calculate the coverage looking at the test cases
+                # associated with the verifying VEs
                 vbytcs = dict()
                 for vby in dictionary[0][ve]['verifiedby']:
                     vbytcs.update(dictionary[0][vby]['tcs'])
@@ -621,15 +621,16 @@ def vcdsql(comp, usr, pwd, RSP):
 
     ves, reqs = get_ves(comp, jcon)
 
-    print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
-          format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
+    print(f"  ... found {len(ves)} Verification Elements "
+          f"  related to {len(reqs)} requirements and {len(tcases)} test cases.")
 
     if os.path.isfile("acronyms.tex"):
         check_acronyms(reqs)
 
     # Credit: KTL
-    # print out the list of test cases, sorted per corresponding requirement priority
-    # "*" indicates that the test case the execution result is "Passed" or "Conditinoaly Passed"
+    # print out the list of test cases, sorted per requirement priority
+    # "*" indicates that the test case the execution result is
+    # "Passed" or "Conditinoaly Passed"
     if RSP != "":
         spec_split = RSP.split('|')
         if len(spec_split) == 2:
@@ -638,8 +639,9 @@ def vcdsql(comp, usr, pwd, RSP):
         else:
             req_f = RSP
             test_f = ""
-        print(f"Test cases related to {{spec}} grouped per priority.\n".format(spec=RSP),
-              " '*' indicates that the test case the execution result is 'Passed' or 'Conditional-Passed'")
+        print(f"Test cases related to {RSP} grouped per priority.\n",
+              " '*' indicates that the test case the execution result "
+              "is 'Passed' or 'Conditional-Passed'")
         by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
         executed = {}
         for ve in ves.values():
@@ -651,8 +653,8 @@ def vcdsql(comp, usr, pwd, RSP):
                         if lastR and "status" in lastR.keys():
                             if lastR["status"] not in ('passed', 'notexec', 'failed'):
                                 print(lastR["status"])
-                        executed[tc_number] = lastR is not None and (
-                        lastR['status'] == "passed" or lastR['status'] == "cndpass")
+                        executed[tc_number] = lastR is not None and (lastR['status'] == "passed" or
+                                                                     lastR['status'] == "cndpass")
                         if 'Requirement Priority' in ve.keys():
                             by_priority[ve['Requirement Priority']][tc_number] = 1
                             # print(ve)

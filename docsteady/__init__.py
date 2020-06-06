@@ -32,7 +32,7 @@ from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
-from .vcd import build_vcd_model, vcdsql, summary
+from .vcd import vcdsql, summary
 from .ve_baseline import do_ve_model
 
 try:
@@ -40,6 +40,7 @@ try:
 except DistributionNotFound:
     # package is not installed
     pass
+
 
 @click.group()
 @click.option('--namespace', default='dm', help='Project namespace (dm, ts, example, etc..). '
@@ -100,7 +101,7 @@ def generate_spec(format, username, password, folder, path):
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
-        ]),
+    ]),
         lstrip_blocks=True, trim_blocks=True,
         autoescape=None
     )
@@ -108,7 +109,7 @@ def generate_spec(format, username, password, folder, path):
     try:
         template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
-    except TemplateNotFound as e:
+    except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
         sys.exit(1)
 
@@ -130,7 +131,7 @@ def generate_spec(format, username, password, folder, path):
     # Will exit if it can't find a template
     appendix_template = _try_appendix_template(target, env)
     if not appendix_template:
-        click.echo(f"No Appendix Template Found, skipping...", err=True)
+        click.echo("No Appendix Template Found, skipping...", err=True)
         sys.exit(0)
     metadata["template"] = appendix_template.filename
     appendix_file = _get_appendix_output(path)
@@ -177,7 +178,7 @@ def generate_report(format, username, password, trace, plan, path):
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
-        ]),
+    ]),
         lstrip_blocks=True, trim_blocks=True,
         autoescape=None
     )
@@ -185,7 +186,7 @@ def generate_report(format, username, password, trace, plan, path):
     template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     metadata = _metadata()
-    metadata["tplan"] = tplan
+    metadata["tplan"] = testplan
     metadata["template"] = template.filename
 
     text = template.render(metadata=metadata,
@@ -204,7 +205,7 @@ def generate_report(format, username, password, trace, plan, path):
         # Will exit if it can't find a template
         appendix_template = _try_appendix_template(target, env)
         if not appendix_template:
-            click.echo(f"No Appendix Template Found, skipping...", err=True)
+            click.echo("No Appendix Template Found, skipping...", err=True)
             sys.exit(0)
         metadata["template"] = appendix_template.filename
         appendix_file = _get_appendix_output(path)
@@ -221,7 +222,7 @@ def _try_appendix_template(target, env):
 
     try:
         return env.get_template(appendix_template_path)
-    except TemplateNotFound as e:
+    except TemplateNotFound:
         return None
 
 
@@ -250,13 +251,13 @@ def _metadata():
     )
 
 
-
 @cli.command("generate-vcd")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
 @click.option('--vcduser', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
 @click.option('--vcdpwd', prompt="Jira Password", hide_input=True,
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
-@click.option('--sql', required=False, default=False, help="True if direct access to the database shall be used")
+@click.option('--sql', required=False, default=False,
+              help="True if direct access to the database shall be used")
 @click.option('--spec', required=False, default=False,
               help="Req|Test specifications to print out test case prioritization")
 @click.argument('component')
@@ -288,7 +289,7 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
-        ]),
+    ]),
         lstrip_blocks=True, trim_blocks=True,
         autoescape=None
     )
@@ -296,7 +297,7 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
     try:
         template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
-    except TemplateNotFound as e:
+    except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
         sys.exit(1)
 
@@ -329,8 +330,8 @@ if __name__ == '__main__':
 def baseline_ve(format, username, password, details, component, subcomponent, path):
     """Given a specific subsystem (component), and subcomponent,
     a document is generated including all corresponding Verification Elements
-    and related Test Cases.
-    This is not a Verification Control Document: no Test Result information is provided
+    and related Test Cases. This is not a Verification Control Document:
+    no Test Result information is provided
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
@@ -344,7 +345,7 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
-        ]),
+    ]),
         lstrip_blocks=True, trim_blocks=True,
         autoescape=None
     )
@@ -352,7 +353,7 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
     try:
         template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
-    except TemplateNotFound as e:
+    except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
         sys.exit(1)
 
@@ -375,7 +376,7 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
         try:
             template_path = f"{target}-details.{Config.TEMPLATE_LANGUAGE}.jinja2"
             template_details = env.get_template(template_path)
-        except TemplateNotFound as e:
+        except TemplateNotFound:
             click.echo(f"No Detailed template found: {template_path}", err=True)
 
         text_details = template_details.render(metadata=metadata,
