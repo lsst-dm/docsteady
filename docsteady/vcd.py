@@ -251,7 +251,7 @@ def build_vcd_model(component):
 
 def db_get(jc: {}, dbquery) -> {}:
     """returns query result in a 2dim matrix"""
-    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb)
+    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb, read_timeout=1000)
     cursor = db.cursor()
     cursor.execute(dbquery)
     data = cursor.fetchall()
