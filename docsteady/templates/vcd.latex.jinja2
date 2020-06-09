@@ -38,10 +38,10 @@
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {######################################}
-
-
-
-
+{%- macro citeds(text) -%}
+\citeds{{ '{' }}{{ text }}{{ '}'}}
+{%- endmacro -%}
+{######################################}
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting data for component: "{{ metadata.component }}"
@@ -55,40 +55,149 @@
 
 \section{Summary Information}\label{sec:summary}
 
-The following table provides an overview of the relationships between requirements, verification elements, and test cases.
+Table \ref{table:summary} provides an overview of the requirements and verification elements coverage.
 
 % Summary of Summaries
-\begin{longtable}{rrrr}
-&
-\begin{tabular}{@{}l@{}} Count of \\ LSE-61 1a \\ Requirements \end{tabular} &
-\begin{tabular}{@{}l@{}} Count of ALL \\ Requirements \end{tabular} &
-\begin{tabular}{@{}l@{}} Count of \\ Verification \\Elements \end{tabular} \\ \hline
-Not related to any Test Case  & {{ sum_dict[5][0] }} & {{ sum_dict[4][0] }} & {{ sum_dict[2].notcs }} \\ \hline
-Related to NOT executed Test Cases  & {{ sum_dict[5][1] }} & {{ sum_dict[4][1] }} & {{ sum_dict[2].noexectcs }} \\ \hline
-Related to Failed Test Cases  & {{ sum_dict[5][2] }} & {{ sum_dict[4][2] }} & {{ sum_dict[2].failedtcs }} \\ \hline
-Related to Passed Test Cases  & {{ sum_dict[5][3] }} & {{ sum_dict[4][3] }} & {{ sum_dict[2].passedtcs }} \\ \hline
-Total & {{ sum_dict[6][3] }} & {{ sum_dict[6][0] }} & {{ sum_dict[2].total_count() }} \\
-\bottomrule
-\end{longtable}
-
-
-The following table provides the Test Cases result summary.
-
-\begin{longtable}{rr}
-\multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline
-{% for r in tcresults %}
-  {{ tcresults[ r["id"] ]["name"] }} & {{ sum_dict[0][ r["id"] ] }} \\ \hline
+\begin{longtable}{rp{2cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
+ & \rotatebox[origin=l]{60}{ \textbf{Priority}  }
+{% for cov in coverage %}
+ & \rotatebox[origin=l]{60}{ \textbf{ {{ cov['name'] }} } {\scriptsize \ref{{ '{' }}{{ cov['label'] }}{{ '}' }} } }
 {% endfor %}
-%   ----------------------
-Total & {{ sum_dict[6][2] }} \\
-\bottomrule
+ & \rotatebox[origin=l]{60}{ \textbf{ Total } }
+\\ \toprule
+\textbf{ {{metadata.component}} Requirements} & (All)
+{% for cov in coverage %}
+ & {{ sum_dict[2][cov["key"]] }}
+{% endfor %}
+ & \textbf{ {{ sum_dict[6][0] }} }
+\\ \toprule
+{% for doc, dcounts in sum_dict[3].items() %}
+  {% set doc_loop = loop%}
+  {% set NP = dcounts|length - 2 %}
+  {% for priority, pcounts in dcounts.items() %}
+    {% if priority != "count" and priority != "zAll" %}
+ {% if loop.index == 1 %}{{ citeds(doc) }}{% endif %} & {{ priority }} {% for cov in coverage %} & {{ pcounts[cov["key"]] }} {% endfor %}
+ & \textbf{ {{ pcounts.count }} }
+      {% if NP == 1 %}
+ \\ \hline
+      {% else %}
+ \\ \cdashline{2-8}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if NP > 1 %}
+ & (All) {% for cov in coverage %} & {{ dcounts["zAll"][cov["key"]] }} {% endfor %}
+ & \textbf{ {{ dcounts['count'] }} }
+ \\ \hline
+  {% endif %}
+{% endfor %}
+\textbf{ {{metadata.component}} Verification E.} & (All)
+{% for cov in coverage %}
+ & {{ sum_dict[1][ cov["key"] ] }}
+{% endfor %}
+ & \textbf{ {{ sum_dict[6][1] }} }
+\\ \hline
+\caption{Summary overview of all {{ metadata.component }}~requirements and verification elements.}
+\label{table:summary}
 \end{longtable}
 
-Note that test cases may be related to multiple requirements or verification elements,
-and requirements or verification elements may be related to multiple test cases.
+
+
+Table \ref{table:testsummary} provides the Test Cases result summary.
+
+\begin{longtable}{rp{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
+{# \multicolumn{2}{c}{\textbf{Test Cases Results}} \\ \hline #}
+{% for r in tcresults %}
+& \rotatebox[origin=l]{60}{ \textbf{ {{ r["name"] }} }{\scriptsize \ref{{ '{' }}{{ r['label'] }}{{ '}' }} } }
+{% endfor %}
+& \rotatebox[origin=l]{60}{ \textbf{Total}}
+\\ \toprule
+Test Cases Results
+{% for r in tcresults %}
+& {{ sum_dict[0][ r["key"] ] }}
+{% endfor %}
+ & \textbf{ {{ sum_dict[6][2] }} } \\
+\bottomrule
+\caption{Summary overview of {{ metadata.component }}~test cases executions.}
+\label{table:testsummary}
+\end{longtable}
+
+Note that test cases may be associated with multiple requirements or verification elements,
+and requirements or verification elements may be associated with multiple test cases.
+
+
+\subsection{Coverage Description}
+
+\subsubsection{Fully Verified}\label{{ '{' }}{{ coverage[0]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements for which all of the associated Test Cases have been
+successfully executed. The last execution status for all test cases shall be
+\textbf{Passed} or \textbf{Passed w/Deviation}.
+
+
+\subsubsection{Partially Verified}\label{{ '{' }}{{ coverage[1]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements for which at least one of the associated Test Cases have been
+successfully executed. The last execution status of the test cases shall be
+\textbf{Not Executed}, \textbf{Passed} or \textbf{Passed w/Deviation}.
+
+
+\subsubsection{With Failures}\label{{ '{' }}{{ coverage[2]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements for which at least one of the associated Test Cases
+has a \textbf{Failure} as execution result.
+
+
+\subsubsection{Not Verified}\label{{ '{' }}{{ coverage[3]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements for which none of the associated Test Cases have been executed.
+
+
+\subsubsection{Not Covered}\label{{ '{' }}{{ coverage[4]['label'] }}{{ '}' }}
+
+These are the Verification Elements and Requirements for which there are not any associated Test Cases.
+
+
+\subsection{Test Executions Description}
+
+
+\subsubsection{Passed}\label{{ '{' }}{{ tcresults[0]['label'] }}{{ '}' }}
+
+Test cases that have been executed without any problems.
+Issues may have been found during the execution, and linked to the test case, but they do not affect
+the verification process.
+
+
+\subsubsection{Passed with Deviation}\label{{ '{' }}{{ tcresults[1]['label'] }}{{ '}' }}
+
+Test cases for which the execution can be considered successful, but a deviation to the requirement is needed.
+The deviation shall be recorded in a Jira issue, type \textit{Deviation} and linked to the test.
+
+
+\subsubsection{Failed}\label{{ '{' }}{{ tcresults[2]['label'] }}{{ '}' }}
+
+The test case execution failed. One or more Jira issues shall be filed and related with the test.
+
+
+\subsubsection{Not Executed}\label{{ '{' }}{{ tcresults[3]['label'] }}{{ '}' }}
+
+The test case has not been executed yet.
+
 
 \newpage
 \section{Verification Control} \label{sec:vcd}
+
+In the following subsections, a detailed overview of the requirements coverage for each specification is provided.
+
+Where available, the priority is reported in round brackets, under the requirement or verification element identifier.
+For example $(p. 1a)$ denotes a 1a priority requirement.
+Requirements and verification elements for which no priority (p.) is specified inherit the priority for
+the higher-level requirement from which they are derived.
+For a full description of the prioritization levels, see \cite{DMSR}.
+
+
+{% for spec in spec_to_reqs %}
+\subsection{{ '{' }}{{ spec }} Requirements Coverage{{ '}' }}
 
 \setlength\LTleft{-0.25in}
 \setlength\LTright{-0.5in}
@@ -97,14 +206,17 @@ and requirements or verification elements may be related to multiple test cases.
 \setlength{\LTcapwidthold}{\LTcapwidth}
 \setlength{\LTcapwidth}{\textheight} #}
 \begin{longtable}{lllll}
-\caption{ {{ metadata.component }} VCD Table.} \\
+\caption{ {{ metadata.component }} {{ spec }} Requirements.} \\
 \toprule
 \textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
 \toprule
 \endhead
-{% for req in vcd_dict[1] %}
+{# {% for req in vcd_dict[1] %} #}
+{% for req in spec_to_reqs[spec] %}
   \begin{tabular}{@{}l@{}}
-  {{ req }} \\ {{ ndr(vcd_dict[1][req]['reqDoc']) }}
+  {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny
+  {% if vcd_dict[1][req]['priority'] != "Not Set" %} (p. {{ vcd_dict[1][req]['priority'] }}) {% endif %}
+  }
   \end{tabular} &
   {% set nve = vcd_dict[1][req]['VEs']| length %}
   {% for ve in vcd_dict[1][req]['VEs'] %}
@@ -112,7 +224,10 @@ and requirements or verification elements may be related to multiple test cases.
       &
     {% endif %}
     \begin{tabular}{@{}l@{}}
-    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}\\ {{ njr(vcd_dict[0][ve]['jkey']) }}
+    {{ hypertarget(ve.lower()) }}{{ curlies(ve) }}
+    \\{{ njr(vcd_dict[0][ve]['jkey']) }}~{\tiny
+    {% if vcd_dict[0][ve]['priority'] != "Undefined" %} (p. {{ vcd_dict[0][ve]['priority'] }}) {% endif %}
+    }
     \end{tabular} &
     {% set ntc = vcd_dict[0][ve]['tcs']| length %}
     {% set ntby = 0 %}
@@ -175,4 +290,6 @@ and requirements or verification elements may be related to multiple test cases.
 \label{tab:dmvcd}
 \end{longtable}
 }
+
+{% endfor %}
 

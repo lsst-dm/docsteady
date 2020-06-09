@@ -1,19 +1,19 @@
 {%- macro curlies(item) -%}
 {{ "{" }}{{ item }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro href(url, text) -%}
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro label(text) -%}
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 {%- macro atmtc(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
-
+{# --------------------------------------------------------------------------------#}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do not edit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,7 +25,7 @@ The following is the list of verification elements defined in the context of the
 
 {% for vek in velements %}
 {% set ve = velements[vek] %}
-\newpage
+{% if loop.index != 1 %} \newpage {% endif %}
 \subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
 
 \begin{longtable}{ccccc}
@@ -68,38 +68,19 @@ Upper Level Requirement &
 \end{longtable}
 }
 
+\subsubsection{Test Cases Summary}
   {% for testc in ve.test_cases %}
     {% set tc = test_cases[testc[0]] %}
-\subsubsection{[{{ tc.key }}] {{ tc.name }} }
-
-\begin{longtable}{cccccc}
-\hline
-\multicolumn{6}{c}{\textbf{Test Case Summary}} \\ \hline
-\textbf{Jira Link} & \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} &
-\textbf{Verification Type} \\ \hline
-{{ atmtc(tc.key) }} &
-{{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
-\\ \hline
+\begin{longtable}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
+\toprule
+{{ atmtc(tc.key) }} & \multicolumn{4}{l}{ {{ tc.name }} } \\ \hline
+\textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} & \textbf{Verification Type} \\ \hline
+{{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }} \\ \hline
 \end{longtable}
-
-\textbf{Objective:} \\
+{\scriptsize
+\textbf{Objective:}\\
 {{ tc.objective }}
-
-    {% if tc.precondition != "" %}
-\textbf{Precondition:} \\
-{{ tc.precondition }}
-    {% endif %}
-
-    {% if tc.predecessors != "" %}
-\textbf{Predecessors:} \\
-{{ tc.predecessors }}
-    {% endif %}
-
-    {% if tc.test_personnel != "" %}
-\textbf{Test Personnel:} \\
-{{ tc.test_personnel }}
-    {% endif %}
-
+}
   {% endfor %}
 
 {% endfor %}
@@ -120,8 +101,8 @@ Upper Level Requirement &
       {% for testc in ve.test_cases %}
          {% set tc = test_cases[testc[0]] %}
 {% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
-{% if loop.index == 1 %} {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
-{{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
+{% if loop.index == 1 %} {{ vek }} {% endif %} &
+{{ tc.key }} \\
       {% endfor %}
 {% if rowloop.index != nve %} \cdashline{2-3} {% endif %}
    {% endfor %}

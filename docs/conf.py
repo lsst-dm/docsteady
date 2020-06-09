@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pkg_resources import get_distribution
 needs_sphinx = '1.5'
 extensions = ['sphinx_click.ext']
 templates_path = []
@@ -15,7 +16,6 @@ author = 'Brian Van Klaveren'
 # built documents.
 #
 # The short X.Y version.
-from pkg_resources import get_distribution
 release = get_distribution('myproject').version
 # for example take major/minor
 version = '.'.join(release.split('.')[:2])

@@ -24,11 +24,12 @@ Code for VCD
 
 import pymysql
 import requests
-import re
-from marshmallow import Schema, fields, pre_load, post_load
+import os
+from marshmallow import Schema, fields, pre_load
+from collections import Counter
 
 from .config import Config
-from .utils import jhost, jdb, MarkdownableHtmlPandocField, get_tspec, HtmlPandocField
+from .utils import jhost, jdb, get_tspec, HtmlPandocField
 
 
 class VerificationE(Schema):
@@ -78,13 +79,13 @@ class Coverage_Count:
     passedtcs_label = "sec:passedtcs"
 
     def total_count(self):
-        return self.notcs + self.noexectcs + self.failedtcs  + self.passedtcs
+        return self.notcs + self.noexectcs + self.failedtcs + self.passedtcs
 
 
 def runstatus(trs):
     if trs == "Pass":
         status = 'passed'
-    elif trs == "Conditional Pass":
+    elif trs == "Pass w/ Deviation":
         status = 'cndpass'
     elif trs == "Fail":
         status = 'failed'
@@ -98,7 +99,7 @@ def runstatus(trs):
 
 
 def build_vcd_model(component):
-    # build the vcd. Only Verification Issues are considered. 
+    # build the vcd. Only Verification Issues are considered.
     global tcases
 
     rs = requests.Session()
@@ -113,7 +114,7 @@ def build_vcd_model(component):
             component_id = c['id']
             break
     if component_id == '':
-        print(f"Error. Component {{c}} not found in LVV project".format(c=component))
+        print(f'Error. Component {component} not found in LVV project')
         exit()
 
     # get the number of issue in the componenet
@@ -241,16 +242,16 @@ def build_vcd_model(component):
     fsum = open("summary.tex", 'w')
     print('\\newpage\n\\section{Summary Information}', file=fsum)
     print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
-    print(f"Number of Requirements: & {{nr}} \\\\".format(nr=len(reqs)), file=fsum)
-    print(f"Number of Verification Elements: & {{ne}} \\\\".format(ne=len(velem)), file=fsum)
-    print(f"Number of Test Cases: & {{ntc}} \\\\".format(ntc=len(tcases)), file=fsum)
+    print(f"Number of Requirements: & {len(reqs)} \\\\", file=fsum)
+    print(f"Number of Verification Elements: & {len(velem)} \\\\", file=fsum)
+    print(f"Number of Test Cases: & {len(tcases)} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
 
 def db_get(jc: {}, dbquery) -> {}:
     """returns query result in a 2dim matrix"""
-    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb)
+    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb, read_timeout=1000)
     cursor = db.cursor()
     cursor.execute(dbquery)
     data = cursor.fetchall()
@@ -299,9 +300,9 @@ def get_tc_results(jc, tc):
              "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
              "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
              "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
-             "join AO_4D28DD_RESULT_STATUS rs on tc.`LAST_TEST_RESULT_STATUS_ID` = rs.id "
+             "join AO_4D28DD_RESULT_STATUS rs on tr.`TEST_RESULT_STATUS_ID` = rs.id "
              "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
-             "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 ")
+             "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 and tr.`EXECUTION_DATE` is not NULL")
     trdet = db_get(jc, query)
     if len(trdet) != 0:
         results['status'] = runstatus(trdet[0][0])
@@ -321,12 +322,12 @@ def get_tcs(jc, veid):
     """for a given VE (id) return the related test cases
        and populate in parallel the global tcases """
     global tcases
-    query = (
-            "select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name from AO_4D28DD_TEST_CASE tc "
-            "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
-            "inner join jiraissue ji on il.issue_id = ji.id "
-            "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
-            "where tc.archived = 0 and ji.id = " + str(veid))
+    query = ("select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name "
+             "from AO_4D28DD_TEST_CASE tc "
+             "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
+             "inner join jiraissue ji on il.issue_id = ji.id "
+             "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
+             "where tc.archived = 0 and ji.id = " + str(veid))
     rawtc = db_get(jc, query)
     tcs = {}
     for tc in rawtc:
@@ -363,6 +364,7 @@ def get_ves(comp, jc):
 
     v = 0
     for ve in raw_ves:
+        print(".", end="", flush=True)
         if ve[3] != '11713':  # ignore DESCOPED VEs
             v = v + 1
             tmpve = dict()
@@ -410,8 +412,6 @@ def get_ves(comp, jc):
                     rtmp['priority'] = tmpve['Requirement Priority']
                 else:
                     rtmp['priority'] = "Not Set"
-                # if rtmp['reqDoc'] == 'LSE-61':
-                #    print(tmpve['Requirement ID'], rtmp['reqDoc'], rtmp['priority'])
                 reqs[tmpve['Requirement ID']] = rtmp
             else:
                 if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
@@ -430,7 +430,8 @@ def get_ves(comp, jc):
 
 
 def get_tspec_r(jc, fid):
-    """recursively browse the folders until finding the test spec of the root (NULL)"""
+    """recursively browse the folders
+    until finding the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(jc, query)
@@ -439,6 +440,64 @@ def get_tspec_r(jc, fid):
         if dbres[0][1] is not None:
             tspec = get_tspec_r(jc, dbres[0][1])
     return tspec
+
+
+def do_ve_coverage(tcs, results):
+    """
+
+    :param tcs: test cases results
+    :return: coverage
+    """
+    ntc = len(tcs)
+    if ntc == 0:
+        coverage = 'NotCovered'
+    else:
+        tccount = Counter()
+        for tc in tcs.keys():
+            if results[tc]['lastR']:
+                tccount.update([results[tc]['lastR']['status']])
+            else:
+                tccount.update(['notexec'])
+        if tccount['failed'] and tccount['failed'] > 0:
+            coverage = 'WithFailures'
+        else:
+            if tccount['passed'] + tccount['cndpass'] == ntc:
+                coverage = 'FullyVerified'
+            else:
+                if tccount['notexec'] == ntc:
+                    coverage = 'NotVerified'
+                else:
+                    coverage = 'PartiallyVerified'
+
+    return coverage
+
+
+def do_req_coverage(ves, ve_coverage):
+    """
+    Calculate the coverage level of a requirement
+    based on the downstram verification elements.
+    :param ves:
+    :param ve_coverage:
+    :return:
+    """
+    nves = len(ves)
+    vecount = Counter()
+    for ve in ves:
+        vecount.update([ve_coverage[ve]['coverage']])
+    if vecount['WithFailures'] and vecount['WithFailures'] > 0:
+        rcoverage = "WithFailures"
+    else:
+        if vecount['FullyVerified'] and vecount['FullyVerified'] == nves:
+            rcoverage = "FullyVerified"
+        else:
+            if vecount["NotVerified"] == nves:
+                rcoverage = "NotVerified"
+            else:
+                if vecount['NotCovered'] == nves:
+                    rcoverage = 'NotCovered'
+                else:
+                    rcoverage = "PartiallyVerified"
+    return rcoverage
 
 
 def summary(dictionary, comp, user, passwd):
@@ -459,177 +518,71 @@ def summary(dictionary, comp, user, passwd):
     mtrs['nv'] = len(verification_elements)
     mtrs['nt'] = len(tcases)
 
-    # get TC status and result
-    # metric testcases results
-    # [ 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked', 'Unknown' ]
-    mtcres = [0, 0, 0, 0, 0, 0, 0]
-    # metric testcases status:
-    mtcstatus = {"count": [0, 0, 0, 0],
-                 "name": ['Draft', 'Defined', 'Approved', 'Deprecated'],
-                 "id": [0, 1, 2, 3]}
-    for tc in tcases.keys():
-        if not tcases[tc]['lastR']:  # not executed
-            mtcres[0] += 1
-        else:
-            if not tcases[tc]['lastR']['status']:
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "notexec":
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "passed":
-                mtcres[3] += 1
-            elif tcases[tc]['lastR']['status'] == "failed":
-                mtcres[2] += 1
-            elif tcases[tc]['lastR']['status'] == "inprogress":
-                mtcres[0] += 1
-            elif tcases[tc]['lastR']['status'] == "cndpass":
-                mtcres[1] += 1
-            elif tcases[tc]['lastR']['status'] == "blocked":
-                mtcres[0] += 1
+    for req in dictionary[1].values():
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+        for ve in req['VEs']:
+            if 'verifiedby' in dictionary[0][ve].keys():
+                # I calculate the coverage looking at the test cases
+                # associated with the verifying VEs
+                vbytcs = dict()
+                for vby in dictionary[0][ve]['verifiedby']:
+                    vbytcs.update(dictionary[0][vby]['tcs'])
+                vcoverage = do_ve_coverage(vbytcs, dictionary[3])
             else:
-                print('Unknown test case result:', tcases[tc]['lastR']['status'])
-                mtcres[6] += 1
-        if tcases[tc]['status'] == 'Draft':
-            mtcstatus["count"][0] += 1
-        elif tcases[tc]['status'] == 'Defined':
-            mtcstatus["count"][1] += 1
-        elif tcases[tc]['status'] == 'Approved':
-            mtcstatus["count"][2] += 1
-        elif tcases[tc]['status'] == 'Deprecated':
-            mtcstatus["count"][3] += 1
+                vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
+            Config.VE_STATUS_COUNT.update([vcoverage])
+            dictionary[0][ve]['coverage'] = vcoverage
+        # Calculating the requirement coverage based on the VE coverage
+        rcoverage = do_req_coverage(req['VEs'], dictionary[0])
+        Config.REQ_STATUS_COUNT.update([rcoverage])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
+        Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])
+    for tc in tcases.values():
+        if 'lastR' in tc.keys() and tc['lastR']:
+            Config.TEST_STATUS_COUNT.update([tc['lastR']['status']])
         else:
-            print('Test case status unknown:', tcases[tc]['status'])
+            Config.TEST_STATUS_COUNT.update([tc['status']])
+    # notexec cndpass passed failed
 
-    # get VE versus status
-    query = ("select ji.issuestatus, count(*) from jiraissue ji "
-             "inner join nodeassociation na ON ji.id = na.source_node_id "
-             "inner join component c on na.`SINK_NODE_ID`=c.id "
-             " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "' group by ji.issuestatus")
-    ve_status = db_get(jc, query)
-    t = 0
-    for s in ve_status:
-        ve_status[t].append(jst[s[0]])
-        t += 1
-    ve_status.append(['-1', len(veduplicated), "Duplicated"])
-
-    # get VE real coverage
-    # for reference: cover_names = ['No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
-    #               'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails']
-    ve_coverage = Coverage_Count()
-    vestatus = dict()
-    for ve in verification_elements.keys():
-        tcs = [0, 0, 0, 0]
-        ntc = len(verification_elements[ve]['tcs'])
-        if 'verifiedby' in verification_elements[ve].keys():
-            for sve in verification_elements[ve]['verifiedby']:
-                ntc = ntc + len(verification_elements[sve]['tcs'])
-                if len(verification_elements[sve]['tcs']) > 0:
-                    # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
-                    for tc in verification_elements[sve]['tcs']:
-                        if not tcases[tc]['lastR']:  # not executed
-                            tcs[0] += 1
-                        else:
-                            if not tcases[tc]['lastR']['status']:
-                                tcs[0] += 1
-                            elif tcases[tc]['lastR']['status'] == "notexec":
-                                tcs[0] += 1
-                            elif tcases[tc]['lastR']['status'] == "passed":
-                                tcs[3] += 1
-                            elif tcases[tc]['lastR']['status'] == "failed":
-                                tcs[2] += 1
-                            elif tcases[tc]['lastR']['status'] == "inprogress":
-                                tcs[0] += 1
-                            elif tcases[tc]['lastR']['status'] == "cndpass":
-                                tcs[1] += 1
-                            elif tcases[tc]['lastR']['status'] == "blocked":
-                                tcs[0] += 1
-                            else:
-                                print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
-                                tcs[0] += 1
-        if ntc == 0:
-            ve_coverage.notcs += 1
-            vestatus[ve] = Config.coverage_texts['notcs']['name']
+    req_coverage = dict()
+    for entry in Config.REQ_STATUS_COUNT.items():
+        req_coverage[entry[0]] = entry[1]
+    ve_coverage = dict()
+    for entry in Config.VE_STATUS_COUNT.items():
+        ve_coverage[entry[0]] = entry[1]
+    tc_status = dict()
+    tc_status['NotExecuted'] = 0
+    for entry in Config.TEST_STATUS_COUNT.items():
+        if entry[0] in ('Draft', 'Approved', 'Defined', 'notexec', 'Deprecated'):
+            tc_status['NotExecuted'] = tc_status['NotExecuted'] + entry[1]
+        tc_status[entry[0]] = entry[1]
+    rec_count_per_doc = dict()
+    for entry in Config.REQ_STATUS_PER_DOC_COUNT.items():
+        split0 = entry[0].split(".")
+        doc = split0[0]
+        if doc not in rec_count_per_doc.keys():
+            rec_count_per_doc[doc] = dict()
+        if len(split0) == 1:
+            rec_count_per_doc[doc]['count'] = entry[1]
         else:
-            if len(verification_elements[ve]['tcs']) > 0:
-                # 'Not Executed', 'Pass', 'Fail', 'In Progress', 'Conditional Pass', 'Blocked'
-                for tc in verification_elements[ve]['tcs']:
-                    if not tcases[tc]['lastR']:  # not executed
-                        tcs[0] += 1
-                    else:
-                        # print("  - ", tcases[tc]['lastR'])
-                        if not tcases[tc]['lastR']['status']:
-                            tcs[0] += 1
-                        elif tcases[tc]['lastR']['status'] == "notexec":
-                            tcs[0] += 1
-                        elif tcases[tc]['lastR']['status'] == "passed":
-                            tcs[3] += 1
-                        elif tcases[tc]['lastR']['status'] == "failed":
-                            tcs[2] += 1
-                        elif tcases[tc]['lastR']['status'] == "inprogress":
-                            tcs[0] += 1
-                        elif tcases[tc]['lastR']['status'] == "cndpass":
-                            tcs[1] += 1
-                        elif tcases[tc]['lastR']['status'] == "blocked":
-                            tcs[0] += 1
-                        else:
-                            print('Unknown Test Case result: ', tcases[tc]['lastR']['status'])
-                            tcs[0] += 1
-            if tcs[2] > 0:  # some test cases are failing
-                ve_coverage.failedtcs += 1
-                vestatus[ve] = Config.coverage_texts['failedtcs']['name']
-            elif tcs[3] > 0 or tcs[1] > 0:  # some test cases are passing or conditionally passing
-                ve_coverage.passedtcs += 1
-                vestatus[ve] = Config.coverage_texts['passedtcs']['name']
-            else:  # all other conditions
-                ve_coverage.noexectcs += 1
-                vestatus[ve] = Config.coverage_texts['noexectcs']['name']
-
-    # get requirements status
-    reqcoverage = [0, 0, 0, 0]
-    req1acoverage = [0, 0, 0, 0]  # for LSE-61 1a requirements
-    reqs_lse61 = []
-    reqs_lse61_1a = []
-    for req in reqs.keys():
-        # 'No Test Cases Related', 'No Test Cases Executed', 'Test Cases Partially Executed',
-        # 'Some Test Cases Fails', 'All Test Cases Pass', 'All Test Cases Fails'
-        reqves = [0, 0, 0, 0]
-        for ve in reqs[req]['VEs']:
-            if vestatus[ve] == Config.coverage[0]["name"]:
-                reqves[0] += 1  # no TCs
-            elif vestatus[ve] == Config.coverage[1]["name"]:
-                reqves[1] += 1  # no TCs executed
-            elif vestatus[ve] == Config.coverage[2]["name"]:
-                reqves[2] += 1  # Failed TCs
-            elif vestatus[ve] == Config.coverage[3]["name"]:
-                reqves[3] += 1  # Passed TCs
+            priority = split0[1]
+            if priority not in rec_count_per_doc[doc].keys():
+                rec_count_per_doc[doc][priority] = dict()
+            if len(split0) == 2:
+                rec_count_per_doc[doc][priority]['count'] = entry[1]
             else:
-                reqves[0] += 1  # if not in the above
-        if reqves[2] > 0:  # with Failures
-            reqcoverage[2] += 1
-        elif reqves[3] > 0:  # with Passed
-            reqcoverage[3] += 1
-        elif reqves[1] > 0:  # no test cases have been executed
-            reqcoverage[1] += 1
-        else:  # all other cases
-            reqcoverage[0] += 1
-        if reqs[req]['reqDoc'] == 'LSE-61':
-            reqs_lse61.append(req)
-            if reqs[req]['priority'] == "1a":
-                reqs_lse61_1a.append(req)
-                if reqves[2] > 0:  # with Failures
-                    req1acoverage[2] += 1
-                elif reqves[3] > 0:  # with Passed
-                    req1acoverage[3] += 1
-                elif reqves[1] > 0:  # no test cases have been executed
-                    req1acoverage[1] += 1
-                else:  # all other cases
-                    reqcoverage[0] += 1
+                rec_count_per_doc[doc][priority][split0[2]] = entry[1]
+    # sorting the priority dictionary
+    for doc in rec_count_per_doc.keys():
+        tmp_doc = dict()
+        for key in sorted(rec_count_per_doc[doc].keys()):
+            tmp_doc[key] = rec_count_per_doc[doc][key]
+        rec_count_per_doc[doc] = tmp_doc
 
-    size = [len(reqs), len(verification_elements), len(tcases), len(reqs_lse61_1a)]
+    size = [len(reqs), len(verification_elements), len(tcases)]
 
-    print(ve_coverage.notcs, ve_coverage.noexectcs, ve_coverage.failedtcs, ve_coverage.passedtcs,
-          ve_coverage.total_count())
-
-    return [mtcres, mtcstatus, ve_coverage, ve_status, reqcoverage, req1acoverage, size]
+    return [tc_status, ve_coverage, req_coverage, rec_count_per_doc, [], [], size]
 
 
 def check_acronyms(reqs):
@@ -668,14 +621,16 @@ def vcdsql(comp, usr, pwd, RSP):
 
     ves, reqs = get_ves(comp, jcon)
 
-    print(f"  ... found {{nve}} Verification Elements related to {{nr}} requirements and {{ntc}} test cases.".
-          format(nve=len(ves), nr=len(reqs), ntc=len(tcases)))
+    print(f"  ... found {len(ves)} Verification Elements "
+          f"  related to {len(reqs)} requirements and {len(tcases)} test cases.")
 
-    check_acronyms(reqs)
+    if os.path.isfile("acronyms.tex"):
+        check_acronyms(reqs)
 
     # Credit: KTL
-    # print out the list of test cases, sorted per corresponding requirement priority
-    # "*" indicates that the test case the execution result is "Passed" or "Conditinoaly Passed"
+    # print out the list of test cases, sorted per requirement priority
+    # "*" indicates that the test case the execution result is
+    # "Passed" or "Conditinoaly Passed"
     if RSP != "":
         spec_split = RSP.split('|')
         if len(spec_split) == 2:
@@ -684,8 +639,9 @@ def vcdsql(comp, usr, pwd, RSP):
         else:
             req_f = RSP
             test_f = ""
-        print(f"Test cases related to {{spec}} grouped per priority.\n".format(spec=RSP),
-              " '*' indicates that the test case the execution result is 'Passed' or 'Conditinoal-Passed'")
+        print(f"Test cases related to {RSP} grouped per priority.\n",
+              " '*' indicates that the test case the execution result "
+              "is 'Passed' or 'Conditional-Passed'")
         by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
         executed = {}
         for ve in ves.values():
@@ -694,9 +650,18 @@ def vcdsql(comp, usr, pwd, RSP):
                     if ve['tcs'][tc]['tspec'] == test_f or test_f == "":
                         tc_number = int(tc[5:])  # strip off LVV-T
                         lastR = ve['tcs'][tc]['lastR']
-                        executed[tc_number] = lastR is not None and (
-                        lastR['status'] == "passed" or lastR['status'] == "cndpass")
-                        by_priority[ve['Requirement Priority']][tc_number] = 1
+                        if lastR and "status" in lastR.keys():
+                            if lastR["status"] not in ('passed', 'notexec', 'failed'):
+                                print(lastR["status"])
+                        executed[tc_number] = lastR is not None and (lastR['status'] == "passed" or
+                                                                     lastR['status'] == "cndpass")
+                        if 'Requirement Priority' in ve.keys():
+                            by_priority[ve['Requirement Priority']][tc_number] = 1
+                            # print(ve)
+                        else:
+                            print("No Req Priority for VE", ve["jkey"], ". Looking for VE priority.")
+                            if "priority" in ve.keys() and ve['priority'] != "Undefined":
+                                by_priority[ve['priority']][tc_number] = 1
         for priority in sorted(by_priority.keys()):
             print(f"Priority: {priority}")
             tc_list = []
@@ -706,5 +671,12 @@ def vcdsql(comp, usr, pwd, RSP):
                     tc_name += "*"
                 tc_list.append(tc_name)
             print(", ".join(tc_list))
+
+    # creating the lookup Specs to Reqs
+    for req, values in reqs.items():
+        # print(" - ", req)
+        if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
+            Config.REQ_PER_DOC[values['reqDoc']] = []
+        Config.REQ_PER_DOC[values['reqDoc']].append(req)
 
     return [ves, reqs, veduplicated, tcases]

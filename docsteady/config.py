@@ -20,6 +20,8 @@
 
 import os
 import re
+from collections import Counter
+
 
 class Config:
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
@@ -38,11 +40,19 @@ class Config:
     ISSUETCASES_URL = f"{ATM_API}/issuelink/{{issuekey}}/testcases"
     TESTCASERESULT_URL = f"{ATM_API}/testcase/{{tcid}}/testresult/latest"
     TESTPLANCYCLE_URL = f"{ATMT_API}/testresult/{{trk}}?fields=testRun(key,testPlan(key))"
-    TPLANCF_URL = f"{ATM_API}//testplan/{{tpk}}?fields=customFields"
+    TPLANCF_URL = f"{ATM_API}/testplan/{{tpk}}?fields=customFields"
+    TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
+    TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
+    TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
-    VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511,customfield_13513,customfield_12002,customfield_12206,customfield_13703&maxResults={{maxR}}"
-    VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%20Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
+    VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}" \
+                    f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511," \
+                    f"customfield_13513,customfield_12002,customfield_12206,customfield_13703&" \
+                    f"maxResults={{maxR}}"
+    VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                    f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2" \
+                    f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -52,7 +62,7 @@ class Config:
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
     CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
-                              # TODO: DM-23715 this should be renamed in CACHED_VERIFICATIONELEMENTS
+    # TODO: DM-23715 this should be renamed in CACHED_VERIFICATIONELEMENTS
     CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
@@ -71,23 +81,26 @@ class Config:
     DOWNLOAD_IMAGES = True
     MAX_IMG_PIXELS = 450
     MIN_IMG_PIXELS = 32
+    IMAGE_FOLDER = "jira_imgs/"
+    ATTACHMENT_FOLDER = "attachments/"
+
+    REQ_STATUS_COUNT = Counter()
+    REQ_STATUS_PER_DOC_COUNT = Counter()
+    VE_STATUS_COUNT = Counter()
+    TEST_STATUS_COUNT = Counter()
+    REQ_PER_DOC = dict()
 
     coverage = [   # Coverage for requirements and verification elements
-        {"id": 0, "name": "No TCs", "label": "sec:notcs"},
-        {"id": 1, "name": "No Executed TCs", "label": "sec:noexectcs"},
-        {"id": 2, "name": "Failed TCs", "label": "sec:failedtcs"},
-        {"id": 3, "name": "Passed TCs", "label": "sec:passedtcs"},
+        {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},
+        {"id": 1, "key": "PartiallyVerified", "name": "Partially Verified", "label": "sec:partiallyverified"},
+        {"id": 2, "key": "WithFailures", "name": "With Failures", "label": "sec:withfaulres"},
+        {"id": 3, "key": "NotVerified", "name": "Not Verified", "label": "sec:notverified"},
+        {"id": 4, "key": "NotCovered", "name": "Not Covered", "label": "sec:notcovered"},
     ]
 
     tcresults = [  # Results for Test cases
-        {"id": 0, "name": "Not Executed", "label": "sec:notexec"},
-        {"id": 1, "name": "Conditional Pass", "label": "sec:condpass"},
-        {"id": 2, "name": "Fail", "label": "sec:fail"},
-        {"id": 3, "name": "Pass", "label": "sec:pass"},
+        {"id": 0, "key": "passed", "name": "Passed", "label": "sec:pass"},
+        {"id": 1, "key": "cndpass", "name": "P. w/Dev.", "label": "sec:condpass"},
+        {"id": 2, "key": "failed", "name": "Failed", "label": "sec:fail"},
+        {"id": 3, "key": "NotExecuted", "name": "Not Ex.", "label": "sec:notexec"},
     ]
-
-    coverage_texts = {'notcs': {'name': 'No TCs', 'label': 'sec:noexectcs'},
-                      'noexectcs': {'name': 'No Executed TCs', 'label': 'sec:noexectcs'},
-                      'failedtcs': {'name': 'Failed TCs', 'label': 'sec:failedtcs'},
-                      'passedtcs': {'name': 'Passed TCs', 'label': 'sec:passedtcs'},
-                      'totalcount': {'name': 'Total Count', 'label': 'sec:totalcount'}}

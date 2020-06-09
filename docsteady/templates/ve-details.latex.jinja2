@@ -1,0 +1,210 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro label(text) -%}
+\label{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro atmtc(text) -%}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro ref(text) -%}
+\ref{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro write_step(index, from, content) -%}
+\multirow{3}{*}{\parbox{1.3cm}{ {{ index }}
+    {% if from != "" %}
+{\scriptsize from \hyperref[{{ from.lower() }}]{{ curlies(from) }} }
+    {% endif %}
+} }
+& {\small Description} &
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.description }}
+\vspace{\dp0}
+} \end{minipage} \\ \cdashline{2-3}
+& {\small Test Data} &
+    {% if content.test_data %}
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.test_data }}
+\vspace{\dp0}
+} \end{minipage}
+    {% endif %}
+\\ \cdashline{2-3}
+    {% if content.example_code %}
+& Example Code &
+\begin{minipage}[t]{13cm}{\footnotesize
+{{ content.example_code }}
+\vspace{\dp0}
+} \end{minipage} \\ \cline{2-3}
+    {% endif %}
+& {\small Expected Result} &
+    {% if content.expected_result %}
+\begin{minipage}[t]{13cm}{\scriptsize
+{{ content.expected_result }}
+\vspace{\dp0}
+} \end{minipage}
+    {% endif %}
+\\ %\hdashline
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do not edit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{# This is a detailed overview of the Verification Elements and relevant associated information,
+the {{ metadata.subcomponent }} component in {{ metadata.component }} subsystem.
+It is provided for convenience as a working document.
+The information presented here is officially baselined in {\lsstDocType}-{\lsstDocNum} --
+the Verification Elements baseline document -- available at
+\url{{ '{' }}https://\lsstDocType-\lsstDocNum.lsst.io{{ '}' }}.
+Test case information is baselined in the  {\testspec} test specification, available at
+\url{{ '{' }}https://\testspec.lsst.io{{ '}' }}.
+Official releases of both documents are also available in Docushare.
+Please always use {\lsstDocType}-{\lsstDocNum} and {\testspec} official releases for reference.
+
+This report is updated together with the the verification elements baseline document, {\lsstDocType}-{\lsstDocNum}.
+Therefore, verification elements information will be always up-to-date.
+Test cases information instead may be outdated, since test cases may be subject to changes during future phases
+of the V\&V activities.
+#}
+
+\section{Summary Overview}
+
+\begin{longtable}{cccc}
+\hline
+\textbf{Requirements} & & \textbf{Verification Elements} & \textbf{Test Cases} \\ \hline
+{% for req in reqs %}
+   {% set nve = reqs[req]|length %}
+   {% for vek in reqs[req] %}
+      {% set rowloop = loop %}
+      {% set ve = velements[vek] %}
+      {% for testc in ve.test_cases %}
+         {% set tc = test_cases[testc[0]] %}
+{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %}
+  {\scriptsize {{ ref(ve.key.lower()) }} } & {{ vek }}({\scriptsize {{ ve.assignee}} })
+{% else %}
+  &
+{% endif %} &
+{{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
+      {% endfor %}
+{% if rowloop.index != nve %} \cdashline{2-4} {% endif %}
+   {% endfor %}
+\hline
+{% endfor %}
+\end{longtable}
+
+\section{Verification Elements Details}
+{{ label("sec:ves") }}
+
+The following is the list of verification elements defined in the context of the {{ metadata.subcomponent }} component of the {{ metadata.component }} subsystem.
+
+{% for vek in velements %}
+{% set ve = velements[vek] %}
+\subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
+
+\begin{longtable}{ccccc}
+\hline
+\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Priority} & \textbf{Test Cases}\\ \hline
+\href{{ curlies(ve.jira_url) }}{{ curlies(ve.key) }} &
+{{ ve.assignee }} & {{ ve.ve_status }} & {{ ve.ve_priority }} &
+\begin{tabular}{c}
+  {% for tc in ve.test_cases %}
+{{ tc[0] }} \\
+  {% endfor %}
+\end{tabular}
+\\
+\hline
+\end{longtable}
+
+\textbf{Verification Element Description:} \\
+{{ ve.description }}
+
+{\footnotesize
+\begin{longtable}{p{3cm}p{13cm}}
+\hline
+\multicolumn{2}{c}{\textbf{Upstream Requirements}}\\ \hline
+Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
+Requirement Description & {{ ve.req_spec }} \\ \cdashline{1-2}
+  {% if ve.req_params|length %}
+Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
+  {% endif %}
+  {% if ve.req_discussion|length %}
+Requirement Discussion & {{ ve.req_discussion }} \\ \cdashline{1-2}
+  {% endif %}
+Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
+Upper Level Requirement &
+\begin{tabular}{cl}
+  {% for ureq in ve.upper_reqs %}
+{{ ureq[0] }} & {{ ureq[1] }} \\
+  {% endfor %}
+\end{tabular}
+\\ \hline
+\end{longtable}
+}
+
+  {% for testc in ve.test_cases %}
+    {% set tc = test_cases[testc[0]] %}
+\subsubsection{[{{ tc.key }}] {{ tc.name }} }
+
+\begin{longtable}{cccccc}
+\hline
+\multicolumn{6}{c}{\textbf{Test Case Summary}} \\ \hline
+\textbf{Jira Link} & \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} &
+\textbf{Verification Type} \\ \hline
+{{ atmtc(tc.key) }} &
+{{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }}
+\\ \hline
+\end{longtable}
+
+\textbf{Objective:} \\
+{{ tc.objective }}
+
+    {% if tc.precondition != "" %}
+\textbf{Precondition:} \\
+{{ tc.precondition }}
+    {% endif %}
+
+    {% if tc.predecessors != "" %}
+\textbf{Predecessors:} \\
+{{ tc.predecessors }}
+    {% endif %}
+
+    {% if tc.test_personnel != "" %}
+\textbf{Test Personnel:} \\
+{{ tc.test_personnel }}
+    {% endif %}
+
+    {% if tc.test_script %}
+\textbf{Test Procedure}
+    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
+    %\toprule
+    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+    \endhead
+    {% for step in tc.test_script %}
+        {% set rowloop = loop %}
+        {% if step.test_case_key %}
+            {% set step_testcase = test_cases[step.test_case_key] %}
+            {% for substep in step_testcase.test_script %}
+                {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
+                {{ write_step(id, step_testcase.key, substep) }}
+            {% endfor %}
+
+        {% else %}
+            {{ write_step(rowloop.index, "", step) }}
+        {% endif %}
+        \midrule
+    {% endfor %}
+    \end{longtable}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+

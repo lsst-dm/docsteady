@@ -33,7 +33,9 @@ import pypandoc
 
 from .config import Config
 import requests
-from urllib.parse import *
+
+from urllib.parse import urlparse
+from urllib.parse import urljoin
 
 jhost = "140.252.32.64"
 jdb = "jira"
@@ -75,10 +77,10 @@ class SubsectionableHtmlPandocField(fields.String):
 
 def cite_docushare_handles(text):
     """This will find matching docushare handles and replace
-    the text with the ``\citeds{text}``."""
+    the text with the ``\\citeds{text}``."""
     output_tex = ""
     for entry in text.split(" "):
-        if not ( "href" in entry or "url" in entry):
+        if not ("href" in entry or "url" in entry):
             output_tex = output_tex + " " + Config.DOCUSHARE_DOC_PATTERN.sub(r"\\citeds{\1\2}", entry)
         else:
             output_tex = output_tex + " " + entry
@@ -112,6 +114,8 @@ def as_arrow(datestring):
 
 
 def owner_for_id(owner_id):
+    if not owner_id:
+        return "Undefined"
     if owner_id not in Config.CACHED_USERS:
         resp = requests.get(Config.USER_URL.format(username=owner_id),
                             auth=Config.AUTH)
@@ -141,11 +145,16 @@ def test_case_for_key(test_case_key):
     if not cached_testcase_resp:
         resp = requests.get(Config.TESTCASE_URL.format(testcase=test_case_key),
                             auth=Config.AUTH)
-        testcase_resp = resp.json()
-        testcase, errors = TestCase().load(testcase_resp)
-        if errors:
-            raise Exception("Unable to process test cases: " + str(errors))
-        Config.CACHED_TESTCASES[test_case_key] = testcase
+        if resp.status_code == 200:
+            testcase_resp = resp.json()
+            testcase, errors = TestCase().load(testcase_resp)
+            if errors:
+                raise Exception("Unable to process test cases: " + str(errors))
+            Config.CACHED_TESTCASES[test_case_key] = testcase
+        else:
+            testcase = {'objective': 'This Test Case has been archived. '
+                                     'Information not available anymore',
+                        'key': test_case_key, 'status': 'ARCHIVED'}
         cached_testcase_resp = testcase
     return cached_testcase_resp
 
@@ -158,7 +167,7 @@ def download_and_rewrite_images(value):
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path)
-        fs_path = "jira_imgs/" + img_name
+        fs_path = Config.IMAGE_FOLDER + img_name
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
             existing_files = os.listdir(dirname(fs_path))
@@ -182,13 +191,61 @@ def download_and_rewrite_images(value):
         if img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
-        # fixing the aspect ratio of th images is working only with pandic 1.19.1
-        #
+        # fixing the aspect ratio of images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
+
+
+def download_attachments(rs, link):
+    """
+    download the
+    :param link: attachment resource location in the Jira server
+    :return: none
+    """
+    attachments = []
+    resp = rs.get(link)
+    for doc in resp.json():
+        # prepare information
+        attachment_name = doc['filename'].replace(" ", "")
+        fs_path = Config.ATTACHMENT_FOLDER + attachment_name
+
+        # download the attachment
+        resp = requests.get(doc['url'], auth=Config.AUTH)
+        resp.raise_for_status()
+        with open(fs_path, "w+b") as att_f:
+            att_f.write(resp.content)
+
+        # add attachment information to the list
+        attachments.append({'id': doc['id'], 'filename': attachment_name, 'filesize': doc['filesize'],
+                            'filepath': fs_path})
+    return attachments
+
+
+def create_folders_and_files():
+    """
+    Create attachment and image folders if missing
+    :return:
+    """
+    os.makedirs(dirname(Config.IMAGE_FOLDER), exist_ok=True)
+    os.makedirs(dirname(Config.ATTACHMENT_FOLDER), exist_ok=True)
+    # creating empty files so the folder can be added to Git
+    imgs_empty_file = Config.IMAGE_FOLDER + '.empty'
+    atts_empty_file = Config.ATTACHMENT_FOLDER + '.empty'
+    local_bib_file = 'local.bib'
+    # create empty files in them so they can be added to Git
+    if not os.path.isfile(imgs_empty_file):
+        with open(imgs_empty_file, 'w'):
+            pass
+    if not os.path.isfile(atts_empty_file):
+        with open(atts_empty_file, 'w'):
+            pass
+    # create local.bib so the build don't fails
+    if not os.path.isfile(local_bib_file):
+        with open(local_bib_file, 'w'):
+            pass
 
 
 def rewrite_strong_to_subsection(content, extractable):

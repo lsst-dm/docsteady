@@ -29,6 +29,7 @@ from base64 import b64encode
 from .config import Config
 from .vcd import VerificationE
 from .spec import TestCase
+from .utils import create_folders_and_files
 
 
 def get_testcase(rs, tckey):
@@ -44,6 +45,7 @@ def get_testcase(rs, tckey):
     tc_detail, error = TestCase().load(jtc_res)
 
     return tc_detail
+
 
 def get_ve_details(rs, key):
     """
@@ -81,14 +83,14 @@ def get_ve_details(rs, key):
             ureqs = ve_details["raw_upper_req"].split(',\n')
             for ur in ureqs:
                 urs = ur.split('textbar')
-                u_id = urs[0].lstrip('\{\[\}.- ').rstrip('\\')
+                u_id = urs[0].lstrip(r'\{\[\}.- ').rstrip('\\')
                 urs = ur.split(':\n')
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
     # cache reqs
     if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
-         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
     Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
 
     return ve_details
@@ -107,8 +109,8 @@ def get_ves(rs, cmp, subcmp):
 
     max = 1000
 
-    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp,subcmp=subcmp,maxR=max))
-    jresult=result.json()
+    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max))
+    jresult = result.json()
     for i in jresult["issues"]:
         # ve_list.append(i["key"])
         ve_details[i["key"]] = get_ve_details(rs, i["key"])
@@ -125,6 +127,8 @@ def do_ve_model(component, subcomponent):
     :param subcomponent:
     :return:
     """
+    # create folders for images and attachments if not already there
+    create_folders_and_files()
 
     ves = dict()
 

@@ -30,7 +30,7 @@ from marshmallow import Schema, fields, post_load, pre_load
 from .config import Config
 from .formatters import as_anchor, alphanum_key
 from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField, test_case_for_key, get_folders
+    MarkdownableHtmlPandocField, test_case_for_key, get_folders, create_folders_and_files
 
 
 class Issue(Schema):
@@ -182,7 +182,8 @@ def get_lvv_details(key):
     -------
     lvv: dictionary
         The LVV information that is not available in the test case.
-        In a first stage, the only information required are the High Level Requirements
+        In a first stage, the only information required are
+        the High Level Requirements
     """
     lvv = dict()
     lvv['high_level_req'] = []
@@ -207,6 +208,9 @@ def build_spec_model(folder):
     folders_quoted = [f'"{folder}"' for folder in folders]
     folders_inside = ", ".join(folders_quoted)
     query = f"folder IN ({folders_inside})"
+
+    # create folders for images and attachments if not already there
+    create_folders_and_files()
 
     max_tests = 2000
     resp = requests.get(
