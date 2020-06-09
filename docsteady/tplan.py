@@ -178,7 +178,12 @@ def build_tpr_model(tplan_key):
         for test_item in test_cycle['test_items']:
             if test_item['test_case_key'] not in test_cases_map.keys():
                 resp = rs.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']))
-                testcase, errors = TestCase().load(resp.json())
+                if resp.status_code == 200:
+                    testcase, errors = TestCase().load(resp.json())
+                else:
+                    testcase = {'objective': 'This Test Case has been archived. '
+                                             'Information not available anymore',
+                                'key': test_item['test_case_key'], 'status': 'ARCHIVED'}
                 test_cases_map[test_item['test_case_key']] = testcase
     attachments['n_attachments'] = n_attachments
 

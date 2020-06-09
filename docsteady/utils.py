@@ -114,6 +114,8 @@ def as_arrow(datestring):
 
 
 def owner_for_id(owner_id):
+    if not owner_id:
+        return "Undefined"
     if owner_id not in Config.CACHED_USERS:
         resp = requests.get(Config.USER_URL.format(username=owner_id),
                             auth=Config.AUTH)
@@ -143,11 +145,16 @@ def test_case_for_key(test_case_key):
     if not cached_testcase_resp:
         resp = requests.get(Config.TESTCASE_URL.format(testcase=test_case_key),
                             auth=Config.AUTH)
-        testcase_resp = resp.json()
-        testcase, errors = TestCase().load(testcase_resp)
-        if errors:
-            raise Exception("Unable to process test cases: " + str(errors))
-        Config.CACHED_TESTCASES[test_case_key] = testcase
+        if resp.status_code == 200:
+            testcase_resp = resp.json()
+            testcase, errors = TestCase().load(testcase_resp)
+            if errors:
+                raise Exception("Unable to process test cases: " + str(errors))
+            Config.CACHED_TESTCASES[test_case_key] = testcase
+        else:
+            testcase = {'objective': 'This Test Case has been archived. '
+                                     'Information not available anymore',
+                        'key': test_case_key, 'status': 'ARCHIVED'}
         cached_testcase_resp = testcase
     return cached_testcase_resp
 
