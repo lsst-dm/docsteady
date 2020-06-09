@@ -153,7 +153,7 @@ def test_case_for_key(test_case_key):
             Config.CACHED_TESTCASES[test_case_key] = testcase
         else:
             testcase = {'objective': 'This Test Case has been archived. '
-                                     'Information not available anymore',
+                                     'Information here may not completed.',
                         'key': test_case_key, 'status': 'ARCHIVED'}
         cached_testcase_resp = testcase
     return cached_testcase_resp
