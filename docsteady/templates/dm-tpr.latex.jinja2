@@ -179,12 +179,12 @@ The documentation related to this test campaign should be provided in the follow
      {% for test_item in testcycles_map[cycle.key].test_items %}
        {% set result_id = testresults_map[cycle.key][test_item['test_case_key']]['id'] %}
        {% for document in attachments.results[result_id] %}
-To {{ cycle.key }} results & \href{{ "{" }}\attachmentsUrl/{{ document.filename }}?raw=true{{ "}" }}{{ curlies(document.filename) }} &
-\attachfile{{ '{' }}{{ text2latex(document.filepath) }}{{ '}' }}\\ \hline
-       {% endfor %} {# results for #}
+To {{ cycle.key }} results &
+  {{ text2latex(document.filename) }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
+       {% endfor %} {# document for #}
      {% endfor %} {# test_item for #}
-\end{longtable}
   {% endfor %} {# cycle for #}
+\end{longtable}
 
 All documents provided as attachments in Jira are downloaded to Github and linked here for convenience.
 However, since they are not properly versioned, they should be considered informal and therefore
