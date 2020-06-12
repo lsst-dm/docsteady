@@ -46,6 +46,7 @@ class HtmlPandocField(fields.String):
     A field that originates as HTML but is normalized to a template
     language.
     """
+
     def _deserialize(self, value, attr, data):
         if isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             value = download_and_rewrite_images(value)
@@ -93,6 +94,7 @@ class MarkdownableHtmlPandocField(fields.String):
     text (bold, italics, and font styles are ignored) if the field
     has a markdown comment in the beginning, of the form `[markdown]: #`
     """
+
     def _deserialize(self, value, attr, data):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
@@ -213,14 +215,20 @@ def download_attachments(rs, link):
         fs_path = Config.ATTACHMENT_FOLDER + attachment_name
 
         # download the attachment
-        resp = requests.get(doc['url'], auth=Config.AUTH)
-        resp.raise_for_status()
-        with open(fs_path, "w+b") as att_f:
-            att_f.write(resp.content)
-
-        # add attachment information to the list
-        attachments.append({'id': doc['id'], 'filename': attachment_name, 'filesize': doc['filesize'],
+        try:
+            resp = requests.get(doc['url'], auth=Config.AUTH)
+            resp.raise_for_status()
+            with open(fs_path, "w+b") as att_f:
+                att_f.write(resp.content)
+            # add attachment information to the list
+        except requests.exceptions.HTTPError:
+            print(f"Error getting attachment {attachment_name} from {link}")
+            # indicating in the file name that the attachment is not available
+            attachment_name = "NA-" + attachment_name
+        attachments.append({'id': doc['id'], 'filename': attachment_name,
+                            'filesize': doc['filesize'],
                             'filepath': fs_path})
+
     return attachments
 
 
