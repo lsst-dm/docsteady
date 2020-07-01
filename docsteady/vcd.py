@@ -49,6 +49,7 @@ class VerificationE(Schema):
     upper_reqs = fields.List(fields.String(), missing=list())
     raw_test_cases = HtmlPandocField()
     test_cases = fields.List(fields.String(), missing=list())
+    verified_by = fields.List(fields.Dict(), missing=list())
 
     @pre_load(pass_many=False)
     def extract_fields(self, data):
@@ -66,7 +67,19 @@ class VerificationE(Schema):
         data["req_params"] = data['renderedFields']["customfield_13512"]
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
+        data["verified_by"] = self.extract_verified_by(data_fields)
         return data
+
+    def extract_verified_by(self, data_fields):
+        if "issuelinks" not in data_fields.keys():
+            return []
+        issuelinks = data_fields["issuelinks"]
+        verified_by = []
+        for issue in issuelinks:
+            if "inwardIssue" in issue.keys():
+                tmp_issue = {"key": issue["inwardIssue"]["key"], "summary": issue["inwardIssue"]["fields"]["summary"]}
+                verified_by.append(tmp_issue)
+        return verified_by
 
 
 class Coverage_Count:
