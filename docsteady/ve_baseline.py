@@ -107,15 +107,19 @@ def extract_ves(rs, cmp, subcmp):
     # ve_list = []
     ve_details = dict()
 
-    max = 1000
+    max = 10
+    startAt = 0
 
-    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max))
-    jresult = result.json()
-    for i in jresult["issues"]:
-        # ve_list.append(i["key"])
-        ve_details[i["key"]] = get_ve_details(rs, i["key"])
-    print("")
-    # TODO: need to iterate if there are more issues than max
+    while True:
+        result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        jresult = result.json()
+        totals = jresult["total"]
+        for i in jresult["issues"]:
+            ve_details[i["key"]] = get_ve_details(rs, i["key"])
+        print("")
+        startAt = startAt + max
+        if startAt > totals:
+            break
 
     return ve_details
 

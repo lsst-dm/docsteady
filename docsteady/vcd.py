@@ -77,7 +77,8 @@ class VerificationE(Schema):
         verified_by = []
         for issue in issuelinks:
             if "inwardIssue" in issue.keys():
-                tmp_issue = {"key": issue["inwardIssue"]["key"], "summary": issue["inwardIssue"]["fields"]["summary"]}
+                tmp_issue = {"key": issue["inwardIssue"]["key"],
+                             "summary": issue["inwardIssue"]["fields"]["summary"]}
                 verified_by.append(tmp_issue)
         return verified_by
 
@@ -377,7 +378,7 @@ def get_ves(comp, jc):
 
     v = 0
     for ve in raw_ves:
-        print(".", end="", flush=True)
+        print(ve[0], end="", flush=True)
         if ve[3] != '11713':  # ignore DESCOPED VEs
             v = v + 1
             tmpve = dict()
