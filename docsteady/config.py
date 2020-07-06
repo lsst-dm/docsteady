@@ -73,6 +73,8 @@ class Config:
     TEMPLATE_LANGUAGE = "latex"
     TEMPLATE_DIRECTORY = os.curdir
 
+    DB_PARAMETERS = {}
+
     # Regexes for LSST things
     DOC_NAMES = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS', 'LPM', 'LTS']
     doc_pattern_text = r"\b(" + "|".join(DOC_NAMES) + r")(-\d+)\b(?!-)"

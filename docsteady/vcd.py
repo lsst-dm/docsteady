@@ -29,7 +29,7 @@ from marshmallow import Schema, fields, pre_load
 from collections import Counter
 
 from .config import Config
-from .utils import jhost, jdb, get_tspec, HtmlPandocField
+from .utils import get_tspec, HtmlPandocField
 
 
 class VerificationE(Schema):
@@ -263,9 +263,10 @@ def build_vcd_model(component):
     fsum.close()
 
 
-def db_get(jc: {}, dbquery) -> {}:
+def db_get(dbquery) -> {}:
     """returns query result in a 2dim matrix"""
-    db = pymysql.connect(jhost, jc['usr'], jc['pwd'], jdb, read_timeout=1000)
+    p = Config.DB_PARAMETERS
+    db = pymysql.connect(p["host"], p["user"], p['pwd'], p["schema"], read_timeout=1000)
     cursor = db.cursor()
     cursor.execute(dbquery)
     data = cursor.fetchall()
@@ -285,27 +286,27 @@ def db_get(jc: {}, dbquery) -> {}:
     return res
 
 
-def init_jira_status(jc):
+def init_jira_status():
     """initialize jst containing the statuses from Jira"""
     global jst
     jst = dict()
     query = "select id, pname from issuestatus"
-    rawst = db_get(jc, query)
+    rawst = db_get(query)
     for st in rawst:
         jst[st[0]] = st[1]
 
 
-def init_priority(jc):
+def init_priority():
     """initialize jpr containing the priorities from Jira"""
     global jpr
     jpr = dict()
     query = "select id, pname from priority"
-    rawst = db_get(jc, query)
+    rawst = db_get(query)
     for st in rawst:
         jpr[st[0]] = st[1]
 
 
-def get_tc_results(jc, tc):
+def get_tc_results(tc):
     """return last execution result"""
     results = dict()
     query = ("select rs.name as status, plan.key as tplan, run.key as tcycle, "
@@ -317,7 +318,7 @@ def get_tc_results(jc, tc):
              "join AO_4D28DD_RESULT_STATUS rs on tr.`TEST_RESULT_STATUS_ID` = rs.id "
              "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
              "where tc.key = '" + tc + "' and cfv.`CUSTOM_FIELD_ID`=66 and tr.`EXECUTION_DATE` is not NULL")
-    trdet = db_get(jc, query)
+    trdet = db_get(query)
     if len(trdet) != 0:
         results['status'] = runstatus(trdet[0][0])
         results['tplan'] = trdet[0][1]
@@ -332,7 +333,7 @@ def get_tc_results(jc, tc):
     return results
 
 
-def get_tcs(jc, veid):
+def get_tcs(veid):
     """for a given VE (id) return the related test cases
        and populate in parallel the global tcases """
     global tcases
@@ -342,7 +343,7 @@ def get_tcs(jc, veid):
              "inner join jiraissue ji on il.issue_id = ji.id "
              "inner join AO_4D28DD_RESULT_STATUS aos on tc.status_id = aos.ID "
              "where tc.archived = 0 and ji.id = " + str(veid))
-    rawtc = db_get(jc, query)
+    rawtc = db_get(query)
     tcs = {}
     for tc in rawtc:
         # print(tc)
@@ -353,16 +354,16 @@ def get_tcs(jc, veid):
             else:
                 tcs[tc[0]] = {}
                 tcs[tc[0]]['status'] = tc[3]
-                tcs[tc[0]]['tspec'] = get_tspec_r(jc, tc[1])
+                tcs[tc[0]]['tspec'] = get_tspec_r(tc[1])
                 if tc[2]:
-                    tcs[tc[0]]['lastR'] = get_tc_results(jc, tc[0])
+                    tcs[tc[0]]['lastR'] = get_tc_results(tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
                 tcases[tc[0]] = tcs[tc[0]]
     return tcs
 
 
-def get_ves(comp, jc):
+def get_ves(comp):
     """gets information for all Verification Elementes for a Component
        it returns also the reqs and test cases related to them"""
     global jst
@@ -374,11 +375,11 @@ def get_ves(comp, jc):
              "inner join nodeassociation na ON ji.id = na.source_node_id "
              "inner join component c on na.`SINK_NODE_ID`=c.id "
              " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='" + comp + "'")
-    raw_ves = db_get(jc, query)
+    raw_ves = db_get(query)
 
     v = 0
     for ve in raw_ves:
-        print(ve[0], end="", flush=True)
+        print(f"{ve[0]}.", end="", flush=True)
         if ve[3] != '11713':  # ignore DESCOPED VEs
             v = v + 1
             tmpve = dict()
@@ -395,7 +396,7 @@ def get_ves(comp, jc):
             query = ("select ji.issuenum, ji.summary from jiraissue ji "
                      "inner join issuelink il on il.source = ji.id "
                      "where destination = " + str(ve[1]) + " and linktype = 10700 and ji.issuetype = 10602")
-            raw_vby = db_get(jc, query)
+            raw_vby = db_get(query)
             if len(raw_vby) > 0:
                 vbytmp = []
                 for vby in raw_vby:
@@ -409,7 +410,7 @@ def get_ves(comp, jc):
                      "inner join customfield cf on cvf.customfield = cf.id "
                      "inner join jiraissue ji on cvf.issue = ji.id "
                      "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703, 15204)")
-            raw_cfs = db_get(jc, query)
+            raw_cfs = db_get(query)
             for cf in raw_cfs:
                 if cf[2]:
                     tmpve[cf[1]] = cf[2]
@@ -431,7 +432,7 @@ def get_ves(comp, jc):
                 if ves[0] not in reqs[tmpve['Requirement ID']]['VEs']:
                     reqs[tmpve['Requirement ID']]['VEs'].append(ves[0])
             tmpve['tcs'] = []
-            tmpve['tcs'] = get_tcs(jc, ve[1])
+            tmpve['tcs'] = get_tcs(ve[1])
             # print(tmpve['jkey'], tmpve['tcs'])
             if ves[0] in velements.keys():
                 print("  Duplicated:", ves[0], tmpve['jkey'])
@@ -443,16 +444,16 @@ def get_ves(comp, jc):
     return velements, reqs
 
 
-def get_tspec_r(jc, fid):
+def get_tspec_r(fid):
     """recursively browse the folders
     until finding the test spec of the root (NULL)"""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
-    dbres = db_get(jc, query)
+    dbres = db_get(query)
     tspec = get_tspec(dbres[0][0])
     if tspec == "":
         if dbres[0][1] is not None:
-            tspec = get_tspec_r(jc, dbres[0][1])
+            tspec = get_tspec_r(dbres[0][1])
     return tspec
 
 
@@ -514,15 +515,14 @@ def do_req_coverage(ves, ve_coverage):
     return rcoverage
 
 
-def summary(dictionary, comp, user, passwd):
+def summary(dictionary):
     """generate and print summary information"""
     global tcases
     global jst
     global veduplicated
     mtrs = dict()
 
-    jc = {"usr": user, "pwd": passwd}
-    init_jira_status(jc)
+    init_jira_status()
 
     verification_elements = dictionary[0]
 
@@ -618,7 +618,7 @@ def check_acronyms(reqs):
                 print("Missing acronyms", tmptype)
 
 
-def vcdsql(comp, usr, pwd, RSP):
+def vcdsql(comp, RSP):
     """get VCD using direct SQL query"""
     global jst
     global jpr
@@ -628,12 +628,10 @@ def vcdsql(comp, usr, pwd, RSP):
     tcases = {}
 
     print(f"Looking for VEs in {comp} ...")
-    jcon = {"usr": usr,
-            "pwd": pwd}
-    init_jira_status(jcon)
-    init_priority(jcon)
+    init_jira_status()
+    init_priority()
 
-    ves, reqs = get_ves(comp, jcon)
+    ves, reqs = get_ves(comp)
 
     print(f"  ... found {len(ves)} Verification Elements "
           f"  related to {len(reqs)} requirements and {len(tcases)} test cases.")

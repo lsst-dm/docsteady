@@ -107,7 +107,7 @@ def extract_ves(rs, cmp, subcmp):
     # ve_list = []
     ve_details = dict()
 
-    max = 10
+    max = 1000
     startAt = 0
 
     while True:
