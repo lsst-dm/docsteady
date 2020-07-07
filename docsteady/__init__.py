@@ -271,7 +271,7 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, component, path):
     OUTPUT_FORMAT = format
     target = "vcd"
 
-    Config.DB_PARAMETERS = {"host": jiradb, "user": vcduser, "pwd": vcdpwd, "schema": "jira"}
+    Config.DB_PARAMETERS = {"host": jiradb.rstrip(), "user": vcduser, "pwd": vcdpwd, "schema": "jira"}
 
     if spec:
         RSP = spec
