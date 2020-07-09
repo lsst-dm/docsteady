@@ -52,7 +52,8 @@ class Config:
                     f"maxResults={{maxR}}"
     VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
                     f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2" \
-                    f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
+                    f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
+                    f"&startAt={{startAt}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -71,6 +72,8 @@ class Config:
     ISSUES_TO_TESTRESULTS = {}
     TEMPLATE_LANGUAGE = "latex"
     TEMPLATE_DIRECTORY = os.curdir
+
+    DB_PARAMETERS = {}
 
     # Regexes for LSST things
     DOC_NAMES = ['LDM', 'LSE', 'DMTN', 'DMTR', 'TSS', 'LPM', 'LTS']

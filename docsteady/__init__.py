@@ -253,6 +253,7 @@ def _metadata():
 
 @cli.command("generate-vcd")
 @click.option('--format', default='latex', help='Pandoc output format (see pandoc for options)')
+@click.option('--jiradb', prompt="Jira DB Server", envvar="JIRA_DB", help="Jira database server")
 @click.option('--vcduser', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
 @click.option('--vcdpwd', prompt="Jira Password", hide_input=True,
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
@@ -262,13 +263,15 @@ def _metadata():
               help="Req|Test specifications to print out test case prioritization")
 @click.argument('component')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
+def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, component, path):
     """Given a specific subsystem, it build the VCD.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     target = "vcd"
+
+    Config.DB_PARAMETERS = {"host": jiradb, "user": vcduser, "pwd": vcdpwd, "schema": "jira"}
 
     if spec:
         RSP = spec
@@ -277,12 +280,12 @@ def generate_vcd(format, vcduser, vcdpwd, sql, spec, component, path):
 
     if sql:
         print('Building model using direct SQL access')
-        vcd_dict = vcdsql(component, vcduser, vcdpwd, RSP)
+        vcd_dict = vcdsql(component, RSP)
     else:
         print("VCD via rest API disabled. Use '--sql True' option")
         exit()
 
-    sum_dict = summary(vcd_dict, component, vcduser, vcdpwd)
+    sum_dict = summary(vcd_dict)
 
     file = open(path, "w") if path else sys.stdout
 

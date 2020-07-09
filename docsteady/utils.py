@@ -37,9 +37,6 @@ import requests
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 
-jhost = "140.252.32.64"
-jdb = "jira"
-
 
 class HtmlPandocField(fields.String):
     """

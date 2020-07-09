@@ -85,16 +85,26 @@ of the V\&V activities.
    {% for vek in reqs[req] %}
       {% set rowloop = loop %}
       {% set ve = velements[vek] %}
+      {% set count = ve.test_cases|length %}
       {% for testc in ve.test_cases %}
          {% set tc = test_cases[testc[0]] %}
 {% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
-{% if loop.index == 1 %}
-  {\scriptsize {{ ref(ve.key.lower()) }} } & {{ vek }}({\scriptsize {{ ve.assignee}} })
-{% else %}
-  &
-{% endif %} &
+{% if loop.index == 1 %} {\scriptsize {{ ref(ve.key.lower()) }} } {% endif %} &
+{% if loop.index == 1 %} {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
 {{ tc.key }} ({\scriptsize {{ tc.owner}} }) \\
       {% endfor %}
+      {% set count = count + ve.verified_by|length %}
+      {% for vby in ve.verified_by %}
+{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {\scriptsize {{ ref(ve.key.lower()) }} } {% endif %} &
+{% if loop.index == 1 %}  {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
+Verified By {{ vby.key }} \\
+      {% endfor %}
+      {% if count == 0 %}
+{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {\scriptsize {{ ref(ve.key.lower()) }} } {% endif %} &
+{% if loop.index == 1 %} {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} & \\
+      {% endif %}
 {% if rowloop.index != nve %} \cdashline{2-4} {% endif %}
    {% endfor %}
 \hline
@@ -150,6 +160,16 @@ Upper Level Requirement &
 \end{longtable}
 }
 
+  {% if ve.verified_by %}
+\subsubsection{Verified By}
+\begin{itemize}
+    {% for vby in ve.verified_by %}
+\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{vby.summary}}
+    {% endfor %}
+\end{itemize}
+  {% endif %}
+
+ {% if ve.test_cases %}
   {% for testc in ve.test_cases %}
     {% set tc = test_cases[testc[0]] %}
 \subsubsection{[{{ tc.key }}] {{ tc.name }} }
@@ -184,11 +204,11 @@ Upper Level Requirement &
 
     {% if tc.test_script %}
 \textbf{Test Procedure}
-    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
-    %\toprule
-    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
-    \endhead
-    {% for step in tc.test_script %}
+\begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
+%\toprule
+Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
+\endhead
+      {% for step in tc.test_script %}
         {% set rowloop = loop %}
         {% if step.test_case_key %}
             {% set step_testcase = test_cases[step.test_case_key] %}
@@ -196,15 +216,15 @@ Upper Level Requirement &
                 {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
                 {{ write_step(id, step_testcase.key, substep) }}
             {% endfor %}
-
         {% else %}
             {{ write_step(rowloop.index, "", step) }}
         {% endif %}
-        \midrule
-    {% endfor %}
-    \end{longtable}
+\midrule
+      {% endfor %}
+\end{longtable}
     {% endif %}
   {% endfor %}
+ {% endif %}
 {% endfor %}
 
 

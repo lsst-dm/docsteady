@@ -10,6 +10,10 @@
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
+{%- macro ref(text) -%}
+\ref{{ "{" }}{{ text }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 {%- macro atmtc(text) -%}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
@@ -68,9 +72,19 @@ Upper Level Requirement &
 \end{longtable}
 }
 
+  {% if ve.verified_by %}
+\subsubsection{Verified By}
+\begin{itemize}
+    {% for vby in ve.verified_by %}
+\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{vby.summary}}
+    {% endfor %}
+\end{itemize}
+  {% endif %}
+
+  {% if ve.test_cases %}
 \subsubsection{Test Cases Summary}
-  {% for testc in ve.test_cases %}
-    {% set tc = test_cases[testc[0]] %}
+    {% for testc in ve.test_cases %}
+      {% set tc = test_cases[testc[0]] %}
 \begin{longtable}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
 \toprule
 {{ atmtc(tc.key) }} & \multicolumn{4}{l}{ {{ tc.name }} } \\ \hline
@@ -81,7 +95,8 @@ Upper Level Requirement &
 \textbf{Objective:}\\
 {{ tc.objective }}
 }
-  {% endfor %}
+    {% endfor %}
+  {% endif %}  {# ve.test_cases #}
 
 {% endfor %}
 
@@ -95,17 +110,50 @@ Upper Level Requirement &
 \textbf{Requirements} & \textbf{Verification Elements} & \textbf{Test Cases} \\ \hline
 {% for req in reqs %}
    {% set nve = reqs[req]|length %}
+   {% set reqloop = loop %}
    {% for vek in reqs[req] %}
-      {% set rowloop = loop %}
+      {% set veloop = loop %}
       {% set ve = velements[vek] %}
+      {% set count = ve.test_cases|length %}
       {% for testc in ve.test_cases %}
-         {% set tc = test_cases[testc[0]] %}
-{% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if loop.index == 1 %} {{ vek }} {% endif %} &
+         {% set tc = test_cases[testc[0]] %}
 {{ tc.key }} \\
+{#{{ req }} & {{ vek }} & {{ tc.key }} \\ \hline #}
       {% endfor %}
-{% if rowloop.index != nve %} \cdashline{2-3} {% endif %}
+      {% set count = count + ve.verified_by|length %}
+      {% for vby in ve.verified_by %}
+{% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {{ vek }} {% endif %} &
+Verified By {{ vby.key }} \\
+{#{{ req }} & {{ vek }} & Verified By {{ vby.key }} \\ \hline #}
+      {% endfor %}
+      {% if count == 0 %}
+{{ req }} & {{ vek }} &  \\ \hline
+      {% endif %}
+{% if veloop.index != nve %} \cdashline{2-3} {% endif %}
    {% endfor %}
 \hline
 {% endfor %}
+{#{% for req in reqs %}
+   {% set nve = reqs[req]|length %}
+   {% set reqloop = loop %}
+   {% for vek in reqs[req] %}
+      {% set veloop = loop %}
+      {% set ve = velements[vek] %}
+      {% for testc in ve.test_cases %}
+         {% set tc = test_cases[testc[0]] %}
+{% if reqloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if loop.index == 1 %} {{ vek }} {% endif %} &
+{{ tc.key }} \\
+      {% endfor %}
+{% if veloop.index != nve %} \cdashline{2-3} {% endif %}
+   {% endfor %}
+\hline
+{% endfor %} #}
 \end{longtable}
+
+Note that some of the requirements listed in this traceability table may be related with additional
+Verification Elements not in the scope of \textit{ {{ metadata.subcomponent }} } Verification,
+and therefore not listed here.

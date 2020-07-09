@@ -56,7 +56,7 @@ def get_ve_details(rs, key):
     """
 
     print(key, end=" ", flush=True)
-    # print(" - ", key)
+    # print(Config.ISSUE_URL.format(issue=key))
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
@@ -96,7 +96,7 @@ def get_ve_details(rs, key):
     return ve_details
 
 
-def get_ves(rs, cmp, subcmp):
+def extract_ves(rs, cmp, subcmp):
     """
 
     :param rs:
@@ -108,14 +108,18 @@ def get_ves(rs, cmp, subcmp):
     ve_details = dict()
 
     max = 1000
+    startAt = 0
 
-    result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max))
-    jresult = result.json()
-    for i in jresult["issues"]:
-        # ve_list.append(i["key"])
-        ve_details[i["key"]] = get_ve_details(rs, i["key"])
-    print("")
-    # need to hiterate if there are more issues than max
+    while True:
+        result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        jresult = result.json()
+        totals = jresult["total"]
+        for i in jresult["issues"]:
+            ve_details[i["key"]] = get_ve_details(rs, i["key"])
+        print("")
+        startAt = startAt + max
+        if startAt > totals:
+            break
 
     return ve_details
 
@@ -146,7 +150,7 @@ def do_ve_model(component, subcomponent):
     rs.headers = headers
 
     # get all VEs details
-    ves = get_ves(rs, component, subcomponent)
+    ves = extract_ves(rs, component, subcomponent)
 
     print(" Found ", len(ves), " Verification Elements.")
 
