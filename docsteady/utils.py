@@ -165,7 +165,7 @@ def download_and_rewrite_images(value):
         print(" - ", img)
         try:
             img_width = re.sub('[^0-9]', '', img["style"])
-        except:
+        except Exception:
             img_width = 150
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
