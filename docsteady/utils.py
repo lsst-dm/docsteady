@@ -162,7 +162,11 @@ def download_and_rewrite_images(value):
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
-        img_width = re.sub('[^0-9]', '', img["style"])
+        print(" - ", img)
+        try:
+            img_width = re.sub('[^0-9]', '', img["style"])
+        except Exception:
+            img_width = 150
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path)
