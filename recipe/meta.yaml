@@ -20,13 +20,12 @@ requirements:
     - BeautifulSoup4
     - click
     - jinja2
-    - marshmallow 2.18
+    - marshmallow
     - pillow
-    - pip
-    - pandoc 1.19.2.1
+    - pandoc 1.19.2
     - pymysql
     - pypandoc
-    - python 3.7.*
+    - python 3.7
     - requests
     - setuptools_scm
   run:
@@ -34,12 +33,12 @@ requirements:
     - BeautifulSoup4
     - click
     - jinja2
-    - marshmallow 2.18
+    - marshmallow
     - pillow
-    - pandoc 1.19.2.1
+    - pandoc 1.19.2
     - pymysql
     - pypandoc
-    - python 3.7.*
+    - python 3.7
     - requests
 
 about:
