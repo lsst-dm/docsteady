@@ -409,7 +409,7 @@ def get_ves(comp):
                      " from customfieldvalue cvf "
                      "inner join customfield cf on cvf.customfield = cf.id "
                      "inner join jiraissue ji on cvf.issue = ji.id "
-                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703, 15204)")
+                     "where ji.id = " + str(ve[1]) + " and cf.id in (13511, 13703, 15204, 13513)")
             raw_cfs = db_get(query)
             for cf in raw_cfs:
                 if cf[2]:
@@ -421,6 +421,11 @@ def get_ves(comp):
                 # print(tmpve['Requirement ID'])
                 rtmp = dict()
                 rtmp['reqDoc'] = tmpve['Requirement Specification']
+                rtmp['reqTitle'] = ves[1].strip()
+                if 'Requirement Text' in tmpve:
+                    rtmp['reqText'] = tmpve['Requirement Text']
+                else:
+                    rtmp['reqText'] = ""
                 rtmp['VEs'] = []
                 rtmp['VEs'].append(ves[0])
                 if "Requirement Priority" in tmpve.keys():
@@ -639,6 +644,13 @@ def vcdsql(comp, RSP):
     if os.path.isfile("acronyms.tex"):
         check_acronyms(reqs)
 
+    # creating the lookup Specs to Reqs
+    for req, values in reqs.items():
+        # print(" - ", req)
+        if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
+            Config.REQ_PER_DOC[values['reqDoc']] = []
+        Config.REQ_PER_DOC[values['reqDoc']].append(req)
+
     # Credit: KTL
     # print out the list of test cases, sorted per requirement priority
     # "*" indicates that the test case the execution result is
@@ -683,12 +695,16 @@ def vcdsql(comp, RSP):
                     tc_name += "*"
                 tc_list.append(tc_name)
             print(", ".join(tc_list))
-
-    # creating the lookup Specs to Reqs
-    for req, values in reqs.items():
-        # print(" - ", req)
-        if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
-            Config.REQ_PER_DOC[values['reqDoc']] = []
-        Config.REQ_PER_DOC[values['reqDoc']].append(req)
+        # print REQ Spec requriements in csv file
+        csv = "ID, Title, Priority\n"
+        # i = 0
+        for req in Config.REQ_PER_DOC[req_f]:
+            # i = i + 1
+            # print(i, req, "\n", reqs[req])
+            csv = csv + f"'{req}', '{reqs[req]['reqTitle']}', '{reqs[req]['priority']}'\n"
+        csv_filename = req_f.lower() + ".csv"
+        file = open(csv_filename, "w")
+        print(csv, file=file)
+        file.close()
 
     return [ves, reqs, veduplicated, tcases]

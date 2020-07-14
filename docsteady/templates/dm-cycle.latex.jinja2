@@ -2,6 +2,11 @@
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
 
+% generated from JIRA project {{ metadata.project }}
+% using template at {{ metadata.template }}.
+% using docsteady version {{ metadata.docsteady_version }}
+% Please do not edit -- update information in Jira instead
+
 {% for testresult in testresults %}
 {% set testcase = testcases_map[testresult.test_case_key] %}
 {% set execution_date = testresult.execution_date.format('YYYY-MM-DD HH:mm:ss') %}
