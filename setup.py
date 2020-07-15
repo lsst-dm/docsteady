@@ -7,7 +7,7 @@ requires = [
     'jinja2',
     'click',
     'BeautifulSoup4',
-    'marshmallow',
+    'marshmallow<3',
     'setuptools_scm',
     'pymysql',
     'pillow',
