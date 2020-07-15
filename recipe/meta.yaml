@@ -33,7 +33,7 @@ requirements:
     - BeautifulSoup4
     - click
     - jinja2
-    - marshmallow
+    - marshmallow 2.20.5
     - pillow
     - pandoc 1.19.2
     - pymysql
