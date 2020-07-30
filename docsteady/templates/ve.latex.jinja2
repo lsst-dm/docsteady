@@ -90,7 +90,7 @@ Upper Level Requirement &
       {% set tc = test_cases[testc[0]] %}
 \begin{longtable}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
 \toprule
-{{ atmtc(tc.key) }} & \multicolumn{4}{l}{ {{ tc.name }} } \\ \hline
+{{ atmtc(tc.key) }} & \multicolumn{4}{p{12cm}}{ {{ tc.name }} } \\ \hline
 \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} & \textbf{Verification Type} \\ \hline
 {{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }} \\ \hline
 \end{longtable}
