@@ -63,7 +63,8 @@ class VerificationE(Schema):
         data["req_id"] = data_fields["customfield_15502"]
         data["req_spec"] = data['renderedFields']["customfield_13513"]
         data["req_discussion"] = data['renderedFields']["customfield_13510"]
-        data["req_priority"] = data_fields["customfield_15204"]["value"]
+        if data_fields["customfield_15204"]:
+            data["req_priority"] = data_fields["customfield_15204"]["value"]
         data["req_params"] = data['renderedFields']["customfield_13512"]
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
