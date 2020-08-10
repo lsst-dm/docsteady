@@ -353,8 +353,11 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
         autoescape=None
     )
 
+    if Config.MODE_PREFIX != "dm-":
+        Config.MODE_PREFIX = ""
+
     try:
-        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
     except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
