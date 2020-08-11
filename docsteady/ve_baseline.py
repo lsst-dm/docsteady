@@ -88,6 +88,12 @@ def get_ve_details(rs, key):
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
+    # this is reuired since using longtbale inside longtable may give problems
+    if "req_discussion" in ve_details.keys():
+        ve_details["req_discussion"] = ve_details["req_discussion"].replace("{longtable}", "{tabular}")
+    if "req_spec" in ve_details.keys():
+        ve_details["req_spec"] = ve_details["req_spec"].replace("{longtable}", "{tabular}")
+
     # cache reqs
     if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []

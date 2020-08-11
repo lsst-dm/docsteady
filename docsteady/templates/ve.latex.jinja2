@@ -18,6 +18,10 @@
 \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/{{ text }}{{ "}" }}{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
+{%- macro text2latex(text) -%}
+  {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
@@ -33,6 +37,7 @@ The following is the list of verification elements defined in the context of the
 {% for vek in velements %}
 {% set ve = velements[vek] %}
 {% if loop.index != 1 %} \newpage {% endif %}
+
 \subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
 
 \begin{longtable}{ccccc}
@@ -57,12 +62,20 @@ The following is the list of verification elements defined in the context of the
 \hline
 \multicolumn{2}{c}{\textbf{Requirement Details}}\\ \hline
 Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
-Requirement Description & {{ ve.req_spec }} \\ \cdashline{1-2}
+Requirement Description &
+\begin{minipage}[]{13cm}
+{{ ve.req_spec }}
+\end{minipage}
+\\ \cdashline{1-2}
   {% if ve.req_params|length %}
 Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
   {% endif %}
   {% if ve.req_discussion|length %}
-Requirement Discussion & {{ ve.req_discussion }} \\ \cdashline{1-2}
+Requirement Discussion &
+\begin{minipage}[]{13cm}
+{{ ve.req_discussion }}
+\end{minipage}
+\\ \cdashline{1-2}
   {% endif %}
 Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
 Upper Level Requirement &
@@ -79,7 +92,7 @@ Upper Level Requirement &
 \subsubsection{Verified By}
 \begin{itemize}
     {% for vby in ve.verified_by %}
-\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{vby.summary}}
+\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{ vby.summary }}
     {% endfor %}
 \end{itemize}
   {% endif %}
