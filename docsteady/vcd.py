@@ -80,7 +80,8 @@ class VerificationE(Schema):
             if "inwardIssue" in issue.keys():
                 tmp_issue = dict()
                 tmp_issue['key'] = issue["inwardIssue"]["key"]
-                tmp_issue['summary'] = HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
+                tmp_issue['summary'] = \
+                    HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
                 verified_by.append(tmp_issue)
         return verified_by
 
