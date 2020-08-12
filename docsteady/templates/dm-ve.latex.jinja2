@@ -40,11 +40,11 @@ The following is the list of verification elements defined in the context of the
 
 \subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
 
-\begin{longtable}{ccccc}
+\begin{longtable}{cccc}
 \hline
-\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Priority} & \textbf{Test Cases}\\ \hline
+\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Test Cases}\\ \hline
 \href{{ curlies(ve.jira_url) }}{{ curlies(ve.key) }} &
-{{ ve.assignee }} & {{ ve.ve_status }} & {{ ve.ve_priority }} &
+{{ ve.assignee }} & {{ ve.ve_status }} &
 \begin{tabular}{c}
   {% for tc in ve.test_cases %}
 {{ tc[0] }} \\

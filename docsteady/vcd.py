@@ -63,7 +63,8 @@ class VerificationE(Schema):
         data["req_id"] = data_fields["customfield_15502"]
         data["req_spec"] = data['renderedFields']["customfield_13513"]
         data["req_discussion"] = data['renderedFields']["customfield_13510"]
-        data["req_priority"] = data_fields["customfield_15204"]["value"]
+        if data_fields["customfield_15204"]:
+            data["req_priority"] = data_fields["customfield_15204"]["value"]
         data["req_params"] = data['renderedFields']["customfield_13512"]
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
@@ -77,8 +78,10 @@ class VerificationE(Schema):
         verified_by = []
         for issue in issuelinks:
             if "inwardIssue" in issue.keys():
-                tmp_issue = {"key": issue["inwardIssue"]["key"],
-                             "summary": issue["inwardIssue"]["fields"]["summary"]}
+                tmp_issue = dict()
+                tmp_issue['key'] = issue["inwardIssue"]["key"]
+                tmp_issue['summary'] = \
+                    HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
                 verified_by.append(tmp_issue)
         return verified_by
 
