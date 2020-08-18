@@ -188,8 +188,8 @@ def download_and_rewrite_images(value):
                     except requests.exceptions.HTTPError as err:
                         print(err)
                         Config.ExecutionError = True
-                        # this requires that the jenkins job is pushing the changes to github
-                        # even if the build fails
+                        # this requires that the jenkins job is pushing the changes
+                        # to github even if the build fails
                         # in order the final user can see where the problem is
                         img.insert_before(soup.new_tag('<b>Image Download Error</b>'))
                         img.decompose()
