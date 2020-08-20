@@ -187,7 +187,7 @@ def download_and_rewrite_images(value):
                         resp.raise_for_status()
                     except requests.exceptions.HTTPError as err:
                         print(err)
-                        Config.ExecutionError = True
+                        Config.exeuction_errored = True
                         # this requires that the jenkins job is pushing the
                         # changes to github even if the build fails
                         # in order the final user can see where the problem is

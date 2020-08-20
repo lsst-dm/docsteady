@@ -93,7 +93,7 @@ class Config:
     TEST_STATUS_COUNT = Counter()
     REQ_PER_DOC = dict()
 
-    ExecutionError = False
+    exeuction_errored = False
 
     coverage = [   # Coverage for requirements and verification elements
         {"id": 0, "key": "FullyVerified", "name": "Fully Verified", "label": "sec:fullyverified"},
