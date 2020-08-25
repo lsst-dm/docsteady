@@ -214,6 +214,9 @@ def generate_report(format, username, password, trace, plan, path):
             testcases_map=testcases_map)
         print(_as_output_format(appendix_text), file=appendix_file)
 
+    if Config.exeuction_errored:
+        raise SystemError("Content Problem, please check.")
+
 
 def _try_appendix_template(target, env):
     # Now appendix

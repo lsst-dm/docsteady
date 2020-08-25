@@ -179,8 +179,21 @@ def download_and_rewrite_images(value):
                 if fs_path in existing_file:
                     fs_path = existing_file
             if not exists(fs_path):
-                resp = requests.get(img_url, auth=Config.AUTH)
-                resp.raise_for_status()
+                if img_url.startswith(Config.JIRA_INSTANCE):
+                    resp = requests.get(img_url, auth=Config.AUTH)
+                else:
+                    try:
+                        resp = requests.get(img_url)
+                        resp.raise_for_status()
+                    except requests.exceptions.HTTPError as err:
+                        print(err)
+                        Config.exeuction_errored = True
+                        # this requires that the jenkins job is pushing the
+                        # changes to github even if the build fails
+                        # in order the final user can see where the problem is
+                        img.insert_before(soup.new_tag('<b>Image Download Error</b>'))
+                        img.decompose()
+                        return str(soup)
                 extension = None
                 if "png" in resp.headers["content-type"]:
                     extension = "png"
