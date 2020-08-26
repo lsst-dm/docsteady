@@ -269,7 +269,9 @@ The personnel involved in the test campaign is shown in the following table.
 {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
 \medskip
 \end{minipage}
-&
+&   {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['issue_links'] %}
+\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+    {% endfor %}
     {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
 \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
     {% endfor %}
