@@ -137,12 +137,13 @@ class TestResult(Schema):
     user_id = fields.String(load_from="userKey")
     user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
     status = fields.String(load_from='status', required=True)
-    # These fields are not used at the moment, but may be we need them in the future
+    # These fields are not used at the moment,
+    # but may be we need them in the future
     # automated = fields.Boolean(required=True)
     # environment = fields.String()
     # execution_time = fields.Integer(load_from='executionTime', required=True)
-    # execution_date = fields.Function(deserialize=lambda o: as_arrow(o), required=True,
-    #                                 load_from='executionDate')
+    # execution_date = fields.Function(deserialize=lambda o: as_arrow(o),
+    #                          required=True, load_from='executionDate')
 
     @post_load
     def postprocess(self, data):
