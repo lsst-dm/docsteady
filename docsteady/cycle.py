@@ -127,25 +127,26 @@ class ScriptResult(Schema):
 class TestResult(Schema):
     id = fields.Integer(required=True)
     key = fields.String(required=True)
-    automated = fields.Boolean(required=True)
-    environment = fields.String()
     comment = HtmlPandocField()
-    execution_time = fields.Integer(load_from='executionTime', required=True)
     test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
                                     load_from='testCaseKey', required=True)
-    execution_date = fields.Function(deserialize=lambda o: as_arrow(o), required=True,
-                                     load_from='executionDate')
     script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
                                    required=True)
-    issues = fields.Nested(Issue, many=True)
     issue_links = fields.List(fields.String(), load_from="issueLinks")
+    issues = fields.Nested(Issue, many=True)
     user_id = fields.String(load_from="userKey")
     user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
     status = fields.String(load_from='status', required=True)
+    # These fields are not used at the moment,
+    # but may be we need them in the future
+    # automated = fields.Boolean(required=True)
+    # environment = fields.String()
+    # execution_time = fields.Integer(load_from='executionTime', required=True)
+    # execution_date = fields.Function(deserialize=lambda o: as_arrow(o),
+    #                          required=True, load_from='executionDate')
 
     @post_load
     def postprocess(self, data):
-        # Need to do this here because we need result_issue_keys _and_ key
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
         data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
@@ -153,9 +154,8 @@ class TestResult(Schema):
 
     def process_issues(self, data):
         issues = []
-        if "result_issue_keys" in data:
-            # Build list of requirements
-            for issue_key in data["result_issue_keys"]:
+        if "issue_links" in data:
+            for issue_key in data["issue_links"]:
                 issue = Config.CACHED_ISSUES.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
