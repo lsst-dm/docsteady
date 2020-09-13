@@ -168,11 +168,12 @@ def build_tpr_model(tplan_key):
         test_results_map[cycle_key] = {}
         for result in testresults:
             # print(result['key'], result['id'])
-            result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
-            test_results_map[cycle_key][result['test_case_key']] = result
-            attachments['results'][result['id']] = \
-                download_attachments(rs, Config.TESTRESULT_ATTACHMENTS.format(result_ID=result['id']))
-            n_attachments = n_attachments + len(attachments['results'][result['id']])
+            if result["status"] != "Not Executed" or result['test_case_key'] not in test_results_map[cycle_key]:
+                result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
+                test_results_map[cycle_key][result['test_case_key']] = result
+                attachments['results'][result['id']] = \
+                    download_attachments(rs, Config.TESTRESULT_ATTACHMENTS.format(result_ID=result['id']))
+                n_attachments = n_attachments + len(attachments['results'][result['id']])
 
         # Get all the test cases from the test items
         for test_item in test_cycle['test_items']:

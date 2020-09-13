@@ -263,7 +263,7 @@ The personnel involved in the test campaign is shown in the following table.
   {% for test_item in testcycles_map[cycle.key].test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
 &  {{ testcases_map[test_item.test_case_key].version }}
-& {{ test_item['status'] }} &
+& {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['status'] }} &
 \begin{minipage}[]{9cm}
 \smallskip
 {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
@@ -350,7 +350,7 @@ test case in Jira.
 \textbf{ Preconditions}:\\
 {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-Execution status: {\bf {{  test_item['status'] }} }
+Execution status: {\bf {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['status'] }} }
 
 Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
 
