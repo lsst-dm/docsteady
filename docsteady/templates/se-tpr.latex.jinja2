@@ -57,7 +57,7 @@
 
 \setDocCompact{true}
 
-\title{{ '{' }}{{ testplan.milestone_id }}: {{ testplan.milestone_name }} Test Plan and Report}
+\title{{ '{' }}{{ testplan.doc_name }} Test Plan and Report}
 \setDocRef{\lsstDocType-\lsstDocNum}
 \date{\vcsdate}
 \author{ {{ testplan['owner'] }} }
@@ -66,7 +66,8 @@
 
 
 \setDocAbstract{
-This is the test plan and report for {{ testplan.milestone_id }} ({{ testplan.milestone_name }}),
+This is the test plan and report for
+\textbf{ {{ testplan.milestone_name }}}{% if testplan.milestone_id != "" %} ({{ testplan.milestone_id }}){% endif %},
 an LSST milestone pertaining to the System Engineering Subsystem.
 }
 
@@ -159,18 +160,13 @@ The current status of test plan {{ tplan_href(testplan['key']) }} in Jira is \te
 
 \subsection{Related Documentation}
 
-The documentation related to this test campaign should be provided in the following DocuShare Collection
-(as per Verification Artifacts in Jira test plan {{ testplan.key }}).
-
 {% if testplan.verification_artifacts %}
+Docushare collection where additional relevant documentation can be found:
+
 \begin{itemize}
 \item {{ testplan.verification_artifacts }}
 \end{itemize}
 {% else %}
-\begin{itemize}
-\item DocuShare Collection Not Specified
-\end{itemize}
-{% endif %}
 
 {% if attachments.n_attachments > 0 %}
 \begin{longtable}{rp{10cm}l}
@@ -195,8 +191,15 @@ To {{ cycle.key }} results &
 All documents provided as attachments in Jira are downloaded to Github and linked here for convenience.
 However, since they are not properly versioned, they should be considered informal and therefore
 not be part of the verification baseline.
-{% endif %}
 
+Consider using a Docushare collection to provide relevant documentation,
+instead of attaching documents to the Jira Test Plan {{ testplan.key }} and corresponding Test Cycle(s).
+{% else %}
+No additional documentation provided.
+Consider using a Docushare collection to provide relevant documentation,
+instead of attaching documents to the Jira Test Plan {{ testplan.key }} and corresponding Test Cycle(s).
+{% endif %}
+{% endif %}
 
 \subsection{PMCS Activity}
 
@@ -205,9 +208,15 @@ Primavera milestones related to the test campaign.
 {% if testplan.pmcs_activity %}
 {{ testplan.pmcs_activity }}
 {% else %}
+  {% if testplan.milestone_id == "" %}
 \begin{itemize}
 \item None
 \end{itemize}
+  {% else %}
+\begin{itemize}
+\item {{ testplan.milestone_id }}
+\end{itemize}
+  {% endif %}
 {% endif %}
 
 
@@ -263,7 +272,7 @@ The personnel involved in the test campaign is shown in the following table.
   {% for test_item in testcycles_map[cycle.key].test_items %}
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
 &  {{ testcases_map[test_item.test_case_key].version }}
-& {{ test_item['status'] }} &
+& {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['status'] }} &
 \begin{minipage}[]{9cm}
 \smallskip
 {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
@@ -350,7 +359,7 @@ test case in Jira.
 \textbf{ Preconditions}:\\
 {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-Execution status: {\bf {{  test_item['status'] }} }
+Execution status: {\bf {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['status'] }} }
 
 Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
 

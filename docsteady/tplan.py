@@ -55,6 +55,7 @@ class TestPlan(Schema):
     milestone_id = fields.String()
     milestone_name = HtmlPandocField()
     product = fields.String()
+    doc_name = HtmlPandocField()
 
     # custom fields
     system_overview = SubsectionableHtmlPandocField(extractable=["applicable_documents"])
@@ -104,11 +105,13 @@ class TestPlan(Schema):
         # Extract milestone information
         sname = data['name'].split(":")
         if len(sname) == 1:
-            data['milestone_id'] = data['key']
+            data['milestone_id'] = ""
             data['milestone_name'] = data['name'].strip()
+            data['doc_name'] = data['key'] + ": " + data['name'].strip()
         else:
             data['milestone_id'] = sname[0]
             data['milestone_name'] = data['name'].replace(sname[0], '').replace(":", "").strip()
+            data['doc_name'] = data['milestone_id'] + ": " + data['milestone_name']
 
         # Product
         data['product'] = data['folder'].split('/')[-1]
@@ -168,7 +171,8 @@ def build_tpr_model(tplan_key):
         test_results_map[cycle_key] = {}
         for result in testresults:
             # print(result['key'], result['id'])
-            if result["status"] != "Not Executed" or result['test_case_key'] not in test_results_map[cycle_key]:
+            if result["status"] != "Not Executed" or \
+                    result['test_case_key'] not in test_results_map[cycle_key]:
                 result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
                 test_results_map[cycle_key][result['test_case_key']] = result
                 attachments['results'][result['id']] = \
