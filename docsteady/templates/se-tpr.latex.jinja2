@@ -191,20 +191,14 @@ To {{ cycle.key }} results &
 All documents provided as attachments in Jira are downloaded to Github and linked here for convenience.
 However, since they are not properly versioned, they should be considered informal and therefore
 not be part of the verification baseline.
-
-Consider using a Docushare collection to provide relevant documentation,
-instead of attaching documents to the Jira Test Plan {{ testplan.key }} and corresponding Test Cycle(s).
 {% else %}
 No additional documentation provided.
-Consider using a Docushare collection to provide relevant documentation,
-instead of attaching documents to the Jira Test Plan {{ testplan.key }} and corresponding Test Cycle(s).
 {% endif %}
 {% endif %}
 
 \subsection{PMCS Activity}
 
-Primavera milestones related to the test campaign.
-
+Primavera milestones related to the test campaign:
 {% if testplan.pmcs_activity %}
 {{ testplan.pmcs_activity }}
 {% else %}
