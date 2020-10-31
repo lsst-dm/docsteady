@@ -73,10 +73,15 @@ Test Id & Test Name\tabularnewline
 
 This section documents all active test cases that have a status in the Jira/ATM system of Draft, Defined or Approved.
 
+{% for tc_status in tc_status_list %}
 
-{% for testcase in testcases %}
+{% if tcs_dict[tc_status] %}
 
-\subsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+\subsection{ {{ tc_status }} Test Cases}
+
+{% for testcase in tcs_dict[tc_status] %}
+
+\subsubsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -88,7 +93,8 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\subsubsection{Verification Elements}
+\paragraph{Verification Elements}
+
 {% if testcase.requirements %}
 \begin{itemize}
 {% for item in testcase.requirements %}
@@ -99,46 +105,53 @@ Version & Status & Priority & Verification Type & Owner
     None.
 {% endif %}
 
-\subsubsection{Test Items}
+\paragraph{Test Items}
+
 {% if testcase.objective %}
 {{ testcase.objective }}
 {% endif %}
 
 {% if testcase.more_objectives %}
 {% for title, objective in testcase.more_objectives.items() %}
-\paragraph{ {{ title.replace("_", " ").title() }} }
+\subparagraph{ {{ title.replace("_", " ").title() }} }
 {{ objective }}
 {% endfor %}
 {% endif %}
 
-\subsubsection{Predecessors}
+\paragraph{Predecessors}
+
 {% if testcase.predecessors %}
 {{ testcase.predecessors }}
 {% endif %}
 
-\subsubsection{Environment Needs}
+\paragraph{Environment Needs}
 
-\paragraph{Software}
+\subparagraph{Software}
+
 {% if testcase.required_software %}
 {{ testcase.required_software }}
 {% endif %}
 
-\paragraph{Hardware}
+\subparagraph{Hardware}
+
 {% if testcase.test_equipment %}
 {{ testcase.test_equipment }}
 {% endif %}
 
-\subsubsection{Input Specification}
+\paragraph{Input Specification}
+
 {% if testcase.precondition %}
 {{ testcase.precondition }}
 {% endif %}
 
-\subsubsection{Output Specification}
+\paragraph{Output Specification}
+
 {% if testcase.postcondition %}
 {{ testcase.postcondition }}
 {% endif %}
 
-\subsubsection{Test Procedure}
+\paragraph{Test Procedure}
+
 {% if testcase.test_script %}
     \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
     %\toprule
@@ -212,6 +225,9 @@ Version & Status & Priority & Verification Type & Owner
         \\ \midrule
     {% endfor %}
     \end{longtable}
+{% endif %}
+{% endfor %}
+
 {% endif %}
 {% endfor %}
 
@@ -289,13 +305,18 @@ Version & Status & Priority & Verification Type & Owner
     Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
     \endhead
     {% for step in testcase.test_script %}
-        {% set rowloop = loop %}
         {% if step.test_case_key %}
+
+Test Case includes test cases {{ step.test_case_key }} in its steps.
+This is not permitted. Please reorganize the test steps in order that reusable test cases
+do not include any other test cases.
+
+{#            {% set rowloop = loop %}
             {% set step_testcase = testcases_map[step.test_case_key] %}
             {% for substep in step_testcase.test_script %}
                 {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
                 {{ write_step(id, step_testcase.key, substep) }}
-            {% endfor %}
+            {% endfor %} #}
 
         {% else %}
             {{ write_step(rowloop.index, "", step) }}

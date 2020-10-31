@@ -86,7 +86,7 @@ def generate_spec(format, username, password, folder, path):
 
     # Build model
     try:
-        testcases, requirements = build_spec_model(folder)
+        testcases, requirements, tcs_dict = build_spec_model(folder)
     except Exception as e:
         print("Error in building model")
         print(e)
@@ -119,11 +119,12 @@ def generate_spec(format, username, password, folder, path):
     metadata["folder"] = folder
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
-                           testcases=testcases['active'],
                            deprecated=testcases['deprecated'],
+                           tcs_dict=tcs_dict,
                            libtestcases=libtestcases,
                            requirements_to_testcases=requirements_to_testcases,
                            requirements_map=requirements,
+                           tc_status_list=Config.TESTCASE_STATUS_LIST,
                            testcases_map=Config.CACHED_TESTCASES)
 
     print(_as_output_format(text), file=file)
