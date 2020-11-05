@@ -96,7 +96,7 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\paragraph{Verification Elements}
+\paragraph{Verification Elements}\mbox{}\\
 
 {% if testcase.requirements %}
 \begin{itemize}
@@ -108,7 +108,7 @@ Version & Status & Priority & Verification Type & Owner
     None.
 {% endif %}
 
-\paragraph{Test Items}
+\paragraph{Test Items}\mbox{}\\
 
 {% if testcase.objective %}
 {{ testcase.objective }}
@@ -116,45 +116,41 @@ Version & Status & Priority & Verification Type & Owner
 
 {% if testcase.more_objectives %}
 {% for title, objective in testcase.more_objectives.items() %}
-\subparagraph{ {{ title.replace("_", " ").title() }} }
+\subparagraph{ {{ title.replace("_", " ").title() }} }\mbox{}\\
 {{ objective }}
 {% endfor %}
 {% endif %}
 
-\paragraph{Predecessors}
-
 {% if testcase.predecessors %}
+\paragraph{Predecessors}\mbox{}\\
 {{ testcase.predecessors }}
 {% endif %}
 
-\paragraph{Environment Needs}
-
-\subparagraph{Software}
+{% if testcase.required_software or testcase.test_equipment %}
+\paragraph{Environment Needs}\mbox{}\\
+{% endif %}
 
 {% if testcase.required_software %}
+\subparagraph{Software}\mbox{}\\
 {{ testcase.required_software }}
 {% endif %}
 
-\subparagraph{Hardware}
-
 {% if testcase.test_equipment %}
+\subparagraph{Hardware}\mbox{}\\
 {{ testcase.test_equipment }}
 {% endif %}
 
-\paragraph{Input Specification}
-
-{% if testcase.precondition %}
+{% if testcase.postcondition %}
+\paragraph{Input Specification}\mbox{}\\
 {{ testcase.precondition }}
 {% endif %}
 
-\paragraph{Output Specification}
-
 {% if testcase.postcondition %}
+\paragraph{Output Specification}\mbox{}\\
 {{ testcase.postcondition }}
 {% endif %}
 
-\paragraph{Test Procedure}
-
+\paragraph{Test Procedure}\mbox{}\\
 {% if testcase.test_script %}
     \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
     %\toprule
@@ -260,48 +256,48 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\subsubsection{Test Items}
+\paragraph{Test Items}\mbox{}\\
 {% if testcase.objective %}
 {{ testcase.objective }}
 {% endif %}
 
 {% if testcase.more_objectives %}
 {% for title, objective in testcase.more_objectives.items() %}
-\paragraph{ {{ title.replace("_", " ").title() }} }
+\subparagraph{ {{ title.replace("_", " ").title() }} }\mbox{}\\
 {{ objective }}
 {% endfor %}
 {% endif %}
 
 {% if testcase.predecessors %}
-\subsubsection{Predecessors}
+\paragraph{Predecessors}\mbox{}\\
 {{ testcase.predecessors }}
 {% endif %}
 
 {% if testcase.required_software or testcase.test_equipment %}
-\subsubsection{Environment Needs}
+\paragraph{Environment Needs}\mbox{}\\
 {% endif %}
 
 {% if testcase.required_software %}
-\paragraph{Software}
+\subparagraph{Software}\mbox{}\\
 {{ testcase.required_software }}
 {% endif %}
 
 {% if testcase.test_equipment %}
-\paragraph{Hardware}
+\subparagraph{Hardware}\mbox{}\\
 {{ testcase.test_equipment }}
 {% endif %}
 
 {% if testcase.precondition %}
-\subsubsection{Input Specification}
+\paragraph{Input Specification}\mbox{}\\
 {{ testcase.precondition }}
 {% endif %}
 
 {% if testcase.postcondition %}
-\subsubsection{Output Specification}
+\paragraph{Output Specification}\mbox{}\\
 {{ testcase.postcondition }}
 {% endif %}
 
-\subsubsection{Test Procedure}
+\paragraph{Test Procedure}\mbox{}\\
 {% if testcase.test_script %}
     \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
     %\toprule
