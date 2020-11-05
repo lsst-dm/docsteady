@@ -46,7 +46,6 @@
 \\ \hdashline
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting ATM data from folder: "{{ metadata.folder }}"
@@ -55,14 +54,18 @@
 
 \section{Test Cases Summary}\label{test-cases-summary}
 
-\begin{longtable}[]{p{3cm}p{13cm}}
+\begin{longtable}[]{p{2.5cm}p{12cm}p{2cm}}
 \toprule
 Test Id & Test Name\tabularnewline
 \midrule
 \endhead
-{% for testcase in testcases %}
+{% for tc_status in tc_status_list %}
+{% if tcs_dict[tc_status] %}
+{% for testcase in tcs_dict[tc_status] %}
     \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &
-    {{ href(testcase.jira_url, testcase.name) }} \tabularnewline
+    {{ href(testcase.jira_url, testcase.name) }} &  {{ testcase.status }} \tabularnewline
+{% endfor %}
+{% endif %}
 {% endfor %}
 \bottomrule
 \end{longtable}
@@ -304,14 +307,14 @@ Version & Status & Priority & Verification Type & Owner
     %\toprule
     Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
     \endhead
+    {% set rowloop = loop %}
     {% for step in testcase.test_script %}
         {% if step.test_case_key %}
 
 Test Case includes test cases {{ step.test_case_key }} in its steps.
 This is not permitted. Please reorganize the test steps in order that reusable test cases
 do not include any other test cases.
-
-{#            {% set rowloop = loop %}
+{#
             {% set step_testcase = testcases_map[step.test_case_key] %}
             {% for substep in step_testcase.test_script %}
                 {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
