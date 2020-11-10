@@ -44,7 +44,8 @@ class Config:
     TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
     TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
     TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
-    # providing an ordered list of statuses we can control the order they are rendered in the Test Spec
+    # providing an ordered list of statuses we can control
+    # the order they are rendered in the Test Spec
     TESTCASE_STATUS_LIST = ["Defined", "Approved", "Draft"]
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
