@@ -145,7 +145,7 @@ class TestCase(Schema):
         if "requirement_issue_keys" in data:
             # Build list of requirements
             for issue_key in data["requirement_issue_keys"]:
-                issue = Config.CACHED_REQUIREMENTS.get(issue_key, None)
+                issue = Config.CACHED_VELEMENTS.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
                     resp.raise_for_status()
@@ -153,7 +153,7 @@ class TestCase(Schema):
                     issue, errors = Issue().load(issue_resp)
                     if errors:
                         raise Exception("Unable to Process Requirement: " + str(errors))
-                    Config.CACHED_REQUIREMENTS[issue_key] = issue
+                    Config.CACHED_VELEMENTS[issue_key] = issue
                 Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(data['key'])
                 issues.append(issue)
         return issues

@@ -65,8 +65,7 @@ class Config:
     CACHED_TESTCASES = {}
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
-    CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
-    # TODO: DM-23715 this should be renamed in CACHED_VERIFICATIONELEMENTS
+    CACHED_VELEMENTS = {}  # type : Dict[str, Issue]
     CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
