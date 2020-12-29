@@ -59,7 +59,8 @@ class VerificationE(Schema):
         data["assignee"] = data_fields["assignee"]["displayName"]
         data["description"] = data['renderedFields']["description"]
         data["ve_status"] = data_fields["status"]["name"]
-        data["ve_priority"] = data_fields["priority"]["name"]
+        if data_fields["priority"]:
+            data["ve_priority"] = data_fields["priority"]["name"]
         data["req_id"] = data_fields["customfield_15502"]
         data["req_spec"] = data['renderedFields']["customfield_13513"]
         data["req_discussion"] = data['renderedFields']["customfield_13510"]
@@ -271,7 +272,11 @@ def db_get(dbquery) -> {}:
     p = Config.DB_PARAMETERS
     db = pymysql.connect(p["host"], p["user"], p['pwd'], p["schema"], read_timeout=1000)
     cursor = db.cursor()
-    cursor.execute(dbquery)
+    try:
+        cursor.execute(dbquery)
+    except:
+        print(dbquery)
+        exit
     data = cursor.fetchall()
     db.close()
 
@@ -455,6 +460,8 @@ def get_ves(comp):
 def get_tspec_r(fid):
     """recursively browse the folders
     until finding the test spec of the root (NULL)"""
+    if not fid:
+        return ""
     query = "select name, parent_id from AO_4D28DD_FOLDER where id = " + str(fid)
     # print(query)
     dbres = db_get(query)

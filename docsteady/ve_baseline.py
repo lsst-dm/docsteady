@@ -55,7 +55,7 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(key, end=" ", flush=True)
+    print(key.replace("LVV-", ""), end=".", flush=True)
     # print(Config.ISSUE_URL.format(issue=key))
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
@@ -88,11 +88,6 @@ def get_ve_details(rs, key):
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
-    # this is reuired since using longtbale inside longtable may give problems
-    if "req_discussion" in ve_details.keys():
-        ve_details["req_discussion"] = ve_details["req_discussion"].replace("{longtable}", "{tabular}")
-    if "req_spec" in ve_details.keys():
-        ve_details["req_spec"] = ve_details["req_spec"].replace("{longtable}", "{tabular}")
 
     # cache reqs
     if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
@@ -117,7 +112,10 @@ def extract_ves(rs, cmp, subcmp):
     startAt = 0
 
     while True:
-        result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        if subcmp == "":
+            result = rs.get(Config.VE_CMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+        else:
+            result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
         jresult = result.json()
         totals = jresult["total"]
         for i in jresult["issues"]:
@@ -142,7 +140,7 @@ def do_ve_model(component, subcomponent):
 
     ves = dict()
 
-    print(f"Looking for all Verification Elements in component {component}, sub-component {subcomponent}.")
+    print(f"Looking for all Verification Elements in component '{component}', sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
@@ -154,6 +152,9 @@ def do_ve_model(component, subcomponent):
 
     rs = requests.Session()
     rs.headers = headers
+    # Setting retries, sometime the connections fails
+    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
+    rs.adapters.DEFAULT_RETRIES = 5
 
     # get all VEs details
     ves = extract_ves(rs, component, subcomponent)

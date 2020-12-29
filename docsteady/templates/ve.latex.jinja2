@@ -36,15 +36,15 @@ The following is the list of verification elements defined in the context of the
 
 {% for vek in velements %}
 {% set ve = velements[vek] %}
-{% if loop.index != 1 %} \newpage {% endif %}
+{% if loop.index != 1 %}\newpage {% endif %}
 
 \subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
 
-\begin{longtable}{ccccc}
+\begin{longtable}{cccc}
 \hline
-\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Priority} & \textbf{Test Cases}\\ \hline
+\textbf{Jira Link} & \textbf{Assignee} & \textbf{Status} & \textbf{Test Cases}\\ \hline
 \href{{ curlies(ve.jira_url) }}{{ curlies(ve.key) }} &
-{{ ve.assignee }} & {{ ve.ve_status }} & {{ ve.ve_priority }} &
+{{ ve.assignee }} & {{ ve.ve_status }} &
 \begin{tabular}{c}
   {% for tc in ve.test_cases %}
 {{ tc[0] }} \\
@@ -58,26 +58,24 @@ The following is the list of verification elements defined in the context of the
 {{ ve.description }}
 
 {\footnotesize
-\begin{longtable}{p{2.5cm}p{13.5cm}}
+\begin{tabular}{p{4cm}p{12cm}}
 \hline
 \multicolumn{2}{c}{\textbf{Requirement Details}}\\ \hline
-Requirement ID & {{ ve.req_id }} \\ \cdashline{1-2}
-Requirement Description &
-\begin{minipage}[]{13cm}
+Requirement ID & {{ ve.req_id }} \\ \hline
+Requirement Priority & {{ ve.req_priority }} \\ \hline
+\multicolumn{2}{l}{Requirement Description and Discussion:} \\ \cdashline{1-2}
+\end{tabular}
+
 {{ ve.req_spec }}
-\end{minipage}
-\\ \cdashline{1-2}
-  {% if ve.req_params|length %}
-Requirement Parameters & {{ ve.req_params }} \\ \cdashline{1-2}
-  {% endif %}
+
   {% if ve.req_discussion|length %}
-Requirement Discussion &
-\begin{minipage}[]{13cm}
 {{ ve.req_discussion }}
-\end{minipage}
-\\ \cdashline{1-2}
   {% endif %}
-Requirement Priority & {{ ve.req_priority }} \\ \cdashline{1-2}
+\begin{longtable}{p{4cm}p{12cm}}
+\hline
+  {% if ve.req_params|length %}
+Requirement Parameters & {{ ve.req_params }} \\ \hline
+  {% endif %}
 Upper Level Requirement &
 \begin{tabular}{cl}
   {% for ureq in ve.upper_reqs %}
@@ -101,16 +99,17 @@ Upper Level Requirement &
 \subsubsection{Test Cases Summary}
     {% for testc in ve.test_cases %}
       {% set tc = test_cases[testc[0]] %}
-\begin{longtable}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
+\begin{tabular}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
 \toprule
 {{ atmtc(tc.key) }} & \multicolumn{4}{p{12cm}}{ {{ tc.name }} } \\ \hline
 \textbf{Owner} & \textbf{Status} & \textbf{Version} & \textbf{Critical Event} & \textbf{Verification Type} \\ \hline
 {{ tc.owner }} & {{ tc.status }} & {{ tc.version }} & {{ tc.critical_event }} & {{ tc.verification_type }} \\ \hline
-\end{longtable}
-{\scriptsize
+\end{tabular}
+{\footnotesize
 \textbf{Objective:}\\
 {{ tc.objective }}
 }
+
     {% endfor %}
   {% endif %}  {# ve.test_cases #}
 
@@ -131,43 +130,31 @@ Upper Level Requirement &
       {% set veloop = loop %}
       {% set ve = velements[vek] %}
       {% set count = ve.test_cases|length %}
-      {% for testc in ve.test_cases %}
+      {% set nvby = ve.verified_by|length %}
+      {% if count == 0 and nvby ==0 %}
+         {% if veloop.index == 1 %}
+{{ req }} & {{ vek }} & \\
+         {% else %}
+ & {{ vek }} & \\
+         {% endif %}
+      {% else %}
+          {% for testc in ve.test_cases %}
 {% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if loop.index == 1 %} {{ vek }} {% endif %} &
-         {% set tc = test_cases[testc[0]] %}
+              {% set tc = test_cases[testc[0]] %}
 {{ tc.key }} \\
-{#{{ req }} & {{ vek }} & {{ tc.key }} \\ \hline #}
-      {% endfor %}
-      {% set count = count + ve.verified_by|length %}
-      {% for vby in ve.verified_by %}
-{% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
-{% if loop.index == 1 %} {{ vek }} {% endif %} &
-Verified By {{ vby.key }} \\
-{#{{ req }} & {{ vek }} & Verified By {{ vby.key }} \\ \hline #}
-      {% endfor %}
-      {% if count == 0 %}
-{{ req }} & {{ vek }} &  \\ \hline
+          {% endfor %}
       {% endif %}
+      {% set count = count + nvby %}
+      {% for vby in ve.verified_by %}
+{% if count == nvby and veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
+{% if count == nvby and loop.index == 1 %} {{ vek }} {% endif %} &
+Verified By {{ vby.key }} \\
+      {% endfor %}
 {% if veloop.index != nve %} \cdashline{2-3} {% endif %}
    {% endfor %}
 \hline
 {% endfor %}
-{#{% for req in reqs %}
-   {% set nve = reqs[req]|length %}
-   {% set reqloop = loop %}
-   {% for vek in reqs[req] %}
-      {% set veloop = loop %}
-      {% set ve = velements[vek] %}
-      {% for testc in ve.test_cases %}
-         {% set tc = test_cases[testc[0]] %}
-{% if reqloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
-{% if loop.index == 1 %} {{ vek }} {% endif %} &
-{{ tc.key }} \\
-      {% endfor %}
-{% if veloop.index != nve %} \cdashline{2-3} {% endif %}
-   {% endfor %}
-\hline
-{% endfor %} #}
 \end{longtable}
 
 Note that some of the requirements listed in this traceability table may be related with additional

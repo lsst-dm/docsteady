@@ -57,6 +57,10 @@ class Config:
                     f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2" \
                     f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
                     f"&startAt={{startAt}}"
+    VE_CMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                    f"%22%20%20and%20issuetype%20%3D%2" \
+                    f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
+                    f"&startAt={{startAt}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -69,6 +73,7 @@ class Config:
     CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
+    NAMESPACE = None
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_TESTCASES = {}
     ISSUES_TO_TESTRESULTS = {}
