@@ -169,7 +169,7 @@ def download_and_rewrite_images(value):
             img_width = 150
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
-        img_name = os.path.basename(url_path)
+        img_name = os.path.basename(url_path).replace(".", "_")
         fs_path = Config.IMAGE_FOLDER + img_name
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)

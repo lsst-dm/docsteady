@@ -168,20 +168,19 @@ def generate_report(format, username, password, trace, plan, path):
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
     target = "tpr"
+    
+    if Config.NAMESPACE.upper() not in Config.COMPONENTS.keys():
+        print(f"Wrong input component {Config.NAMESPACE}")
+        exit()
 
     Config.output = TemporaryFile(mode="r+")
 
     plan_dict = build_tpr_model(plan)
-    testplan = plan_dict['tplan']
-
-    testcycles_map = plan_dict['test_cycles_map']
-    testresults_map = plan_dict['test_results_map']
-    testcases_map = plan_dict['test_cases_map']
 
     # Sort maps by keys
-    testcycles_map = alphanum_map_sort(testcycles_map)
-    testresults_map = alphanum_map_sort(testresults_map)
-    testcases_map = alphanum_map_sort(testcases_map)
+    testcycles_map = alphanum_map_sort(plan_dict['test_cycles_map'])
+    testresults_map = alphanum_map_sort(plan_dict['test_results_map'])
+    testcases_map = alphanum_map_sort(plan_dict['test_cases_map'])
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -191,14 +190,15 @@ def generate_report(format, username, password, trace, plan, path):
         autoescape=None
     )
 
-    template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    template = env.get_template(f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     metadata = _metadata()
-    metadata["tplan"] = testplan
     metadata["template"] = template.filename
+    metadata["namespace"] = Config.NAMESPACE
+    metadata["component_long_name"] = Config.COMPONENTS[Config.NAMESPACE.upper()]
 
     text = template.render(metadata=metadata,
-                           testplan=testplan,
+                           testplan=plan_dict['tplan'],
                            testcycles=list(testcycles_map.values()),  # For convenience (sorted)
                            testcycles_map=testcycles_map,
                            testresults=list(testresults_map.values()),  # For convenience (sorted)
@@ -229,7 +229,7 @@ def generate_report(format, username, password, trace, plan, path):
 def _try_appendix_template(target, env):
     # Now appendix
     appendix_template_path = \
-        f"{Config.MODE_PREFIX}{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        f"{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
 
     try:
         return env.get_template(appendix_template_path)

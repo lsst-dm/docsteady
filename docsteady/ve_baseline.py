@@ -110,13 +110,23 @@ def extract_ves(rs, cmp, subcmp):
 
     max = 1000
     startAt = 0
+    # if T&S component is given, the JQL query needs to be adjusted
+    cmp = cmp.replace("&", "%26")
+    # if subcomonents have & character, need to be parsed as above
+    subcmp = subcmp.replace("&", "%26")
 
     while True:
         if subcmp == "":
-            result = rs.get(Config.VE_CMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+            result = rs.get(Config.VE_COMPONENT_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+        elif subcmp == "None":
+            result = rs.get(Config.VE_NULLSUBCMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
         else:
             result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
         jresult = result.json()
+        if "errors" in jresult.keys():
+            print(jresult["errors"])
+            print(jresult["errorMessages"])
+            exit()
         totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
@@ -124,6 +134,8 @@ def extract_ves(rs, cmp, subcmp):
         startAt = startAt + max
         if startAt > totals:
             break
+        else:
+            print(f"[Found {startAt} VEs. Continuing...]")
 
     return ve_details
 

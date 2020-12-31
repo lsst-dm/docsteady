@@ -53,14 +53,17 @@ class Config:
                     f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511," \
                     f"customfield_13513,customfield_12002,customfield_12206,customfield_13703&" \
                     f"maxResults={{maxR}}"
+    VE_COMPONENT_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                       f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY%20key%20ASC&fields=key" \
+                       f"&maxResults={{maxR}}&startAt={{startAt}}"
     VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
                     f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2" \
                     f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
                     f"&startAt={{startAt}}"
-    VE_CMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
-                    f"%22%20%20and%20issuetype%20%3D%2" \
-                    f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
-                    f"&startAt={{startAt}}"
+    VE_NULLSUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                        f"%22%20%20AND%20Sub-Component%20is%20null%20and%20issuetype%20%3D%2" \
+                        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
+                        f"&startAt={{startAt}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -116,3 +119,12 @@ class Config:
         {"id": 2, "key": "failed", "name": "Failed", "label": "sec:fail"},
         {"id": 3, "key": "NotExecuted", "name": "Not Ex.", "label": "sec:notexec"},
     ]
+
+    COMPONENTS = {  # Rubin Observatory SubSystems
+        "DM": "Data Management Subsystem",
+        "CAM": "Camera Subsystem",
+        "OCS": "Observatory Control System Subsystem",
+        "EPO": "Education and Public Outreach Subsystem",
+        "T&S": "Telescope and Site Subsystem",
+        "PSE": "Project System Engineering and Commissioning",
+    }

@@ -18,13 +18,12 @@
   {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % using docsteady version {{ metadata.docsteady_version }}
 % Please do not edit -- update information in Jira instead
-
-\documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
+{% set SYS = metadata.namespace|replace("&", "") %}
+\documentclass[{{ SSY }},lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
 \usepackage{enumitem}
@@ -61,7 +60,7 @@
 \setDocAbstract{
 This is the test plan and report for
 \textbf{ {{ testplan.milestone_name }}}{% if testplan.milestone_id != "" %} ({{ testplan.milestone_id }}){% endif %},
-an LSST milestone pertaining to the Data Management Subsystem.
+an LSST milestone pertaining to the {{ metadata.component_long_name }}.
 }
 
 

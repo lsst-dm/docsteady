@@ -201,21 +201,18 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
 
 {% for spec in spec_to_reqs %}
 \subsection{{ '{' }}{{ spec }} Requirements Coverage{{ '}' }}
+\label{sec:{{ spec }}coverage}
 
 \setlength\LTleft{-0.25in}
 \setlength\LTright{-0.5in}
 {\small
-{# \newlength{\LTcapwidthold}
-\setlength{\LTcapwidthold}{\LTcapwidth}
-\setlength{\LTcapwidth}{\textheight} #}
 \begin{longtable}{lllll}
 \caption{ {{ metadata.component }} {{ spec }} Requirements.} \\
 \toprule
 \textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
 \toprule
 \endhead
-{# {% for req in vcd_dict[1] %} #}
-{% for req in spec_to_reqs[spec] %}
+  {% for req in spec_to_reqs[spec] %}
   \begin{tabular}{@{}l@{}}
   {{ req }}\\{{ ndr(vcd_dict[1][req]['reqDoc']) }}~{\tiny
   {% if vcd_dict[1][req]['priority'] != "Not Set" %} (p. {{ vcd_dict[1][req]['priority'] }}) {% endif %}
@@ -289,8 +286,8 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
     {% endif %}
   {% endfor %}
   \midrule
-{% endfor %}
-\label{tab:dmvcd}
+  {% endfor %}
+\label{tab:{{ spec }}vcd}
 \end{longtable}
 }
 

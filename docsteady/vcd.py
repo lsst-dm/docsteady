@@ -56,7 +56,10 @@ class VerificationE(Schema):
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
-        data["assignee"] = data_fields["assignee"]["displayName"]
+        if data_fields["assignee"]:
+            data["assignee"] = data_fields["assignee"]["displayName"]
+        else:
+            data["assignee"] = "UNASSIGNED"
         data["description"] = data['renderedFields']["description"]
         data["ve_status"] = data_fields["status"]["name"]
         if data_fields["priority"]:
@@ -517,16 +520,16 @@ def do_req_coverage(ves, ve_coverage):
     if vecount['WithFailures'] and vecount['WithFailures'] > 0:
         rcoverage = "WithFailures"
     else:
-        if vecount['FullyVerified'] and vecount['FullyVerified'] == nves:
-            rcoverage = "FullyVerified"
+        if 'FullyVerified' in vecount.keys():
+            if vecount['FullyVerified'] == nves:
+                rcoverage = "FullyVerified"
+            else:
+                rcoverage = "PartiallyVerified"
         else:
             if vecount["NotVerified"] == nves:
                 rcoverage = "NotVerified"
             else:
-                if vecount['NotCovered'] == nves:
-                    rcoverage = 'NotCovered'
-                else:
-                    rcoverage = "PartiallyVerified"
+                rcoverage = 'NotCovered'
     return rcoverage
 
 
@@ -561,21 +564,25 @@ def summary(dictionary):
             else:
                 vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
             Config.VE_STATUS_COUNT.update([vcoverage])
+            print(ve, vcoverage)
+            # print("  --  ", dictionary[3])
             dictionary[0][ve]['coverage'] = vcoverage
         # Calculating the requirement coverage based on the VE coverage
         rcoverage = do_req_coverage(req['VEs'], dictionary[0])
         Config.REQ_STATUS_COUNT.update([rcoverage])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
+        print(rcoverage)
+        print()
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])
     for tc in tcases.values():
         if 'lastR' in tc.keys() and tc['lastR']:
             Config.TEST_STATUS_COUNT.update([tc['lastR']['status']])
         else:
             Config.TEST_STATUS_COUNT.update([tc['status']])
-    # notexec cndpass passed failed
 
     req_coverage = dict()
     for entry in Config.REQ_STATUS_COUNT.items():
+        print(entry)
         req_coverage[entry[0]] = entry[1]
     ve_coverage = dict()
     for entry in Config.VE_STATUS_COUNT.items():

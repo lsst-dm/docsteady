@@ -19,7 +19,7 @@
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro text2latex(text) -%}
-  {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}
+  {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_")|replace("&", "\\&") }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,15 +28,29 @@
 % using docsteady version {{ metadata.docsteady_version }}
 % Please do not edit -- update information in Jira instead
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{% set subcomponent = text2latex(metadata.subcomponent) %}
+{% set subsystem = text2latex(metadata.component) %}
 
-\section{ {{ metadata.component }} {{ metadata.subcomponent }} Verification Elements }
+{% if subcomponent == "" or subcomponent == "None" %}
+\section{ {{ subsystem }} Verification Elements }
+{% else %}
+\section{ {{ subsystem }} - {{ subcomponent }} Verification Elements }
+{% endif %}
 {{ label("sec:ves") }}
 
-The following is the list of verification elements defined in the context of the {{ metadata.subcomponent }} component of the {{ metadata.component }} subsystem.
+{% if subcomponent == "" %}
+The following is the list of verification elements defined in the context of the {{ text2latex(metadata.component) }} subsystem.
+{% elif subcomponent == "None" %}
+The following is the list of verification elements defined in the context of the {{ text2latex(metadata.component) }} subsystem,
+not related to any component\footnote{Major product in the subsystem.}.
+{% else %}
+The following is the list of verification elements defined in the context of the {{ text2latex(metadata.subcomponent) }}
+component\footnote{Major product in the subsystem.} of the {{ text2latex(metadata.component) }} subsystem.
+{% endif %}
 
 {% for vek in velements %}
-{% set ve = velements[vek] %}
-{% if loop.index != 1 %}\newpage {% endif %}
+  {% set ve = velements[vek] %}
+  {% if loop.index != 1 %}\newpage {% endif %}
 
 \subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
 
