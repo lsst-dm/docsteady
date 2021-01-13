@@ -159,6 +159,8 @@ class TestCase(Schema):
         return issues
 
     def process_steps(self, test_script):
+        if 'steps' not in test_script.keys():
+            return None
         teststeps, errors = TestStep().load(test_script['steps'], many=True)
         if errors:
             raise Exception("Unable to process Test Steps: " + str(errors))
@@ -265,6 +267,7 @@ def build_spec_model(folder):
     alltestcases['deprecated'] = deprecated
 
     for tc_s in testcases_dict.keys():
+        testcases_dict[tc_s] = sorted(testcases_dict[tc_s], key=lambda testc: testc["keyid"])
         print(tc_s, len(testcases_dict[tc_s]))
 
     return alltestcases, requirements, testcases_dict

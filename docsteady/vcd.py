@@ -49,7 +49,7 @@ class VerificationE(Schema):
     upper_reqs = fields.List(fields.String(), missing=list())
     raw_test_cases = HtmlPandocField()
     test_cases = fields.List(fields.String(), missing=list())
-    verified_by = fields.List(fields.Dict(), missing=list())
+    verified_by = fields.Dict(fields.Dict(), missing=list())
 
     @pre_load(pass_many=False)
     def extract_fields(self, data):
@@ -77,16 +77,18 @@ class VerificationE(Schema):
 
     def extract_verified_by(self, data_fields):
         if "issuelinks" not in data_fields.keys():
-            return []
+            return {}
         issuelinks = data_fields["issuelinks"]
-        verified_by = []
+        verified_by = {}
         for issue in issuelinks:
             if "inwardIssue" in issue.keys():
-                tmp_issue = dict()
-                tmp_issue['key'] = issue["inwardIssue"]["key"]
-                tmp_issue['summary'] = \
-                    HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
-                verified_by.append(tmp_issue)
+                if issue["inwardIssue"]["fields"]['issuetype']['name'] == "Verification":
+                    tmp_issue = dict()
+                    tmp_issue['key'] = issue["inwardIssue"]["key"]
+                    tmp_issue['summary'] = \
+                        HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
+                    verified_by[issue["inwardIssue"]["key"]] = tmp_issue
+
         return verified_by
 
 
@@ -275,6 +277,9 @@ def db_get(dbquery) -> {}:
     p = Config.DB_PARAMETERS
     db = pymysql.connect(p["host"], p["user"], p['pwd'], p["schema"], read_timeout=1000)
     cursor = db.cursor()
+    # trying to reconnect when loosing connection
+    #  this seems to happen sometime when connected from far away (Europe)
+    db.ping(reconnect=True)
     try:
         cursor.execute(dbquery)
     except:
@@ -381,6 +386,7 @@ def get_ves(comp):
     global veduplicated
     velements = dict()
     reqs = dict()
+    verifying_ves = []
     # get all VE for the provided component
     query = ("select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority from jiraissue ji "
              "inner join nodeassociation na ON ji.id = na.source_node_id "
@@ -396,13 +402,11 @@ def get_ves(comp):
             tmpve = dict()
             tmpve['jkey'] = 'LVV-' + str(ve[0])
             ves = ve[2].split(':')
-            # print(v, ves[0])
             tmpve['status'] = jst[ve[3]]
             if ve[4]:
                 tmpve['priority'] = jpr[ve[4]]
             else:
                 tmpve['priority'] = "Not Specified"
-            # print(tmpve['priority'], ve[4])
             # get VEs that may verify this VE, instead of test cases
             query = ("select ji.issuenum, ji.summary from jiraissue ji "
                      "inner join issuelink il on il.source = ji.id "
@@ -413,6 +417,7 @@ def get_ves(comp):
                 for vby in raw_vby:
                     tsum = vby[1].split(':')
                     vbytmp.append(tsum[0])
+                    verifying_ves.append(str(vby[0]))
                 tmpve['verifiedby'] = vbytmp
             # get the parent requirement
             query = ("select cf.id, cf.cfname, cvf.textvalue, "
@@ -431,9 +436,12 @@ def get_ves(comp):
             if tmpve['Requirement ID'] not in reqs.keys():
                 # print(tmpve['Requirement ID'])
                 rtmp = dict()
-                rtmp['reqDoc'] = tmpve['Requirement Specification']
+                if 'Requirement Specification' in tmpve.keys():
+                    rtmp['reqDoc'] = tmpve['Requirement Specification']
+                else:
+                    rtmp['reqDoc'] = ""
                 rtmp['reqTitle'] = ves[1].strip()
-                if 'Requirement Text' in tmpve:
+                if 'Requirement Text' in tmpve.keys():
                     rtmp['reqText'] = tmpve['Requirement Text']
                 else:
                     rtmp['reqText'] = ""
@@ -456,6 +464,31 @@ def get_ves(comp):
                 veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
             else:
                 velements[ves[0]] = tmpve
+    # print(verifying_ves)
+    # get details on VEs verifying some of the component's VEs,
+    # but not part of the selected component/subcomponent
+    query = "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority, c.cname " \
+            "from jiraissue ji " \
+            "inner join nodeassociation na ON ji.id = na.source_node_id " \
+            "inner join component c on na.`SINK_NODE_ID`=c.id " \
+            "where ji.project = 12800 and ji.issuetype = 10602 " \
+            f"and ji.issuenum in ({', '.join(verifying_ves)})"
+    extra_ves = db_get(query)
+    for eve in extra_ves:
+        eves = eve[2].split(':')
+        if eves[0] not in velements.keys():
+            print(eve[0], eve[5])
+            etmpve = dict()
+            etmpve['jkey'] = 'LVV-' + str(eve[0])
+            etmpve['status'] = jst[eve[3]]
+            if eve[4]:
+                etmpve['priority'] = jpr[eve[4]]
+            else:
+                etmpve['priority'] = "Not Specified"
+            etmpve['tcs'] = []
+            etmpve['tcs'] = get_tcs(eve[1])
+            etmpve['cname'] = eve[5]
+            velements[eves[0]] = etmpve
 
     return velements, reqs
 
@@ -525,6 +558,8 @@ def do_req_coverage(ves, ve_coverage):
                 rcoverage = "FullyVerified"
             else:
                 rcoverage = "PartiallyVerified"
+        elif 'PartiallyVerified' in vecount.keys():
+            rcoverage = "PartiallyVerified"
         else:
             if vecount["NotVerified"] == nves:
                 rcoverage = "NotVerified"
@@ -559,20 +594,23 @@ def summary(dictionary):
                 # associated with the verifying VEs
                 vbytcs = dict()
                 for vby in dictionary[0][ve]['verifiedby']:
-                    vbytcs.update(dictionary[0][vby]['tcs'])
+                    if vby in dictionary[0].keys():
+                        vbytcs.update(dictionary[0][vby]['tcs'])
+                    else:
+                        print(f'Tests not found for {vby} verifying {ve}.')
                 vcoverage = do_ve_coverage(vbytcs, dictionary[3])
             else:
                 vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
             Config.VE_STATUS_COUNT.update([vcoverage])
-            print(ve, vcoverage)
+            # print(ve, vcoverage)
             # print("  --  ", dictionary[3])
             dictionary[0][ve]['coverage'] = vcoverage
         # Calculating the requirement coverage based on the VE coverage
         rcoverage = do_req_coverage(req['VEs'], dictionary[0])
         Config.REQ_STATUS_COUNT.update([rcoverage])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
-        print(rcoverage)
-        print()
+        # print(rcoverage)
+        # print()
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])
     for tc in tcases.values():
         if 'lastR' in tc.keys() and tc['lastR']:

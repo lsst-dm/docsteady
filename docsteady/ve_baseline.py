@@ -69,7 +69,6 @@ def get_ve_details(rs, key):
             # regex to get content between {}
             regex = r"\{([^}]+)\}"
             matches = re.findall(regex, ve_details["raw_test_cases"])
-            # print(" - matches - ", matches)
             for matchNum, match in enumerate(matches):
                 if matchNum % 2 == 1:
                     tc_split = match.split(":")
@@ -90,9 +89,20 @@ def get_ve_details(rs, key):
                 ve_details["upper_reqs"].append(upper)
 
     # cache reqs
-    if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-    Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+    if 'req_id' in ve_details:
+        if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
+            Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+
+    # get component/subcomponent of verified_by
+    if "verified_by" in ve_details.keys():
+        for vby in ve_details['verified_by'].keys():
+            vby_cmp_raw = rs.get(Config.GET_ISSUE_COMPONENT.format(issue=vby))
+            jvby_cmp_raw = vby_cmp_raw.json()
+            ve_details['verified_by'][vby]['component'] = jvby_cmp_raw['fields']['components'][0]['name']
+            if 'customfield_15001' in jvby_cmp_raw['fields'].keys():
+                if jvby_cmp_raw['fields']['customfield_15001']:
+                    ve_details['verified_by'][vby]['subcomponent'] = jvby_cmp_raw['fields']['customfield_15001']['value']
 
     return ve_details
 
@@ -117,10 +127,13 @@ def extract_ves(rs, cmp, subcmp):
 
     while True:
         if subcmp == "":
+            # get all VEs for a given Component
             result = rs.get(Config.VE_COMPONENT_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
         elif subcmp == "None":
+            # get all VEs without SubComponet assigned, for a given Component
             result = rs.get(Config.VE_NULLSUBCMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
         else:
+            # get all VES for given Component/SubComponent
             result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
         jresult = result.json()
         if "errors" in jresult.keys():

@@ -104,7 +104,19 @@ Upper Level Requirement &
 \subsubsection{Verified By}
 \begin{itemize}
     {% for vby in ve.verified_by %}
-\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{ vby.summary }}
+        {% set vby_ve = ve.verified_by[vby] %}
+        {% if vby_ve.component == subsystem %}
+            {% if subcomponent == "None" %}
+\item {{ vby }} (in {{ vby_ve.component }} subsystem, no subcomponent assigned) {{ vby_ve.summary }}
+            {% endif %}
+            {% if subcomponent == "" or subcomponent == vby_ve.subcomponent %}
+\item {{ vby }} ({{ ref(vby.lower())}}) {{ vby_ve.summary }}
+            {% else %}
+\item {{ vby }} (in {{ vby_ve.component }} subsystem, {{ vby_ve.subcomponent }} subcomponent) {{ vby_ve.summary }}
+            {% endif %}
+        {% else %}
+\item {{ vby }} (in {{ vby_ve.component }} subsystem) {{ vby_ve.summary }}
+        {% endif %}
     {% endfor %}
 \end{itemize}
   {% endif %}
@@ -163,7 +175,7 @@ Upper Level Requirement &
       {% for vby in ve.verified_by %}
 {% if count == nvby and veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if count == nvby and loop.index == 1 %} {{ vek }} {% endif %} &
-Verified By {{ vby.key }} \\
+Verified By {{ vby }} \\
       {% endfor %}
 {% if veloop.index != nve %} \cdashline{2-3} {% endif %}
    {% endfor %}

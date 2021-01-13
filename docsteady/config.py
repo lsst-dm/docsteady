@@ -29,6 +29,7 @@ class Config:
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
     ATMT_API = f"{JIRA_INSTANCE}/rest/tests/1.0"
     ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
+    GET_ISSUE_COMPONENT = f"{JIRA_API}/issue/{{issue}}?fields=components,customfield_15001"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
     USER_URL = f"{JIRA_API}/user?username={{username}}"
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"

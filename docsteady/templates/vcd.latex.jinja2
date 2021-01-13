@@ -42,6 +42,10 @@
 \citeds{{ '{' }}{{ text }}{{ '}'}}
 {%- endmacro -%}
 {######################################}
+{%- macro text2latex(text) -%}
+  {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_")|replace("&", "\\&") }}
+{%- endmacro -%}
+{######################################}
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting data for component: "{{ metadata.component }}"
@@ -239,7 +243,11 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
             {% if loop.index != 1 %}
                &
             {% endif %}
-            {{ hyperlink(vby.lower()) }}{{ curlies(vby) }}({{ njr(vcd_dict[0][vby]['jkey']) }})\\
+            {% if vcd_dict[0][vby]['cname'] %}
+                {{ vby }} [{{ text2latex(vcd_dict[0][vby]['cname']) }}]({{ njr(vcd_dict[0][vby]['jkey']) }})\\
+            {% else %}
+                {{ hyperlink(vby.lower()) }}{{ curlies(vby) }}({{ njr(vcd_dict[0][vby]['jkey']) }})\\
+            {% endif %}
         {% endfor %}
         \end{tabular}
         } \\
