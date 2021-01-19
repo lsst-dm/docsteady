@@ -82,7 +82,8 @@ class VerificationE(Schema):
         verified_by = {}
         for issue in issuelinks:
             if "inwardIssue" in issue.keys():
-                if issue["inwardIssue"]["fields"]['issuetype']['name'] == "Verification":
+                if issue["inwardIssue"]["fields"]['issuetype']['name'] == "Verification" \
+                        and issue['type']['inward'] == "verified by":
                     tmp_issue = dict()
                     tmp_issue['key'] = issue["inwardIssue"]["key"]
                     tmp_issue['summary'] = issue["inwardIssue"]["fields"]["summary"]
