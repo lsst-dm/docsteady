@@ -69,7 +69,7 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
 {% endfor %}
  & \rotatebox[origin=l]{60}{ \textbf{ Total } }
 \\ \toprule
-\textbf{ {{metadata.component}} Requirements} & (All)
+\textbf{ {{ text2latex(metadata.component) }} Requirements} & (All)
 {% for cov in coverage %}
  & {{ sum_dict[2][cov["key"]] }}
 {% endfor %}
@@ -95,13 +95,15 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
  \\ \hline
   {% endif %}
 {% endfor %}
-\textbf{ {{metadata.component}} Verification E.} & (All)
+\toprule
+\textbf{ {{ text2latex(metadata.component) }} Verification E.} & (All)
+{% set vet = 0 %}
 {% for cov in coverage %}
  & {{ sum_dict[1][ cov["key"] ] }}
 {% endfor %}
  & \textbf{ {{ sum_dict[6][1] }} }
 \\ \hline
-\caption{Summary overview of all {{ metadata.component }}~requirements and verification elements.}
+\caption{Summary overview of all {{ text2latex(metadata.component) }}~requirements and verification elements.}
 \label{table:summary}
 \end{longtable}
 
@@ -122,7 +124,7 @@ Test Cases Results
 {% endfor %}
  & \textbf{ {{ sum_dict[6][2] }} } \\
 \bottomrule
-\caption{Summary overview of {{ metadata.component }}~test cases executions.}
+\caption{Summary overview of {{ text2latex(metadata.component) }}~test cases executions.}
 \label{table:testsummary}
 \end{longtable}
 
@@ -211,7 +213,7 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
 \setlength\LTright{-0.5in}
 {\small
 \begin{longtable}{lllll}
-\caption{ {{ metadata.component }} {{ spec }} Requirements.} \\
+\caption{ {{ text2latex(metadata.component) }} {{ spec }} Requirements.} \\
 \toprule
 \textbf{Requirement} & \textbf{Verification Element} & \textbf{Test Case} & \textbf{Last Run} & \textbf{Test Status} \\
 \toprule

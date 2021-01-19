@@ -22,6 +22,11 @@
   {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_")|replace("&", "\\&") }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
+{# this is required for the requirement text fields, due to a sync problem from MD to Jira #}
+{%- macro fix_sout(text) -%}
+  {{ text|replace("\sout{", "-{") }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
@@ -52,7 +57,7 @@ component\footnote{Major product in the subsystem.} of the {{ text2latex(metadat
   {% set ve = velements[vek] %}
   {% if loop.index != 1 %}\newpage {% endif %}
 
-\subsection{[{{ ve.key}}] {{ve.summary}} }{{ label(ve.key.lower()) }}
+\subsection{[{{ ve.key }}] {{ text2latex(ve.summary) }} }{{ label(ve.key.lower()) }}
 
 \begin{longtable}{cccc}
 \hline
@@ -80,10 +85,10 @@ Requirement Priority & {{ ve.req_priority }} \\ \hline
 \multicolumn{2}{l}{Requirement Description and Discussion:} \\ \cdashline{1-2}
 \end{tabular}
 
-{{ ve.req_spec }}
+{{ fix_sout(ve.req_spec) }}
 
   {% if ve.req_discussion|length %}
-{{ ve.req_discussion }}
+{{ fix_sout(ve.req_discussion) }}
   {% endif %}
 \begin{longtable}{p{4cm}p{12cm}}
 \hline
@@ -107,15 +112,15 @@ Upper Level Requirement &
         {% set vby_ve = ve.verified_by[vby] %}
         {% if vby_ve.component == subsystem %}
             {% if subcomponent == "None" %}
-\item {{ vby }} (in {{ vby_ve.component }} subsystem, no subcomponent assigned) {{ vby_ve.summary }}
+\item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, no subcomponent assigned) {{ text2latex(vby_ve.summary) }}
             {% endif %}
             {% if subcomponent == "" or subcomponent == vby_ve.subcomponent %}
 \item {{ vby }} ({{ ref(vby.lower())}}) {{ vby_ve.summary }}
             {% else %}
-\item {{ vby }} (in {{ vby_ve.component }} subsystem, {{ vby_ve.subcomponent }} subcomponent) {{ vby_ve.summary }}
+\item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, {{ text2latex(vby_ve.subcomponent) }} subcomponent) {{ text2latex(vby_ve.summary) }}
             {% endif %}
         {% else %}
-\item {{ vby }} (in {{ vby_ve.component }} subsystem) {{ vby_ve.summary }}
+\item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem) {{ text2latex(vby_ve.summary) }}
         {% endif %}
     {% endfor %}
 \end{itemize}
@@ -184,5 +189,10 @@ Verified By {{ vby }} \\
 \end{longtable}
 
 Note that some of the requirements listed in this traceability table may be related with additional
-Verification Elements not in the scope of \textit{ {{ metadata.subcomponent }} } Verification,
+Verification Elements not in the scope of
+\textit{ {{ text2latex(metadata.component) }} } component
+{% if metadata.subcomponent != "" and metadata.subcomponent != "None" %}
+\textit{ {{ text2latex(metadata.subcomponent) }} } subcomponent
+{% endif %}
+Verification,
 and therefore not listed here.

@@ -41,7 +41,11 @@ def get_testcase(rs, tckey):
     """
     # print(Config.TESTCASE_URL.format(testcase=tckey))
     tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
-    jtc_res = tc_res.json()
+    try:
+        jtc_res = tc_res.json()
+    except Exception as error:
+        print(error)
+        return None
     tc_detail, error = TestCase().load(jtc_res)
 
     return tc_detail
@@ -89,7 +93,7 @@ def get_ve_details(rs, key):
                 ve_details["upper_reqs"].append(upper)
 
     # cache reqs
-    if 'req_id' in ve_details:
+    if 'req_id' in ve_details.keys():
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])

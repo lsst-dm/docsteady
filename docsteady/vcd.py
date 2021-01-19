@@ -34,7 +34,7 @@ from .utils import get_tspec, HtmlPandocField
 
 class VerificationE(Schema):
     key = fields.String(required=True)
-    summary = HtmlPandocField()
+    summary = fields.String()
     jira_url = fields.String()
     assignee = fields.String()
     description = HtmlPandocField()
@@ -85,8 +85,7 @@ class VerificationE(Schema):
                 if issue["inwardIssue"]["fields"]['issuetype']['name'] == "Verification":
                     tmp_issue = dict()
                     tmp_issue['key'] = issue["inwardIssue"]["key"]
-                    tmp_issue['summary'] = \
-                        HtmlPandocField().deserialize(issue["inwardIssue"]["fields"]["summary"])
+                    tmp_issue['summary'] = issue["inwardIssue"]["fields"]["summary"]
                     verified_by[issue["inwardIssue"]["key"]] = tmp_issue
 
         return verified_by
@@ -464,31 +463,35 @@ def get_ves(comp):
                 veduplicated[tmpve['jkey']] = velements[ves[0]]['jkey']
             else:
                 velements[ves[0]] = tmpve
-    # print(verifying_ves)
-    # get details on VEs verifying some of the component's VEs,
-    # but not part of the selected component/subcomponent
-    query = "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority, c.cname " \
-            "from jiraissue ji " \
-            "inner join nodeassociation na ON ji.id = na.source_node_id " \
-            "inner join component c on na.`SINK_NODE_ID`=c.id " \
-            "where ji.project = 12800 and ji.issuetype = 10602 " \
-            f"and ji.issuenum in ({', '.join(verifying_ves)})"
-    extra_ves = db_get(query)
-    for eve in extra_ves:
-        eves = eve[2].split(':')
-        if eves[0] not in velements.keys():
-            print(eve[0], eve[5])
-            etmpve = dict()
-            etmpve['jkey'] = 'LVV-' + str(eve[0])
-            etmpve['status'] = jst[eve[3]]
-            if eve[4]:
-                etmpve['priority'] = jpr[eve[4]]
-            else:
-                etmpve['priority'] = "Not Specified"
-            etmpve['tcs'] = []
-            etmpve['tcs'] = get_tcs(eve[1])
-            etmpve['cname'] = eve[5]
-            velements[eves[0]] = etmpve
+            if v % 1000 == 0:
+                print(f"\n[Found {v} VEs. Continuing...]")
+
+    if len(verifying_ves) > 0:
+        # print(verifying_ves)
+        # get details on VEs verifying some of the component's VEs,
+        # but not part of the selected component/subcomponent
+        query = "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority, c.cname " \
+                "from jiraissue ji " \
+                "inner join nodeassociation na ON ji.id = na.source_node_id " \
+                "inner join component c on na.`SINK_NODE_ID`=c.id " \
+                "where ji.project = 12800 and ji.issuetype = 10602 " \
+                f"and ji.issuenum in ({', '.join(verifying_ves)})"
+        extra_ves = db_get(query)
+        for eve in extra_ves:
+            eves = eve[2].split(':')
+            if eves[0] not in velements.keys():
+                print(eve[0], eve[5])
+                etmpve = dict()
+                etmpve['jkey'] = 'LVV-' + str(eve[0])
+                etmpve['status'] = jst[eve[3]]
+                if eve[4]:
+                    etmpve['priority'] = jpr[eve[4]]
+                else:
+                    etmpve['priority'] = "Not Specified"
+                etmpve['tcs'] = []
+                etmpve['tcs'] = get_tcs(eve[1])
+                etmpve['cname'] = eve[5]
+                velements[eves[0]] = etmpve
 
     return velements, reqs
 
@@ -623,8 +626,10 @@ def summary(dictionary):
         print(entry)
         req_coverage[entry[0]] = entry[1]
     ve_coverage = dict()
+    total_ve = 0
     for entry in Config.VE_STATUS_COUNT.items():
         ve_coverage[entry[0]] = entry[1]
+        total_ve = total_ve + entry[1]
     tc_status = dict()
     tc_status['NotExecuted'] = 0
     for entry in Config.TEST_STATUS_COUNT.items():
@@ -654,7 +659,7 @@ def summary(dictionary):
             tmp_doc[key] = rec_count_per_doc[doc][key]
         rec_count_per_doc[doc] = tmp_doc
 
-    size = [len(reqs), len(verification_elements), len(tcases)]
+    size = [len(reqs), total_ve, len(tcases)]
 
     return [tc_status, ve_coverage, req_coverage, rec_count_per_doc, [], [], size]
 
