@@ -314,7 +314,7 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec,
         #        print(Config.CACHED_TESTRES_SUM[test])
         #    else:
         #       print()
-        vcd_dict = [ve_model, reqs, [], Config.CACHED_TESTCASES]
+        vcd_dict = [ve_model, req_dict, [], Config.CACHED_TESTCASES]
         exit()
 
     sum_dict = summary(vcd_dict)
