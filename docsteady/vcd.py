@@ -123,7 +123,7 @@ def runstatus(trs):
 
 def build_vcd_model(component):
     # build the vcd. Only Verification Issues are considered.
-    global tcases
+    # global tcases
 
     rs = requests.Session()
 
@@ -153,7 +153,7 @@ def build_vcd_model(component):
 
     velem = {}
     reqs = {}
-    tcases = {}
+    #tcases = {}
 
     veresp = resp.json()
     i = 0
@@ -199,7 +199,8 @@ def build_vcd_model(component):
                     tmp['tcs'][tc['key']]['lastR'] = tc['lastTestResultStatus']
                 else:
                     tmp['tcs'][tc['key']]['lastR'] = None
-                if tc['key'] not in tcases.keys():
+                #if tc['key'] not in tcases.keys():
+                if tc['key'] not in Config.CACHED_TESTCASES.keys():
                     tctmp = {}
                     if tc['owner']:
                         tctmp['owner'] = tc['owner']
@@ -215,13 +216,13 @@ def build_vcd_model(component):
                     tctmp['status'] = tc['status']
                     tctmp['folder'] = tc['folder']
                     tctmp['tspec'] = get_tspec(tc['folder'])
-                    tcases[tc['key']] = tctmp
+                    Config.CACHED_TESTCASES[tc['key']] = tctmp
         velem[ves[0]] = tmp
 
     print("\nGot", len(velem), "Verification Elements on", len(reqs), "Requirements. Found",
-          len(tcases), ' related test cases.')
+          len(Config.CACHED_TESTCASES), ' related test cases.')
 
-    for tck in tcases.keys():
+    for tck in Config.CACHED_TESTCASES.keys():
         # print(tck, end="")
         tcd = rs.get(Config.TESTCASERESULT_URL.format(tcid=tck),
                      auth=Config.AUTH)
@@ -259,7 +260,7 @@ def build_vcd_model(component):
                 tmpr['tcycle'] = "NA"
                 tmpr['dmtr'] = "NA"
                 tmpr['tplan'] = "NA"
-            tcases[tck]['lastR'] = tmpr
+            Config.CACHED_TESTCASES[tck]['lastR'] = tmpr
     # print(" -")
 
     fsum = open("summary.tex", 'w')
@@ -267,7 +268,7 @@ def build_vcd_model(component):
     print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
     print(f"Number of Requirements: & {len(reqs)} \\\\", file=fsum)
     print(f"Number of Verification Elements: & {len(velem)} \\\\", file=fsum)
-    print(f"Number of Test Cases: & {len(tcases)} \\\\", file=fsum)
+    print(f"Number of Test Cases: & {len(Config.CACHED_TESTCASES)} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
@@ -352,7 +353,7 @@ def get_tc_results(tc):
 def get_tcs(veid):
     """for a given VE (id) return the related test cases
        and populate in parallel the global tcases """
-    global tcases
+    # global tcases
     query = ("select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name "
              "from AO_4D28DD_TEST_CASE tc "
              "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
@@ -365,8 +366,10 @@ def get_tcs(veid):
         # print(tc)
         if tc[0] not in tcs:
             # tcs.append(tc[0])
-            if tc[0] in tcases.keys():
-                tcs[tc[0]] = tcases[tc[0]]
+            #if tc[0] in tcases.keys():
+            #    tcs[tc[0]] = tcases[tc[0]]
+            if tc[0] in Config.CACHED_TESTCASES.keys():
+                tcs[tc[0]] = Config.CACHED_TESTCASES[tc[0]]
             else:
                 tcs[tc[0]] = {}
                 tcs[tc[0]]['status'] = tc[3]
@@ -375,7 +378,8 @@ def get_tcs(veid):
                     tcs[tc[0]]['lastR'] = get_tc_results(tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
-                tcases[tc[0]] = tcs[tc[0]]
+                #tcases[tc[0]] = tcs[tc[0]]
+                Config.CACHED_TESTCASES[tc[0]] = tcs[tc[0]]
     return tcs
 
 
@@ -523,6 +527,7 @@ def do_ve_coverage(tcs, results):
     else:
         tccount = Counter()
         for tc in tcs.keys():
+            #if tc in results.keys() and results[tc]['lastR']:
             if results[tc]['lastR']:
                 tccount.update([results[tc]['lastR']['status']])
             else:
@@ -573,7 +578,6 @@ def do_req_coverage(ves, ve_coverage):
 
 def summary(dictionary):
     """generate and print summary information"""
-    global tcases
     global jst
     global veduplicated
     mtrs = dict()
@@ -583,6 +587,8 @@ def summary(dictionary):
     verification_elements = dictionary[0]
 
     reqs = dictionary[1]
+
+    tcases = dictionary[3]
 
     mtrs['nr'] = len(reqs)
     mtrs['nv'] = len(verification_elements)
@@ -683,10 +689,10 @@ def vcdsql(comp, RSP):
     """get VCD using direct SQL query"""
     global jst
     global jpr
-    global tcases
+    # global tcases
     global veduplicated
     veduplicated = dict()
-    tcases = {}
+    # tcases = {}
 
     print(f"Looking for VEs in {comp} ...")
     init_jira_status()
@@ -695,7 +701,7 @@ def vcdsql(comp, RSP):
     ves, reqs = get_ves(comp)
 
     print(f"  ... found {len(ves)} Verification Elements "
-          f"  related to {len(reqs)} requirements and {len(tcases)} test cases.")
+          f"  related to {len(reqs)} requirements and {len(Config.CACHED_TESTCASES)} test cases.")
 
     if os.path.isfile("acronyms.tex"):
         check_acronyms(reqs)
@@ -763,4 +769,12 @@ def vcdsql(comp, RSP):
         print(csv, file=file)
         file.close()
 
-    return [ves, reqs, veduplicated, tcases]
+    #for ve in ves.keys():
+    #    for tc in ves[ve]['tcs']:
+    #        if ves[ve]['tcs'][tc]['lastR']:
+    #            print(ves[ve]['tcs'][tc]['lastR'])
+    #            break
+    #for tc in Config.CACHED_TESTCASES.keys():
+    #    print(Config.CACHED_TESTCASES[tc].keys())
+    #    break
+    return [ves, reqs, veduplicated, Config.CACHED_TESTCASES]

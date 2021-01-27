@@ -39,16 +39,42 @@ def get_testcase(rs, tckey):
     :param key:
     :return:
     """
-    # print(Config.TESTCASE_URL.format(testcase=tckey))
-    tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
+    r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
     try:
-        jtc_res = tc_res.json()
+        jtc_det = r_tc_details.json()
     except Exception as error:
         print(error)
         return None
-    tc_detail, error = TestCase().load(jtc_res)
+    tc_details, error = TestCase().load(jtc_det)
 
-    return tc_detail
+    # get test case results, so we can build the VCD using the same data
+    if "lastTestResultStatus" in jtc_det:
+        tc_results = dict()
+        r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
+        try:
+            jtc_res = r_tc_results.json()
+        except Exception as error:
+            print(error)
+        tc_results['key'] = jtc_res['key']
+        r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
+        try:
+            jtp_key = r_tp_key.json()
+        except Exception as error:
+            print(error)
+        tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
+        tc_results['tcycle'] = jtp_key["testRun"]["key"]
+        r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
+        try:
+            jtp_dets = r_tp_dets.json()
+        except Exception as error:
+            print(error)
+        if "Document ID" in jtp_dets["customFields"].keys():
+            tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
+        else:
+            tc_results['TPR'] = ""
+        Config.CACHED_TESTRES_SUM[tckey] = tc_results
+
+    return tc_details
 
 
 def get_ve_details(rs, key):
@@ -166,8 +192,6 @@ def do_ve_model(component, subcomponent):
     """
     # create folders for images and attachments if not already there
     create_folders_and_files()
-
-    ves = dict()
 
     print(f"Looking for all Verification Elements in component '{component}', sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]

@@ -262,14 +262,19 @@ def _metadata():
 @click.option('--vcduser', prompt="Jira Username", envvar="JIRA_VCD_USER", help="Jira username")
 @click.option('--vcdpwd', prompt="Jira Password", hide_input=True,
               envvar="JIRA_VCD_PASSWORD", help="Jira Password")
+@click.option('--username', prompt="Jira Username", envvar="JIRA_USER", help="Jira username")
+@click.option('--password', prompt="Jira Password", hide_input=True,
+              envvar="JIRA_PASSWORD", help="Jira Password")
 @click.option('--sql', required=False, default=False,
               help="True if direct access to the database shall be used")
 @click.option('--spec', required=False, default=False,
               help="Req|Test specifications to print out test case prioritization")
+@click.option('--subcomponent', required=False, help='Extract Verification Elements only '
+                                                     'for the specified subcomponent')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, path):
-    """Given a specific namespace, corresponding to a Jira Component
-    or Rubin Subsystem, build the VCD. By default build the DM VCD.
+def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec, subcomponent, path):
+    """Given a specific namespace, correspoding to a Jira Component
+    or Rubin Subsystem, it build the VCD. By default build the DM VCD.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
@@ -288,8 +293,28 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, path):
     if sql:
         print('Building model using direct SQL access')
         vcd_dict = vcdsql(component, RSP)
+        # vcd_dict: list
+        #  [ves, reqs, veduplicated, tcases]
     else:
-        print("VCD via rest API disabled. Use '--sql True' option")
+        Config.AUTH = (username, password)
+        if not subcomponent:
+            subcomponent = ""
+        ve_model = do_ve_model(component, subcomponent)
+        req_dict = dict()
+        for ve in ve_model.keys():
+            print(ve)
+            print(ve_model[ve])
+        for req in Config.CACHED_REQS_FOR_VES.keys():
+            tmp_req = dict()
+            tmp_req['VEs'] = Config.CACHED_REQS_FOR_VES[req]
+            req_dict[req] = tmp_req
+        #for test in Config.CACHED_TESTCASES.keys():
+        #    print(test, end="")
+        #    if test in Config.CACHED_TESTRES_SUM.keys():
+        #        print(Config.CACHED_TESTRES_SUM[test])
+        #    else:
+        #       print()
+        vcd_dict = [ve_model, reqs, [], Config.CACHED_TESTCASES]
         exit()
 
     sum_dict = summary(vcd_dict)

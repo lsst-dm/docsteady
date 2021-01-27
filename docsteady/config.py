@@ -44,6 +44,7 @@ class Config:
     TPLANCF_URL = f"{ATM_API}/testplan/{{tpk}}?fields=customFields"
     TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
     TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
+    TESTRESULT_PLAN_CYCLE = f"{ATMT_API}/testresult/{{result_ID}}?fields=testRun(key,testPlan(key))"
     TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
     # providing an ordered list of statuses we can control
     # the order they are rendered in the Test Spec
@@ -73,6 +74,7 @@ class Config:
     CACHED_TESTCASES = {}
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
+    CACHED_TESTRES_SUM = {}
     CACHED_VELEMENTS = {}  # type : Dict[str, Issue]
     CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
