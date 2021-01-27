@@ -565,10 +565,10 @@ def do_req_coverage(ves, ve_coverage):
         elif 'PartiallyVerified' in vecount.keys():
             rcoverage = "PartiallyVerified"
         else:
-            if vecount["NotVerified"] == nves:
-                rcoverage = "NotVerified"
+            if vecount["NotCovered"] == nves:
+                rcoverage = "NotCovered"
             else:
-                rcoverage = 'NotCovered'
+                rcoverage = 'NotVerified'
     return rcoverage
 
 
