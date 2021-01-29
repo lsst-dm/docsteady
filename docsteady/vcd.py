@@ -44,6 +44,7 @@ class VerificationE(Schema):
     req_spec = HtmlPandocField()
     req_discussion = HtmlPandocField()
     req_priority = fields.String()
+    req_doc_id = fields.String()
     req_params = HtmlPandocField()
     raw_upper_req = HtmlPandocField()
     upper_reqs = fields.List(fields.String(), missing=list())
@@ -73,6 +74,7 @@ class VerificationE(Schema):
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
         data["verified_by"] = self.extract_verified_by(data_fields)
+        data["req_doc_id"] = data_fields["customfield_14701"]["value"]
         return data
 
     def extract_verified_by(self, data_fields):
@@ -311,6 +313,7 @@ def init_jira_status():
     rawst = db_get(query)
     for st in rawst:
         jst[st[0]] = st[1]
+    print('jira status - ', jst)
 
 
 def init_priority():
@@ -321,6 +324,7 @@ def init_priority():
     rawst = db_get(query)
     for st in rawst:
         jpr[st[0]] = st[1]
+    print('priorities - ', jpr)
 
 
 def get_tc_results(tc):
@@ -386,8 +390,10 @@ def get_tcs(veid):
 def get_ves(comp):
     """gets information for all Verification Elementes for a Component
        it returns also the reqs and test cases related to them"""
-    global jst
     global veduplicated
+    jst = Config.jst
+    jpr = Config.jpr
+
     velements = dict()
     reqs = dict()
     verifying_ves = []
@@ -527,8 +533,8 @@ def do_ve_coverage(tcs, results):
     else:
         tccount = Counter()
         for tc in tcs.keys():
-            #if tc in results.keys() and results[tc]['lastR']:
-            if results[tc]['lastR']:
+            # if tc in results.keys() and results[tc]['lastR']:
+            if 'lastR' in results[tc].keys() and results[tc]['lastR']:
                 tccount.update([results[tc]['lastR']['status']])
             else:
                 tccount.update(['notexec'])
@@ -578,11 +584,8 @@ def do_req_coverage(ves, ve_coverage):
 
 def summary(dictionary):
     """generate and print summary information"""
-    global jst
     global veduplicated
     mtrs = dict()
-
-    init_jira_status()
 
     verification_elements = dictionary[0]
 
@@ -597,6 +600,7 @@ def summary(dictionary):
     for req in dictionary[1].values():
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+        # print('VE - KEYS ', dictionary[0].keys())
         for ve in req['VEs']:
             if 'verifiedby' in dictionary[0][ve].keys():
                 # I calculate the coverage looking at the test cases
@@ -663,6 +667,8 @@ def summary(dictionary):
 
     size = [len(reqs), total_ve, len(tcases)]
 
+    print(rec_count_per_doc)
+
     return [tc_status, ve_coverage, req_coverage, rec_count_per_doc, [], [], size]
 
 
@@ -687,16 +693,10 @@ def check_acronyms(reqs):
 
 def vcdsql(comp, RSP):
     """get VCD using direct SQL query"""
-    global jst
-    global jpr
-    # global tcases
     global veduplicated
     veduplicated = dict()
-    # tcases = {}
 
     print(f"Looking for VEs in {comp} ...")
-    init_jira_status()
-    init_priority()
 
     ves, reqs = get_ves(comp)
 
@@ -769,12 +769,4 @@ def vcdsql(comp, RSP):
         print(csv, file=file)
         file.close()
 
-    #for ve in ves.keys():
-    #    for tc in ves[ve]['tcs']:
-    #        if ves[ve]['tcs'][tc]['lastR']:
-    #            print(ves[ve]['tcs'][tc]['lastR'])
-    #            break
-    #for tc in Config.CACHED_TESTCASES.keys():
-    #    print(Config.CACHED_TESTCASES[tc].keys())
-    #    break
     return [ves, reqs, veduplicated, Config.CACHED_TESTCASES]

@@ -76,6 +76,7 @@ class TestCase(Schema):
     owner_id = fields.String(load_from="owner")
     jira_url = fields.String()
     component = fields.String()
+    folder = fields.String()
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
     precondition = HtmlPandocField()
     objective = HtmlPandocField()

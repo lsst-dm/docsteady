@@ -53,24 +53,31 @@ def get_testcase(rs, tckey):
         r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
         try:
             jtc_res = r_tc_results.json()
+            tc_results['key'] = jtc_res['key']
+            tc_results['exdate'] = jtc_res['executionDate']
+            r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
+            try:
+                jtp_key = r_tp_key.json()
+                if 'testPlan' in jtp_key["testRun"].keys():
+                    tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
+                else:
+                    tc_results['tplan'] = ""
+            except Exception as error:
+                tc_results['tplan'] = ""
+            tc_results['tcycle'] = jtp_key["testRun"]["key"]
+            if tc_results['tplan'] and tc_results['tplan'] != "":
+                r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
+                try:
+                    jtp_dets = r_tp_dets.json()
+                    if "Document ID" in jtp_dets["customFields"].keys():
+                        tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
+                    else:
+                        tc_results['TPR'] = ""
+                except Exception as error:
+                    tc_results['TPR'] = ""
+            else:
+                tc_results['TPR'] = ""
         except Exception as error:
-            print(error)
-        tc_results['key'] = jtc_res['key']
-        r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
-        try:
-            jtp_key = r_tp_key.json()
-        except Exception as error:
-            print(error)
-        tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
-        tc_results['tcycle'] = jtp_key["testRun"]["key"]
-        r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
-        try:
-            jtp_dets = r_tp_dets.json()
-        except Exception as error:
-            print(error)
-        if "Document ID" in jtp_dets["customFields"].keys():
-            tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
-        else:
             tc_results['TPR'] = ""
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
 
@@ -86,7 +93,6 @@ def get_ve_details(rs, key):
     """
 
     print(key.replace("LVV-", ""), end=".", flush=True)
-    # print(Config.ISSUE_URL.format(issue=key))
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
@@ -120,9 +126,10 @@ def get_ve_details(rs, key):
 
     # cache reqs
     if 'req_id' in ve_details.keys():
+        ve_long_name = ve_details['summary'].split(":")
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_long_name[0])
 
     # get component/subcomponent of verified_by
     if "verified_by" in ve_details.keys():
