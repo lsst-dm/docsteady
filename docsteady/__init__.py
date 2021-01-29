@@ -274,8 +274,8 @@ def _metadata():
               help="Req|Test specifications to print out test case prioritization")
 @click.argument('path', required=False, type=click.Path())
 def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, path):
-    """Given a specific namespace, correspoding to a Jira Component
-    or Rubin Subsystem, it build the VCD. By default build the DM VCD.
+    """Given a specific namespace, corresponding to a Jira Component
+    or Rubin Subsystem, build the VCD. By default build the DM VCD.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
