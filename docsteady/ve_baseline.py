@@ -50,6 +50,8 @@ def get_testcase(rs, tckey):
     # get test case results, so we can build the VCD using the same data
     if "lastTestResultStatus" in jtc_det:
         tc_results = dict()
+        print(Config.TESTCASERESULT_URL.format(tcid=tckey))
+        exit()
         r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
         try:
             jtc_res = r_tc_results.json()
