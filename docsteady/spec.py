@@ -259,8 +259,6 @@ def build_spec_model(folder):
         else:
             startAt = startAt + max_tests
 
-    # if max_tests == len(testcases):
-    #    print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
     alltestcases = {}
     alltestcases["active"] = testcases
