@@ -145,7 +145,7 @@ class TestCase(Schema):
         if "requirement_issue_keys" in data:
             # Build list of requirements
             for issue_key in data["requirement_issue_keys"]:
-                issue = Config.CACHED_REQUIREMENTS.get(issue_key, None)
+                issue = Config.CACHED_VELEMENTS.get(issue_key, None)
                 if not issue:
                     resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
                     resp.raise_for_status()
@@ -153,12 +153,14 @@ class TestCase(Schema):
                     issue, errors = Issue().load(issue_resp)
                     if errors:
                         raise Exception("Unable to Process Requirement: " + str(errors))
-                    Config.CACHED_REQUIREMENTS[issue_key] = issue
+                    Config.CACHED_VELEMENTS[issue_key] = issue
                 Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(data['key'])
                 issues.append(issue)
         return issues
 
     def process_steps(self, test_script):
+        if 'steps' not in test_script.keys():
+            return None
         teststeps, errors = TestStep().load(test_script['steps'], many=True)
         if errors:
             raise Exception("Unable to process Test Steps: " + str(errors))
@@ -212,46 +214,58 @@ def build_spec_model(folder):
     # create folders for images and attachments if not already there
     create_folders_and_files()
 
-    max_tests = 2000
-    resp = requests.get(
-        Config.TESTCASE_SEARCH_URL,
-        params=dict(query=query, maxResults=max_tests),
-        auth=Config.AUTH
-    )
-
-    if resp.status_code != 200:
-        print("Unable to download")
-        print(resp.text)
-        sys.exit(1)
-
-    testcases_resp = resp.json()
-    testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
+    max_tests = 100
+    startAt = 0
     testcases = []
+    testcases_dict = dict()
     deprecated = []
     requirements = {}
-    for testcase_resp in testcases_resp:
-        testcase, errors = TestCase().load(testcase_resp)
-        if errors:
-            raise Exception("Unable to process errors: " + str(errors))
-        testcase["name"] = testcase["name"].rstrip()
-        if testcase["key"] not in Config.CACHED_TESTCASES:
-            Config.CACHED_TESTCASES["key"] = testcase
-        if testcase['status'] == 'Deprecated':
-            deprecated.append(testcase)
+    while True:
+        resp = requests.get(
+            Config.TESTCASE_SEARCH_URL,
+            params=dict(query=query, maxResults=max_tests, startAt=startAt),
+            auth=Config.AUTH
+        )
+        if resp.status_code != 200:
+            print("Unable to download")
+            print(resp.text)
+            sys.exit(1)
+        testcases_resp = resp.json()
+        tc_count = 0
+        testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
+        for testcase_resp in testcases_resp:
+            tc_count = tc_count + 1
+            testcase, errors = TestCase().load(testcase_resp)
+            if errors:
+                raise Exception("Unable to process errors: " + str(errors))
+            testcase["name"] = testcase["name"].rstrip()
+            if testcase["key"] not in Config.CACHED_TESTCASES:
+                Config.CACHED_TESTCASES["key"] = testcase
+                if testcase['status'] == 'Deprecated':
+                    deprecated.append(testcase)
+                else:
+                    if testcase['status'] not in testcases_dict.keys():
+                        testcases_dict[testcase['status']] = []
+                    testcases_dict[testcase['status']].append(testcase)
+                    testcases.append(testcase)
+                for req in testcase['requirements']:
+                    if req['key'] not in requirements.keys():
+                        # get the req information
+                        lvv = get_lvv_details(req['key'])
+                        req['high_level_req'] = lvv['high_level_req']
+                        requirements[req['key']] = req
+        if tc_count < max_tests:
+            break
         else:
-            testcases.append(testcase)
-        for req in testcase['requirements']:
-            if req['key'] not in requirements.keys():
-                # get the req information
-                lvv = get_lvv_details(req['key'])
-                req['high_level_req'] = lvv['high_level_req']
-                requirements[req['key']] = req
+            startAt = startAt + max_tests
 
-    if max_tests == len(testcases):
-        print("[WARNING]: Test case count same as max_tests", file=sys.stderr)
 
     alltestcases = {}
     alltestcases["active"] = testcases
     alltestcases['deprecated'] = deprecated
 
-    return alltestcases, requirements
+    for tc_s in testcases_dict.keys():
+        testcases_dict[tc_s] = sorted(testcases_dict[tc_s], key=lambda testc: testc["keyid"])
+        print(tc_s, len(testcases_dict[tc_s]))
+
+    return alltestcases, requirements, testcases_dict

@@ -10,43 +10,49 @@
 \label{{ "{" }}{{ text }}{{ "}" }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-{%- macro write_step(index, from, content) -%}
-\multirow{3}{*}{\parbox{1.3cm}{ {{ index }}
+{%- macro write_step(index, from, content, index2) -%}
+\begin{tabular}{p{4cm}p{12cm}}
+\toprule
     {% if from != "" %}
+Step {{index2}}-{{ index }}
 {\scriptsize from \hyperref[{{ from.lower() }}]{{ curlies(from) }} }
+    {% else %}
+Step {{ index }}
     {% endif %}
-} }
-& {\small Description} &
-\begin{minipage}[t]{13cm}{\scriptsize
+& Description \\ \hline
+\end{tabular}
+{\scriptsize
 {{ content.description }}
-\vspace{\dp0}
-} \end{minipage} \\ \cdashline{2-3}
-& {\small Test Data} &
+}
     {% if content.test_data %}
-\begin{minipage}[t]{13cm}{\scriptsize
+\begin{tabular}{p{3cm}p{13cm}}
+\hline
+            & Test Data \\ \hline
+\end{tabular}
+{\scriptsize
 {{ content.test_data }}
-\vspace{\dp0}
-} \end{minipage}
+}
     {% endif %}
-\\ \cdashline{2-3}
     {% if content.example_code %}
-& Example Code &
-\begin{minipage}[t]{13cm}{\footnotesize
+\begin{tabular}{p{3cm}p{13cm}}
+\hline
+            & Example Code \\ \hline
+\end{tabular}
+{\scriptsize
 {{ content.example_code }}
-\vspace{\dp0}
-} \end{minipage} \\ \cline{2-3}
+}
     {% endif %}
-& {\small Expected Result} &
+\begin{tabular}{p{3cm}p{13cm}}
+\hline
+            & Expected Result \\ \hline
+\end{tabular}
     {% if content.expected_result %}
-\begin{minipage}[t]{13cm}{\scriptsize
+{\scriptsize
 {{ content.expected_result }}
-\vspace{\dp0}
-} \end{minipage}
+}
     {% endif %}
-\\ \hdashline
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % Collecting ATM data from folder: "{{ metadata.folder }}"
@@ -55,14 +61,18 @@
 
 \section{Test Cases Summary}\label{test-cases-summary}
 
-\begin{longtable}[]{p{3cm}p{13cm}}
+\begin{longtable}[]{p{2.5cm}p{12cm}p{2cm}}
 \toprule
 Test Id & Test Name\tabularnewline
 \midrule
 \endhead
-{% for testcase in testcases %}
+{% for tc_status in tc_status_list %}
+{% if tcs_dict[tc_status] %}
+{% for testcase in tcs_dict[tc_status] %}
     \hyperref[{{ testcase.key.lower() }}]{{ curlies(testcase.key) }} &
-    {{ href(testcase.jira_url, testcase.name) }} \tabularnewline
+    {{ href(testcase.jira_url, testcase.name) }} &  {{ testcase.status }} \tabularnewline
+{% endfor %}
+{% endif %}
 {% endfor %}
 \bottomrule
 \end{longtable}
@@ -73,10 +83,12 @@ Test Id & Test Name\tabularnewline
 
 This section documents all active test cases that have a status in the Jira/ATM system of Draft, Defined or Approved.
 
+{% for tc_status in tc_status_list %}
+  {% if tcs_dict[tc_status] %}
+\subsection{ {{ tc_status }} Test Cases}
 
-{% for testcase in testcases %}
-
-\subsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
+    {% for testcase in tcs_dict[tc_status] %}
+\subsubsection{{ '{' }}{{ testcase.key }} - {{ testcase.name }}{{ "}" }}{{ label(testcase.key.lower()) }}
 
 \begin{longtable}[]{llllll}
 \toprule
@@ -88,131 +100,76 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\subsubsection{Verification Elements}
-{% if testcase.requirements %}
+\paragraph{Verification Elements}\mbox{}\\
+
+      {% if testcase.requirements %}
 \begin{itemize}
-{% for item in testcase.requirements %}
+        {% for item in testcase.requirements %}
 \item {{ href(item.jira_url, item.key) }} - {{ item.summary }}
-{% endfor %}
+        {% endfor %}
 \end{itemize}
-{% else %}
-    None.
-{% endif %}
+      {% else %}
+None.
+      {% endif %}
 
-\subsubsection{Test Items}
-{% if testcase.objective %}
+\paragraph{Test Items}\mbox{}\\
+
+      {% if testcase.objective %}
 {{ testcase.objective }}
-{% endif %}
+      {% endif %}
 
-{% if testcase.more_objectives %}
-{% for title, objective in testcase.more_objectives.items() %}
-\paragraph{ {{ title.replace("_", " ").title() }} }
+      {% if testcase.more_objectives %}
+        {% for title, objective in testcase.more_objectives.items() %}
+\subparagraph{ {{ title.replace("_", " ").title() }} }\mbox{}\\
 {{ objective }}
-{% endfor %}
-{% endif %}
+        {% endfor %}
+      {% endif %}
 
-\subsubsection{Predecessors}
-{% if testcase.predecessors %}
+      {% if testcase.predecessors %}
+\paragraph{Predecessors}\mbox{}\\
 {{ testcase.predecessors }}
-{% endif %}
+      {% endif %}
 
-\subsubsection{Environment Needs}
+      {% if testcase.required_software or testcase.test_equipment %}
+\paragraph{Environment Needs}\mbox{}\\
+      {% endif %}
 
-\paragraph{Software}
-{% if testcase.required_software %}
+      {% if testcase.required_software %}
+\subparagraph{Software}\mbox{}\\
 {{ testcase.required_software }}
-{% endif %}
+      {% endif %}
 
-\paragraph{Hardware}
-{% if testcase.test_equipment %}
+      {% if testcase.test_equipment %}
+\subparagraph{Hardware}\mbox{}\\
 {{ testcase.test_equipment }}
-{% endif %}
+      {% endif %}
 
-\subsubsection{Input Specification}
-{% if testcase.precondition %}
+      {% if testcase.postcondition %}
+\paragraph{Input Specification}\mbox{}\\
 {{ testcase.precondition }}
-{% endif %}
+      {% endif %}
 
-\subsubsection{Output Specification}
-{% if testcase.postcondition %}
+      {% if testcase.postcondition %}
+\paragraph{Output Specification}\mbox{}\\
 {{ testcase.postcondition }}
-{% endif %}
+      {% endif %}
 
-\subsubsection{Test Procedure}
-{% if testcase.test_script %}
-    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
-    %\toprule
-    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
-    \endhead
-    {% for step in testcase.test_script %}
-        {% set rowloop = loop %}
-        {% if step.test_case_key %}
+\paragraph{Test Procedure}\mbox{}\\
+      {% if testcase.test_script %}
+        {% for step in testcase.test_script %}
+          {% set rowloop = loop %}
+          {% if step.test_case_key %}
             {% set step_testcase = testcases_map[step.test_case_key] %}
             {% for substep in step_testcase.test_script %}
-
-                \multirow{3}{*}{\parbox{1.3cm}{ {{ rowloop.index }}-{{ loop.index }}
-                {\scriptsize from \hyperref[{{ step_testcase.key.lower() }}]
-                {{ curlies(step_testcase.key) }} } } }
-
-                & {\small Description} &
-                \begin{minipage}[t]{13cm}{\scriptsize
-                {{ substep.description }}
-                \vspace{\dp0}
-                } \end{minipage} \\ \cdashline{2-3}
-                & {\small Test Data} &
-                \begin{minipage}[t]{13cm}{\scriptsize
-                {% if substep.test_data %}
-                    {{ substep.test_data }}
-                    \vspace{\dp0}
-                {% endif %}
-                } \end{minipage} \\ \cdashline{2-3}
-                & {\small Expected Result} &
-                {% if substep.expected_result %}
-                    \begin{minipage}[t]{13cm}{\scriptsize
-                    {{ substep.expected_result }}
-                    \vspace{\dp0}
-                    } \end{minipage}
-                {% endif %}
-                \\ \hdashline
-
+{{ write_step(loop.index, step_testcase.key, substep, rowloop.index) }}
             {% endfor %}
-
-        {% else %}
-
-            \multirow{3}{*}{ {{ rowloop.index }} } & Description &
-            \begin{minipage}[t]{13cm}{\footnotesize
-            {{ step.description }}
-            \vspace{\dp0}
-            } \end{minipage} \\ \cline{2-3}
-            & Test Data &
-            \begin{minipage}[t]{13cm}{\footnotesize
-            {% if step.test_data %}
-                {{ step.test_data }}
-                \vspace{\dp0}
-            {% else %}
-                No data.
-                \vspace{\dp0}
-            {% endif %}
-            } \end{minipage} \\ \cline{2-3}
-            {% if step.example_code %}
-                & Example Code &
-                \begin{minipage}[t]{13cm}{\footnotesize
-                {{ step.example_code }}
-                \vspace{\dp0}
-                } \end{minipage} \\ \cline{2-3}
-            {% endif %}
-            & Expected Result &
-            {% if step.expected_result %}
-                \begin{minipage}[t]{13cm}{\footnotesize
-                {{ step.expected_result }}
-                \vspace{\dp0}
-                } \end{minipage}
-            {% endif %}
-        {% endif %}
-        \\ \midrule
+          {% else %}
+{{ write_step(loop.index, "", step, "") }}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
     {% endfor %}
-    \end{longtable}
-{% endif %}
+  {% endif %}
 {% endfor %}
 
 \newpage
@@ -223,7 +180,6 @@ These test cases are meant solely for the building of actual tests used for veri
 They streamline the process of writing test scripts by providing pre-designed steps, while also ensuring homogeneity throughout the test suite.
 These reusable modules are not themselves verifying requirements.
 Also, these test cases shall not call other reusable test cases in their script.
-
 
 {% if libtestcases|length > 0 %}
 
@@ -241,68 +197,64 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\subsubsection{Test Items}
+\paragraph{Test Items}\mbox{}\\
 {% if testcase.objective %}
 {{ testcase.objective }}
 {% endif %}
 
 {% if testcase.more_objectives %}
 {% for title, objective in testcase.more_objectives.items() %}
-\paragraph{ {{ title.replace("_", " ").title() }} }
+\subparagraph{ {{ title.replace("_", " ").title() }} }\mbox{}\\
 {{ objective }}
 {% endfor %}
 {% endif %}
 
 {% if testcase.predecessors %}
-\subsubsection{Predecessors}
+\paragraph{Predecessors}\mbox{}\\
 {{ testcase.predecessors }}
 {% endif %}
 
 {% if testcase.required_software or testcase.test_equipment %}
-\subsubsection{Environment Needs}
+\paragraph{Environment Needs}\mbox{}\\
 {% endif %}
 
 {% if testcase.required_software %}
-\paragraph{Software}
+\subparagraph{Software}\mbox{}\\
 {{ testcase.required_software }}
 {% endif %}
 
 {% if testcase.test_equipment %}
-\paragraph{Hardware}
+\subparagraph{Hardware}\mbox{}\\
 {{ testcase.test_equipment }}
 {% endif %}
 
 {% if testcase.precondition %}
-\subsubsection{Input Specification}
+\paragraph{Input Specification}\mbox{}\\
 {{ testcase.precondition }}
 {% endif %}
 
 {% if testcase.postcondition %}
-\subsubsection{Output Specification}
+\paragraph{Output Specification}\mbox{}\\
 {{ testcase.postcondition }}
 {% endif %}
 
-\subsubsection{Test Procedure}
+\paragraph{Test Procedure}\mbox{}\\
 {% if testcase.test_script %}
-    \begin{longtable}[]{p{1.3cm}p{2cm}p{13cm}}
-    %\toprule
-    Step & \multicolumn{2}{@{}l}{Description, Input Data and Expected Result} \\ \toprule
-    \endhead
     {% for step in testcase.test_script %}
-        {% set rowloop = loop %}
         {% if step.test_case_key %}
-            {% set step_testcase = testcases_map[step.test_case_key] %}
-            {% for substep in step_testcase.test_script %}
-                {% set id= rowloop.index|string ~ '-' ~ loop.index|string %}
-                {{ write_step(id, step_testcase.key, substep) }}
-            {% endfor %}
-
+\begin{tabular}{p{3cm}p{13cm}}
+\toprule
+Step {{ loop.index }} & Substeps Error \\ \hline
+\end{tabular}
+{\footnotesize
+Test Case includes test case {{ step.test_case_key }} in its steps.
+This is not permitted. Please reorganize the test steps in order that reusable test cases
+do not include any other test cases.
+}
         {% else %}
-            {{ write_step(rowloop.index, "", step) }}
+{{ write_step(loop.index, "", step, "") }}
         {% endif %}
-        \\ \midrule
     {% endfor %}
-    \end{longtable}
 {% endif %}
 
 {% endfor %}
@@ -310,7 +262,6 @@ Version & Status & Priority & Verification Type & Owner
 {% else %}
   \textit{No reusable test cases found.}
 {% endif %}
-
 
 
 \newpage
@@ -336,7 +287,7 @@ Version & Status & Priority & Verification Type & Owner
 \multicolumn{6}{c}{ Open {{ href(testcase.jira_url, testcase.key) }} in Jira } \\
 \end{longtable}
 
-\subsubsection{Verification Elements}
+\paragraph{Verification Elements}\mbox{}\\
 {% if testcase.requirements %}
 \begin{itemize}
 {% for item in testcase.requirements %}
@@ -347,14 +298,14 @@ Version & Status & Priority & Verification Type & Owner
     None.
 {% endif %}
 
-\subsubsection{Test Items}
+\paragraph{Test Items}\mbox{}\\
 {% if testcase.objective %}
 {{ testcase.objective }}
 {% endif %}
 
 {% if testcase.more_objectives %}
 {% for title, objective in testcase.more_objectives.items() %}
-\paragraph{ {{ title.replace("_", " ").title() }} }
+\paragraph{ {{ title.replace("_", " ").title() }} }\mbox{}\\
 {{ objective }}
 {% endfor %}
 {% endif %}

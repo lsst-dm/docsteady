@@ -99,6 +99,7 @@ class TestPlan(Schema):
             _set_if("verification_artifacts", "Verification Artifacts")
             _set_if("overall_assessment", "Overall Assessment")
             _set_if("recommended_improvements", "Recommended Improvements")
+            _set_if("document_id", "Document ID")
             # Note: Add More custom fields above here
 
         # Derived fields
@@ -150,6 +151,9 @@ def build_tpr_model(tplan_key):
     resp = rs.get(Config.TESTPLAN_URL.format(testplan=tplan_key))
     resp.raise_for_status()
     testplan, errors = TestPlan().load(resp.json())
+    if "document_id" not in testplan or testplan["document_id"] == "":
+        print(f"WARNING: Document ID missing in {tplan_key}. "
+              f"Please complete the metadata before proceeding with the extraction.")
     attachments[tplan_key] = download_attachments(rs, Config.TESTPLAN_ATTACHMENTS.format(tplan_KEY=tplan_key))
     n_attachments = len(attachments[tplan_key])
 

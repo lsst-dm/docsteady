@@ -41,7 +41,11 @@ def get_testcase(rs, tckey):
     """
     # print(Config.TESTCASE_URL.format(testcase=tckey))
     tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
-    jtc_res = tc_res.json()
+    try:
+        jtc_res = tc_res.json()
+    except Exception as error:
+        print(error)
+        return None
     tc_detail, error = TestCase().load(jtc_res)
 
     return tc_detail
@@ -55,7 +59,7 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(key, end=" ", flush=True)
+    print(key.replace("LVV-", ""), end=".", flush=True)
     # print(Config.ISSUE_URL.format(issue=key))
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
@@ -69,7 +73,6 @@ def get_ve_details(rs, key):
             # regex to get content between {}
             regex = r"\{([^}]+)\}"
             matches = re.findall(regex, ve_details["raw_test_cases"])
-            # print(" - matches - ", matches)
             for matchNum, match in enumerate(matches):
                 if matchNum % 2 == 1:
                     tc_split = match.split(":")
@@ -88,16 +91,22 @@ def get_ve_details(rs, key):
                 u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
-    # this is reuired since using longtbale inside longtable may give problems
-    if "req_discussion" in ve_details.keys():
-        ve_details["req_discussion"] = ve_details["req_discussion"].replace("{longtable}", "{tabular}")
-    if "req_spec" in ve_details.keys():
-        ve_details["req_spec"] = ve_details["req_spec"].replace("{longtable}", "{tabular}")
 
     # cache reqs
-    if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-    Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+    if 'req_id' in ve_details.keys():
+        if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
+            Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+
+    # get component/subcomponent of verified_by
+    if "verified_by" in ve_details.keys():
+        for vby in ve_details['verified_by'].keys():
+            vby_cmp_raw = rs.get(Config.GET_ISSUE_COMPONENT.format(issue=vby))
+            jvby_cmp_raw = vby_cmp_raw.json()
+            ve_details['verified_by'][vby]['component'] = jvby_cmp_raw['fields']['components'][0]['name']
+            if 'customfield_15001' in jvby_cmp_raw['fields'].keys():
+                if jvby_cmp_raw['fields']['customfield_15001']:
+                    ve_details['verified_by'][vby]['subcomponent'] = jvby_cmp_raw['fields']['customfield_15001']['value']
 
     return ve_details
 
@@ -115,10 +124,26 @@ def extract_ves(rs, cmp, subcmp):
 
     max = 1000
     startAt = 0
+    # if T&S component is given, the JQL query needs to be adjusted
+    cmp = cmp.replace("&", "%26")
+    # if subcomponents have & character, need to be encoded as above
+    subcmp = subcmp.replace("&", "%26")
 
     while True:
-        result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        if subcmp == "":
+            # get all VEs for a given Component
+            result = rs.get(Config.VE_COMPONENT_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+        elif subcmp == "None":
+            # get all VEs without SubComponet assigned, for a given Component
+            result = rs.get(Config.VE_NULLSUBCMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+        else:
+            # get all VES for given Component/SubComponent
+            result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
         jresult = result.json()
+        if "errors" in jresult.keys():
+            print(jresult["errors"])
+            print(jresult["errorMessages"])
+            exit()
         totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
@@ -126,6 +151,8 @@ def extract_ves(rs, cmp, subcmp):
         startAt = startAt + max
         if startAt > totals:
             break
+        else:
+            print(f"[Found {startAt} VEs. Continuing...]")
 
     return ve_details
 
@@ -142,7 +169,7 @@ def do_ve_model(component, subcomponent):
 
     ves = dict()
 
-    print(f"Looking for all Verification Elements in component {component}, sub-component {subcomponent}.")
+    print(f"Looking for all Verification Elements in component '{component}', sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
@@ -154,6 +181,9 @@ def do_ve_model(component, subcomponent):
 
     rs = requests.Session()
     rs.headers = headers
+    # Setting retries, sometime the connections fails
+    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
+    rs.adapters.DEFAULT_RETRIES = 5
 
     # get all VEs details
     ves = extract_ves(rs, component, subcomponent)

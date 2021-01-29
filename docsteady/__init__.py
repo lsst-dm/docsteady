@@ -51,10 +51,11 @@ except DistributionNotFound:
                                                           'Defaults to the working directory')
 @click.version_option(__version__)
 def cli(namespace, template_format, load_from):
-    """Docsteady generates documents from Jira with the Adaptavist
-    Test Management plugin.
+    """Docsteady generates documents from Jira with the
+    Test Management for Jira (TM4J) plugin.
     """
     Config.MODE_PREFIX = f"{namespace.lower()}-" if namespace else ""
+    Config.NAMESPACE = namespace
     Config.TEMPLATE_LANGUAGE = template_format
     Config.TEMPLATE_DIRECTORY = load_from
 
@@ -67,8 +68,8 @@ def cli(namespace, template_format, load_from):
 @click.argument('folder')
 @click.argument('path', required=False, type=click.Path())
 def generate_spec(format, username, password, folder, path):
-    """Read in tests from Adaptavist Test management where FOLDER
-    is the ATM Test Case Folder. If specified, PATH is the resulting
+    """Read in tests from TM4J plugin where FOLDER
+    is the TM4J Test Case Folder. If specified, PATH is the resulting
     output.
 
     If PATH is specified, docsteady will examine the output filename
@@ -86,7 +87,7 @@ def generate_spec(format, username, password, folder, path):
 
     # Build model
     try:
-        testcases, requirements = build_spec_model(folder)
+        testcases, requirements, tcs_dict = build_spec_model(folder)
     except Exception as e:
         print("Error in building model")
         print(e)
@@ -107,7 +108,7 @@ def generate_spec(format, username, password, folder, path):
     )
 
     try:
-        template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
     except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
@@ -119,11 +120,12 @@ def generate_spec(format, username, password, folder, path):
     metadata["folder"] = folder
     metadata["template"] = template.filename
     text = template.render(metadata=metadata,
-                           testcases=testcases['active'],
                            deprecated=testcases['deprecated'],
+                           tcs_dict=tcs_dict,
                            libtestcases=libtestcases,
                            requirements_to_testcases=requirements_to_testcases,
                            requirements_map=requirements,
+                           tc_status_list=Config.TESTCASE_STATUS_LIST,
                            testcases_map=Config.CACHED_TESTCASES)
 
     print(_as_output_format(text), file=file)
@@ -153,27 +155,26 @@ def generate_spec(format, username, password, folder, path):
 @click.argument('plan')
 @click.argument('path', required=False, type=click.Path())
 def generate_report(format, username, password, trace, plan, path):
-    """Read in a Test Plan and related cycles from Adaptavist Test management.
+    """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
     target = "tpr"
+    
+    if Config.NAMESPACE.upper() not in Config.COMPONENTS.keys():
+        print(f"Wrong input component {Config.NAMESPACE}")
+        exit()
 
     Config.output = TemporaryFile(mode="r+")
 
     plan_dict = build_tpr_model(plan)
-    testplan = plan_dict['tplan']
-
-    testcycles_map = plan_dict['test_cycles_map']
-    testresults_map = plan_dict['test_results_map']
-    testcases_map = plan_dict['test_cases_map']
 
     # Sort maps by keys
-    testcycles_map = alphanum_map_sort(testcycles_map)
-    testresults_map = alphanum_map_sort(testresults_map)
-    testcases_map = alphanum_map_sort(testcases_map)
+    testcycles_map = alphanum_map_sort(plan_dict['test_cycles_map'])
+    testresults_map = alphanum_map_sort(plan_dict['test_results_map'])
+    testcases_map = alphanum_map_sort(plan_dict['test_cases_map'])
 
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
@@ -183,14 +184,15 @@ def generate_report(format, username, password, trace, plan, path):
         autoescape=None
     )
 
-    template = env.get_template(f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    template = env.get_template(f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
 
     metadata = _metadata()
-    metadata["tplan"] = testplan
     metadata["template"] = template.filename
+    metadata["namespace"] = Config.NAMESPACE
+    metadata["component_long_name"] = Config.COMPONENTS[Config.NAMESPACE.upper()]
 
     text = template.render(metadata=metadata,
-                           testplan=testplan,
+                           testplan=plan_dict['tplan'],
                            testcycles=list(testcycles_map.values()),  # For convenience (sorted)
                            testcycles_map=testcycles_map,
                            testresults=list(testresults_map.values()),  # For convenience (sorted)
@@ -221,7 +223,7 @@ def generate_report(format, username, password, trace, plan, path):
 def _try_appendix_template(target, env):
     # Now appendix
     appendix_template_path = \
-        f"{Config.MODE_PREFIX}{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        f"{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
 
     try:
         return env.get_template(appendix_template_path)
@@ -264,15 +266,17 @@ def _metadata():
               help="True if direct access to the database shall be used")
 @click.option('--spec', required=False, default=False,
               help="Req|Test specifications to print out test case prioritization")
-@click.argument('component')
 @click.argument('path', required=False, type=click.Path())
-def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, component, path):
-    """Given a specific subsystem, it build the VCD.
+def generate_vcd(format, jiradb, vcduser, vcdpwd, sql, spec, path):
+    """Given a specific namespace, corresponding to a Jira Component
+    or Rubin Subsystem, build the VCD. By default build the DM VCD.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
     target = "vcd"
+
+    component = Config.NAMESPACE.upper()
 
     Config.DB_PARAMETERS = {"host": jiradb, "user": vcduser, "pwd": vcdpwd, "schema": "jira"}
 
@@ -330,10 +334,10 @@ if __name__ == '__main__':
 @click.option('--password', prompt="Jira Password", hide_input=True,
               envvar="JIRA_PASSWORD", help="Jira Password")
 @click.option('--details', default=False, help='If true, an extra detailed report will be produced')
-@click.argument('component')
-@click.argument('subcomponent')
+@click.option('--subcomponent', required=False, help='Extract Verification Elements only '
+                                                     'for the specified subcomponent')
 @click.argument('path', required=False, type=click.Path())
-def baseline_ve(format, username, password, details, component, subcomponent, path):
+def baseline_ve(format, username, password, details, subcomponent, path):
     """Given a specific subsystem (component), and subcomponent,
     a document is generated including all corresponding Verification Elements
     and related Test Cases. This is not a Verification Control Document:
@@ -343,6 +347,11 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
     target = "ve"
+
+    component = Config.NAMESPACE.upper()
+
+    if not subcomponent:
+        subcomponent=""
 
     ve_model = do_ve_model(component, subcomponent)
 
@@ -356,11 +365,8 @@ def baseline_ve(format, username, password, details, component, subcomponent, pa
         autoescape=None
     )
 
-    if Config.MODE_PREFIX != "dm-":
-        Config.MODE_PREFIX = ""
-
     try:
-        template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
     except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)

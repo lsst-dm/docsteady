@@ -101,7 +101,7 @@ of the V\&V activities.
 {% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if loop.index == 1 %} {\scriptsize {{ ref(ve.key.lower()) }} } {% endif %} &
 {% if loop.index == 1 %}  {{ vek }}({\scriptsize {{ ve.assignee}} }) {% endif %} &
-Verified By {{ vby.key }} \\
+Verified By {{ vby }} \\
       {% endfor %}
       {% if count == 0 %}
 {% if rowloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
@@ -167,7 +167,7 @@ Upper Level Requirement &
 \subsubsection{Verified By}
 \begin{itemize}
     {% for vby in ve.verified_by %}
-\item . {{ vby.key }} ({{ ref(vby.key.lower())}}) {{vby.summary}}
+\item . {{ vby }} ({{ ref(vby.lower())}}) {{ve.verified_by[vby].summary}}
     {% endfor %}
 \end{itemize}
   {% endif %}

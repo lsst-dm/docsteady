@@ -29,6 +29,7 @@ class Config:
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
     ATMT_API = f"{JIRA_INSTANCE}/rest/tests/1.0"
     ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
+    GET_ISSUE_COMPONENT = f"{JIRA_API}/issue/{{issue}}?fields=components,customfield_15001"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
     USER_URL = f"{JIRA_API}/user?username={{username}}"
     TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
@@ -44,16 +45,26 @@ class Config:
     TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
     TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
     TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
+    # providing an ordered list of statuses we can control
+    # the order they are rendered in the Test Spec
+    TESTCASE_STATUS_LIST = ["Defined", "Approved", "Draft"]
     # FIXME: Using undocumented API
     FOLDERTREE_API = f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
     VE_SEARCH_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}" \
                     f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511," \
                     f"customfield_13513,customfield_12002,customfield_12206,customfield_13703&" \
                     f"maxResults={{maxR}}"
+    VE_COMPONENT_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                       f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY%20key%20ASC&fields=key" \
+                       f"&maxResults={{maxR}}&startAt={{startAt}}"
     VE_SUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
                     f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2" \
                     f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
                     f"&startAt={{startAt}}"
+    VE_NULLSUBCMP_URL = f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}" \
+                        f"%22%20%20AND%20Sub-Component%20is%20null%20and%20issuetype%20%3D%2" \
+                        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}" \
+                        f"&startAt={{startAt}}"
     PANDOC_TYPE = None
     AUTH = None
     REQID_FIELD = "customfield_12001"
@@ -62,11 +73,11 @@ class Config:
     CACHED_TESTCASES = {}
     CACHED_LIBTESTCASES = {}
     CACHED_USERS = {}
-    CACHED_REQUIREMENTS = {}  # type : Dict[str, Issue]
-    # TODO: DM-23715 this should be renamed in CACHED_VERIFICATIONELEMENTS
+    CACHED_VELEMENTS = {}  # type : Dict[str, Issue]
     CACHED_REQS_FOR_VES = {}
     CACHED_ISSUES = {}  # type : Dict[str, Issue]
     MODE_PREFIX = None
+    NAMESPACE = None
     TIMEZONE = "US/Pacific"
     REQUIREMENTS_TO_TESTCASES = {}
     ISSUES_TO_TESTRESULTS = {}
@@ -109,3 +120,12 @@ class Config:
         {"id": 2, "key": "failed", "name": "Failed", "label": "sec:fail"},
         {"id": 3, "key": "NotExecuted", "name": "Not Ex.", "label": "sec:notexec"},
     ]
+
+    COMPONENTS = {  # Rubin Observatory SubSystems
+        "DM": "Data Management Subsystem",
+        "CAM": "Camera Subsystem",
+        "OCS": "Observatory Control System Subsystem",
+        "EPO": "Education and Public Outreach Subsystem",
+        "T&S": "Telescope and Site Subsystem",
+        "PSE": "Project System Engineering and Commissioning",
+    }

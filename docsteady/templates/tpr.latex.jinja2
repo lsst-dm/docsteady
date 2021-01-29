@@ -6,13 +6,6 @@
 \href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-{%- macro removeLongtable(text) -%}
-{# replace longtable with tabular in order to render test steps in a longtable #}
-{% set text1 = text|replace("begin{longtable}", "begin{tabular}") %}
-{% set text2 = text1|replace("end{longtable}", "end{tabular}\\\\[\\baselineskip]") %}
-{{ text2|replace("\endhead", "%\endhead") }}
-{%- endmacro -%}
-{# --------------------------------------------------------------------------------#}
 {%- macro tplan_href(tplan) -%}
 \href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
 {%- endmacro -%}
@@ -25,13 +18,12 @@
   {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
-
 % generated from JIRA project {{ metadata.project }}
 % using template at {{ metadata.template }}.
 % using docsteady version {{ metadata.docsteady_version }}
 % Please do not edit -- update information in Jira instead
-
-\documentclass[DM,lsstdraft,STR,toc]{lsstdoc}
+{% set SYS = metadata.namespace|replace("&", "") %}
+\documentclass[{{ SYS }},lsstdraft,STR,toc]{lsstdoc}
 \usepackage{geometry}
 \usepackage{longtable,booktabs}
 \usepackage{enumitem}
@@ -68,7 +60,7 @@
 \setDocAbstract{
 This is the test plan and report for
 \textbf{ {{ testplan.milestone_name }}}{% if testplan.milestone_id != "" %} ({{ testplan.milestone_id }}){% endif %},
-an LSST milestone pertaining to the Data Management Subsystem.
+an LSST milestone pertaining to the {{ metadata.component_long_name }}.
 }
 
 
@@ -370,67 +362,74 @@ Issues found during the execution of {{ test_item['test_case_key'] }} test case:
 
 Detailed steps results:
 
-\begin{longtable}{p{1cm}p{15cm}}
-\hline
-{Step} & Step Details\\ \hline
     {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
-{{ loop.index }} & Description \\
- & \begin{minipage}[t]{15cm}
+\begin{tabular}{p{2cm}p{14cm}}
+\toprule
+Step {{ loop.index }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
+\toprule
+ & Description \\ \hline
+\end{tabular}
 {\footnotesize
-{{ removeLongtable(script_result['description']) }}
-\medskip }
-\end{minipage}
-\\ \cdashline{2-2}
-
+{{ script_result['description'] }}
+}
       {% if 'example_code' in script_result.custom_field_values %}
- & Example Code \\
- & \begin{minipage}[t]{15cm}{\footnotesize
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Example Code \\ \hline
+\end{tabular}
+ {\footnotesize
 {{ script_result.custom_field_values.example_code }}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
+}
       {% endif %}
       {% if script_result['testdata'] %}
- & Test Data \\
- & \begin{minipage}[t]{15cm}{\footnotesize
-{{ removeLongtable(script_result['testdata']) }}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Test Data \\ \hline
+\end{tabular}
+ {\footnotesize
+{{ script_result['testdata'] }}
+}
       {% endif %}
       {% if script_result['example_code'] %}
- & Example Code \\
- & \begin{minipage}[t]{15cm}{\footnotesize
-{{ removeLongtable(script_result['example_code']) }}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Example Code \\ \hline
+\end{tabular}
+{\footnotesize
+{{ script_result['example_code'] }}
+}
       {% endif %}
-
- & Expected Result \\
- & \begin{minipage}[t]{15cm}{\footnotesize
-{{ removeLongtable(script_result['expected_result']) }}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
-
- & Actual Result \\
- & \begin{minipage}[t]{15cm}{\footnotesize
-{{ removeLongtable(script_result['comment']) }}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
-
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Expected Result \\ \hline
+\end{tabular}
+{\footnotesize
+{{ script_result['expected_result'] }}
+}
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Actual Result \\ \hline
+\end{tabular}
+{\footnotesize
+{{ script_result['comment'] }}
+}
       {% if script_result['result_issues'] %}
- & Issues found executing this step:  \\
- & \begin{minipage}[t]{13cm}{\footnotesize
+\begin{tabular}{p{2cm}p{14cm}}
+\hline
+ & Issues found executing this step:  \\ \hline
+\end{tabular}
+{\footnotesize
+\begin{itemize}
         {% for issue in script_result['result_issues'] %}
-\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
+\item \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
         {% endfor %}
-\medskip }
-\end{minipage} \\ \cdashline{2-2}
+\end{itemize}
+}
       {% endif %}
- & Status: \textbf{ {{ script_result['status'] }} } \\ \hline
-
     {% endfor %}
-\end{longtable}
 
   {% endfor %}
+
 {% endfor %}
 
 \input{appendix.tex}

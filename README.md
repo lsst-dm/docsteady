@@ -6,9 +6,15 @@ Jira and the Adaptavist Test Management system to output Test folders and
 Test plans to a variety of documents by utilizing pandoc.
 
 # Usage
-The defaults of docsteady are to build documents based on DM defaults. There
-are two commands you can give to docsteady to do this, `generate-spec` and
-`generate-cycle`.
+The defaults of docsteady are to build documents based on DM defaults. The
+following commands are available:
+* `generate-spec`: to generate a Test Specification (baselining test cases)
+* `generate-report`: for test plans and reports
+* `generate-vcd`: to generate the Verification Control Documents
+* `baseline-ve`: to generate Verification Elements baseline documents.
+
+More details on the procedures and logic applied in the document generation
+is available in this [SPIE Paper](dmtn-140.lsst.io).
 
 ## Docker quickstart
 ```shell
