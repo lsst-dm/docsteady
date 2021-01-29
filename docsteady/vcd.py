@@ -468,7 +468,6 @@ def get_ves(comp):
                 print(f"\n[Found {v} VEs. Continuing...]")
 
     if len(verifying_ves) > 0:
-        # print(verifying_ves)
         # get details on VEs verifying some of the component's VEs,
         # but not part of the selected component/subcomponent
         query = "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority, c.cname " \
