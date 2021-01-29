@@ -277,7 +277,7 @@ def db_get(dbquery) -> {}:
     p = Config.DB_PARAMETERS
     db = pymysql.connect(p["host"], p["user"], p['pwd'], p["schema"], read_timeout=1000)
     cursor = db.cursor()
-    # trying to reconnect when loosing connection
+    # try to reconnect in case of lost connection
     #  this seems to happen sometime when connected from far away (Europe)
     db.ping(reconnect=True)
     try:
