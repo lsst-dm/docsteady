@@ -610,8 +610,6 @@ def summary(dictionary):
         rcoverage = do_req_coverage(req['VEs'], dictionary[0])
         Config.REQ_STATUS_COUNT.update([rcoverage])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
-        # print(rcoverage)
-        # print()
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])
     for tc in tcases.values():
         if 'lastR' in tc.keys() and tc['lastR']:
