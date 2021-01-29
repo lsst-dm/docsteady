@@ -254,7 +254,7 @@ def build_spec_model(folder):
                         lvv = get_lvv_details(req['key'])
                         req['high_level_req'] = lvv['high_level_req']
                         requirements[req['key']] = req
-        if tc_count < max_tests:
+        if tc_count <= max_tests:
             break
         else:
             startAt = startAt + max_tests

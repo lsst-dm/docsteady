@@ -97,7 +97,7 @@ Table \ref{table:summary} provides an overview of the requirements and verificat
 {% endfor %}
 \toprule
 \textbf{ {{ text2latex(metadata.component) }} Verification E.} & (All)
-{% set vet = 0 %}
+
 {% for cov in coverage %}
  & {{ sum_dict[1][ cov["key"] ] }}
 {% endfor %}

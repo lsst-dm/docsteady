@@ -99,12 +99,6 @@ def generate_spec(format, username, password, folder, path):
     requirements_to_testcases = OrderedDict(sorted(Config.REQUIREMENTS_TO_TESTCASES.items(),
                                                    key=lambda item: alphanum_key(item[0])))
 
-    # MODE_PREFIX is used to get the template depending on the subsystem
-    # (DM, T&S, etc.
-    # the test specification the template is unique for all subsystems
-    # therefore this string is set to empty
-    Config.MODE_PREFIX = ""
-
     env = Environment(loader=ChoiceLoader([
         FileSystemLoader(Config.TEMPLATE_DIRECTORY),
         PackageLoader('docsteady', 'templates')
@@ -114,7 +108,7 @@ def generate_spec(format, username, password, folder, path):
     )
 
     try:
-        template_path = f"{Config.MODE_PREFIX}{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template = env.get_template(template_path)
     except TemplateNotFound:
         click.echo(f"No Template Found: {template_path}", err=True)
