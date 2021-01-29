@@ -112,7 +112,7 @@ Upper Level Requirement &
         {% set vby_ve = ve.verified_by[vby] %}
         {% if vby_ve.component == subsystem %}
             {% if subcomponent == "None" %}
-\item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, no subcomponent assigned) {{ text2latex(vby_ve.summary) }}
+\item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, no component assigned) {{ text2latex(vby_ve.summary) }}
             {% endif %}
             {% if subcomponent == "" or subcomponent == vby_ve.subcomponent %}
 \item {{ vby }} ({{ ref(vby.lower())}}) {{ vby_ve.summary }}
