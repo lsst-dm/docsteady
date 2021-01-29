@@ -359,7 +359,6 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec,
             if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
                 Config.REQ_PER_DOC[values['reqDoc']] = []
             Config.REQ_PER_DOC[values['reqDoc']].append(req)
-        # exit()
 
     sum_dict = summary(vcd_dict)
 

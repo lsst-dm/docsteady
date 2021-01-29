@@ -50,38 +50,48 @@ def get_testcase(rs, tckey):
     # get test case results, so we can build the VCD using the same data
     if "lastTestResultStatus" in jtc_det:
         tc_results = dict()
-        print(Config.TESTCASERESULT_URL.format(tcid=tckey))
-        exit()
         r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
-        try:
+        if r_tc_results.status_code == 200:
             jtc_res = r_tc_results.json()
             tc_results['key'] = jtc_res['key']
-            tc_results['exdate'] = jtc_res['executionDate']
+            if jtc_res['status'] == 'Pass':
+                tc_results['status'] = 'passed'
+            elif jtc_res['status'] == "Fail":
+                tc_results['status'] = 'failed'
+            elif jtc_res['status'] == "Blocked":
+                tc_results['status'] = 'blocked'
+            elif jtc_res['status'] == "Pass w/ Deviation":
+                tc_results['status'] = 'cndpass'
+            else:
+                tc_results['status'] = 'notexec'
+            if 'executionDate' in jtc_res.keys():
+                tc_results['exdate'] = jtc_res['executionDate'][0:10]
             r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
-            try:
+            if r_tp_key.status_code == 200:
                 jtp_key = r_tp_key.json()
                 if 'testPlan' in jtp_key["testRun"].keys():
                     tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
                 else:
                     tc_results['tplan'] = ""
-            except Exception as error:
+            else:
                 tc_results['tplan'] = ""
             tc_results['tcycle'] = jtp_key["testRun"]["key"]
             if tc_results['tplan'] and tc_results['tplan'] != "":
                 r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
-                try:
+                if r_tp_dets.status_code == 200:
                     jtp_dets = r_tp_dets.json()
                     if "Document ID" in jtp_dets["customFields"].keys():
                         tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
                     else:
                         tc_results['TPR'] = ""
-                except Exception as error:
+                else:
                     tc_results['TPR'] = ""
             else:
                 tc_results['TPR'] = ""
-        except Exception as error:
-            tc_results['TPR'] = ""
+        else:
+            tc_results = None
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
+        tc_details['lastR'] = tc_results
 
     return tc_details
 
@@ -157,7 +167,7 @@ def extract_ves(rs, cmp, subcmp):
     # ve_list = []
     ve_details = dict()
 
-    max = 1000
+    max = 200
     startAt = 0
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")

@@ -131,6 +131,7 @@ class Config:
         "T&S": "Telescope and Site Subsystem",
         "PSE": "Project System Engineering and Commissioning",
     }
+
     # Jira Status and Priority, this was extracted from the DB, but when using rest API,
     # it requires to be hardcoded. This requires to be kept up-to-date when changes
     # are made in Jira (hopefully none for the test)

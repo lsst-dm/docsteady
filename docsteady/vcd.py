@@ -534,7 +534,7 @@ def do_ve_coverage(tcs, results):
         tccount = Counter()
         for tc in tcs.keys():
             # if tc in results.keys() and results[tc]['lastR']:
-            if 'lastR' in results[tc].keys() and results[tc]['lastR']:
+            if tc in results.keys() and 'lastR' in results[tc].keys() and results[tc]['lastR']:
                 tccount.update([results[tc]['lastR']['status']])
             else:
                 tccount.update(['notexec'])
