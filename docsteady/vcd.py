@@ -605,8 +605,6 @@ def summary(dictionary):
             else:
                 vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
             Config.VE_STATUS_COUNT.update([vcoverage])
-            # print(ve, vcoverage)
-            # print("  --  ", dictionary[3])
             dictionary[0][ve]['coverage'] = vcoverage
         # Calculating the requirement coverage based on the VE coverage
         rcoverage = do_req_coverage(req['VEs'], dictionary[0])
