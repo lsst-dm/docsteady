@@ -126,7 +126,7 @@ def extract_ves(rs, cmp, subcmp):
     startAt = 0
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")
-    # if subcomonents have & character, need to be parsed as above
+    # if subcomponents have & character, need to be encoded as above
     subcmp = subcmp.replace("&", "%26")
 
     while True:
