@@ -184,11 +184,14 @@ def extract_ves(rs, cmp, subcmp):
         else:
             # get all VES for given Component/SubComponent
             result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        if result.status_code in [401, 403]:  # Forbidden
+            print ("Wrong password ? Access denied to "+result.url)
+            exit(2)
         jresult = result.json()
         if "errors" in jresult.keys():
             print(jresult["errors"])
             print(jresult["errorMessages"])
-            exit()
+            exit(3)
         totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
