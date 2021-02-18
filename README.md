@@ -287,6 +287,7 @@ class ScriptResult(Schema):
 
 ## Releaseing a new version
 0) conda activate docsteady-dev (environment used for development)
+    ( if not created previously conda create --name docsteady-dev docsteady -c lsst-dm -c conda-forge )
 
 1) In the branch, create the tag and push it 
 
