@@ -76,6 +76,7 @@ class TestCase(Schema):
     owner_id = fields.String(load_from="owner")
     jira_url = fields.String()
     component = fields.String()
+    folder = fields.String()
     created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
     precondition = HtmlPandocField()
     objective = HtmlPandocField()
@@ -85,6 +86,7 @@ class TestCase(Schema):
     labels = fields.List(fields.String(), missing=list())
     test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
     requirement_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    lastR = fields.Dict()
 
     # Just in case it's necessary - these aren't guaranteed to be correct
     custom_fields = fields.Dict(load_from="customFields")

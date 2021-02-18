@@ -152,8 +152,9 @@ def build_tpr_model(tplan_key):
     resp.raise_for_status()
     testplan, errors = TestPlan().load(resp.json())
     if "document_id" not in testplan or testplan["document_id"] == "":
-        print(f"WARNING: Document ID missing in {tplan_key}. "
+        print(f"ERROR: Document ID missing in {tplan_key}. "
               f"Please complete the metadata before proceeding with the extraction.")
+        exit()
     attachments[tplan_key] = download_attachments(rs, Config.TESTPLAN_ATTACHMENTS.format(tplan_KEY=tplan_key))
     n_attachments = len(attachments[tplan_key])
 

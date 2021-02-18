@@ -14,7 +14,8 @@ following commands are available:
 * `baseline-ve`: to generate Verification Elements baseline documents.
 
 More details on the procedures and logic applied in the document generation
-is available in this [SPIE Paper](dmtn-140.lsst.io).
+is available in this [SPIE Paper](dmtn-140.lsst.io).  
+See also DMTN-178]([dmtn-178.lsst.io).
 
 ## Docker quickstart
 ```shell
@@ -283,3 +284,18 @@ class ScriptResult(Schema):
     comment = MarkdownableHtmlPandocField(load_from='comment')
     status = fields.String(load_from='status')
 ```
+
+## Releaseing a new version
+0) conda activate docsteady-dev (environment used for development)
+
+1) In the branch, create the tag and push it 
+
+2) conda build recipe/
+
+3) on a different terminal activate the base conda env, where you  have anaconda installed, and you have logged in
+
+4) copy and paste the anaconda upload command line proposed at the end of the build, and add --user lsst-dm:
+(othervise it will be uloaded to the user logged in) e.g. 
+``` anaconda upload --user lsst-dm /Users/GComoretto/anaconda3/conda-bld/noarch/docsteady-2.0_0_gae9669c-py_0.tar.bz2 ```  
+
+5) merge the branch

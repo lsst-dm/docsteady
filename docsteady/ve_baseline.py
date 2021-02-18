@@ -39,16 +39,61 @@ def get_testcase(rs, tckey):
     :param key:
     :return:
     """
-    # print(Config.TESTCASE_URL.format(testcase=tckey))
-    tc_res = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
+    r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
     try:
-        jtc_res = tc_res.json()
+        jtc_det = r_tc_details.json()
     except Exception as error:
         print(error)
         return None
-    tc_detail, error = TestCase().load(jtc_res)
+    tc_details, error = TestCase().load(jtc_det)
 
-    return tc_detail
+    # get test case results, so we can build the VCD using the same data
+    if "lastTestResultStatus" in jtc_det:
+        tc_results = dict()
+        r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
+        if r_tc_results.status_code == 200:
+            jtc_res = r_tc_results.json()
+            tc_results['key'] = jtc_res['key']
+            if jtc_res['status'] == 'Pass':
+                tc_results['status'] = 'passed'
+            elif jtc_res['status'] == "Fail":
+                tc_results['status'] = 'failed'
+            elif jtc_res['status'] == "Blocked":
+                tc_results['status'] = 'blocked'
+            elif jtc_res['status'] == "Pass w/ Deviation":
+                tc_results['status'] = 'cndpass'
+            else:
+                tc_results['status'] = 'notexec'
+            if 'executionDate' in jtc_res.keys():
+                tc_results['exdate'] = jtc_res['executionDate'][0:10]
+            r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
+            if r_tp_key.status_code == 200:
+                jtp_key = r_tp_key.json()
+                if 'testPlan' in jtp_key["testRun"].keys():
+                    tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
+                else:
+                    tc_results['tplan'] = ""
+            else:
+                tc_results['tplan'] = ""
+            tc_results['tcycle'] = jtp_key["testRun"]["key"]
+            if tc_results['tplan'] and tc_results['tplan'] != "":
+                r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
+                if r_tp_dets.status_code == 200:
+                    jtp_dets = r_tp_dets.json()
+                    if "Document ID" in jtp_dets["customFields"].keys():
+                        tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
+                    else:
+                        tc_results['TPR'] = ""
+                else:
+                    tc_results['TPR'] = ""
+            else:
+                tc_results['TPR'] = ""
+        else:
+            tc_results = None
+        Config.CACHED_TESTRES_SUM[tckey] = tc_results
+        tc_details['lastR'] = tc_results
+
+    return tc_details
 
 
 def get_ve_details(rs, key):
@@ -60,7 +105,6 @@ def get_ve_details(rs, key):
     """
 
     print(key.replace("LVV-", ""), end=".", flush=True)
-    # print(Config.ISSUE_URL.format(issue=key))
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
@@ -94,9 +138,10 @@ def get_ve_details(rs, key):
 
     # cache reqs
     if 'req_id' in ve_details.keys():
+        ve_long_name = ve_details['summary'].split(":")
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_long_name[0])
 
     # get component/subcomponent of verified_by
     if "verified_by" in ve_details.keys():
@@ -122,7 +167,7 @@ def extract_ves(rs, cmp, subcmp):
     # ve_list = []
     ve_details = dict()
 
-    max = 1000
+    max = 200
     startAt = 0
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")
@@ -139,11 +184,14 @@ def extract_ves(rs, cmp, subcmp):
         else:
             # get all VES for given Component/SubComponent
             result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+        if result.status_code in [401, 403]:  # Forbidden
+            print ("Wrong password ? Access denied to "+result.url)
+            exit(2)
         jresult = result.json()
         if "errors" in jresult.keys():
             print(jresult["errors"])
             print(jresult["errorMessages"])
-            exit()
+            exit(3)
         totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
@@ -166,8 +214,6 @@ def do_ve_model(component, subcomponent):
     """
     # create folders for images and attachments if not already there
     create_folders_and_files()
-
-    ves = dict()
 
     print(f"Looking for all Verification Elements in component '{component}', sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]

@@ -44,6 +44,7 @@ class VerificationE(Schema):
     req_spec = HtmlPandocField()
     req_discussion = HtmlPandocField()
     req_priority = fields.String()
+    req_doc_id = fields.String()
     req_params = HtmlPandocField()
     raw_upper_req = HtmlPandocField()
     upper_reqs = fields.List(fields.String(), missing=list())
@@ -73,6 +74,7 @@ class VerificationE(Schema):
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
         data["verified_by"] = self.extract_verified_by(data_fields)
+        data["req_doc_id"] = data_fields["customfield_14701"]["value"]
         return data
 
     def extract_verified_by(self, data_fields):
@@ -123,7 +125,7 @@ def runstatus(trs):
 
 def build_vcd_model(component):
     # build the vcd. Only Verification Issues are considered.
-    global tcases
+    # global tcases
 
     rs = requests.Session()
 
@@ -153,7 +155,7 @@ def build_vcd_model(component):
 
     velem = {}
     reqs = {}
-    tcases = {}
+    #tcases = {}
 
     veresp = resp.json()
     i = 0
@@ -199,7 +201,8 @@ def build_vcd_model(component):
                     tmp['tcs'][tc['key']]['lastR'] = tc['lastTestResultStatus']
                 else:
                     tmp['tcs'][tc['key']]['lastR'] = None
-                if tc['key'] not in tcases.keys():
+                #if tc['key'] not in tcases.keys():
+                if tc['key'] not in Config.CACHED_TESTCASES.keys():
                     tctmp = {}
                     if tc['owner']:
                         tctmp['owner'] = tc['owner']
@@ -215,13 +218,13 @@ def build_vcd_model(component):
                     tctmp['status'] = tc['status']
                     tctmp['folder'] = tc['folder']
                     tctmp['tspec'] = get_tspec(tc['folder'])
-                    tcases[tc['key']] = tctmp
+                    Config.CACHED_TESTCASES[tc['key']] = tctmp
         velem[ves[0]] = tmp
 
     print("\nGot", len(velem), "Verification Elements on", len(reqs), "Requirements. Found",
-          len(tcases), ' related test cases.')
+          len(Config.CACHED_TESTCASES), ' related test cases.')
 
-    for tck in tcases.keys():
+    for tck in Config.CACHED_TESTCASES.keys():
         # print(tck, end="")
         tcd = rs.get(Config.TESTCASERESULT_URL.format(tcid=tck),
                      auth=Config.AUTH)
@@ -259,7 +262,7 @@ def build_vcd_model(component):
                 tmpr['tcycle'] = "NA"
                 tmpr['dmtr'] = "NA"
                 tmpr['tplan'] = "NA"
-            tcases[tck]['lastR'] = tmpr
+            Config.CACHED_TESTCASES[tck]['lastR'] = tmpr
     # print(" -")
 
     fsum = open("summary.tex", 'w')
@@ -267,7 +270,7 @@ def build_vcd_model(component):
     print('\\begin{longtable}{ll}\n\\toprule', file=fsum)
     print(f"Number of Requirements: & {len(reqs)} \\\\", file=fsum)
     print(f"Number of Verification Elements: & {len(velem)} \\\\", file=fsum)
-    print(f"Number of Test Cases: & {len(tcases)} \\\\", file=fsum)
+    print(f"Number of Test Cases: & {len(Config.CACHED_TESTCASES)} \\\\", file=fsum)
     print('\\bottomrule\n\\end{longtable}', file=fsum)
     fsum.close()
 
@@ -310,6 +313,7 @@ def init_jira_status():
     rawst = db_get(query)
     for st in rawst:
         jst[st[0]] = st[1]
+    print('jira status - ', jst)
 
 
 def init_priority():
@@ -320,6 +324,7 @@ def init_priority():
     rawst = db_get(query)
     for st in rawst:
         jpr[st[0]] = st[1]
+    print('priorities - ', jpr)
 
 
 def get_tc_results(tc):
@@ -352,7 +357,7 @@ def get_tc_results(tc):
 def get_tcs(veid):
     """for a given VE (id) return the related test cases
        and populate in parallel the global tcases """
-    global tcases
+    # global tcases
     query = ("select tc.key, tc.FOLDER_ID, tc.LAST_TEST_RESULT_STATUS_ID, aos.name "
              "from AO_4D28DD_TEST_CASE tc "
              "inner join AO_4D28DD_TRACE_LINK il on tc.id = il.test_case_id "
@@ -365,8 +370,10 @@ def get_tcs(veid):
         # print(tc)
         if tc[0] not in tcs:
             # tcs.append(tc[0])
-            if tc[0] in tcases.keys():
-                tcs[tc[0]] = tcases[tc[0]]
+            #if tc[0] in tcases.keys():
+            #    tcs[tc[0]] = tcases[tc[0]]
+            if tc[0] in Config.CACHED_TESTCASES.keys():
+                tcs[tc[0]] = Config.CACHED_TESTCASES[tc[0]]
             else:
                 tcs[tc[0]] = {}
                 tcs[tc[0]]['status'] = tc[3]
@@ -375,15 +382,18 @@ def get_tcs(veid):
                     tcs[tc[0]]['lastR'] = get_tc_results(tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
-                tcases[tc[0]] = tcs[tc[0]]
+                #tcases[tc[0]] = tcs[tc[0]]
+                Config.CACHED_TESTCASES[tc[0]] = tcs[tc[0]]
     return tcs
 
 
 def get_ves(comp):
     """gets information for all Verification Elementes for a Component
        it returns also the reqs and test cases related to them"""
-    global jst
     global veduplicated
+    jst = Config.jst
+    jpr = Config.jpr
+
     velements = dict()
     reqs = dict()
     verifying_ves = []
@@ -523,7 +533,8 @@ def do_ve_coverage(tcs, results):
     else:
         tccount = Counter()
         for tc in tcs.keys():
-            if results[tc]['lastR']:
+            # if tc in results.keys() and results[tc]['lastR']:
+            if tc in results.keys() and 'lastR' in results[tc].keys() and results[tc]['lastR']:
                 tccount.update([results[tc]['lastR']['status']])
             else:
                 tccount.update(['notexec'])
@@ -573,16 +584,14 @@ def do_req_coverage(ves, ve_coverage):
 
 def summary(dictionary):
     """generate and print summary information"""
-    global tcases
-    global jst
     global veduplicated
     mtrs = dict()
-
-    init_jira_status()
 
     verification_elements = dictionary[0]
 
     reqs = dictionary[1]
+
+    tcases = dictionary[3]
 
     mtrs['nr'] = len(reqs)
     mtrs['nv'] = len(verification_elements)
@@ -591,6 +600,7 @@ def summary(dictionary):
     for req in dictionary[1].values():
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
+        # print('VE - KEYS ', dictionary[0].keys())
         for ve in req['VEs']:
             if 'verifiedby' in dictionary[0][ve].keys():
                 # I calculate the coverage looking at the test cases
@@ -657,6 +667,8 @@ def summary(dictionary):
 
     size = [len(reqs), total_ve, len(tcases)]
 
+    print(rec_count_per_doc)
+
     return [tc_status, ve_coverage, req_coverage, rec_count_per_doc, [], [], size]
 
 
@@ -681,21 +693,15 @@ def check_acronyms(reqs):
 
 def vcdsql(comp, RSP):
     """get VCD using direct SQL query"""
-    global jst
-    global jpr
-    global tcases
     global veduplicated
     veduplicated = dict()
-    tcases = {}
 
     print(f"Looking for VEs in {comp} ...")
-    init_jira_status()
-    init_priority()
 
     ves, reqs = get_ves(comp)
 
     print(f"  ... found {len(ves)} Verification Elements "
-          f"  related to {len(reqs)} requirements and {len(tcases)} test cases.")
+          f"  related to {len(reqs)} requirements and {len(Config.CACHED_TESTCASES)} test cases.")
 
     if os.path.isfile("acronyms.tex"):
         check_acronyms(reqs)
@@ -763,4 +769,4 @@ def vcdsql(comp, RSP):
         print(csv, file=file)
         file.close()
 
-    return [ves, reqs, veduplicated, tcases]
+    return [ves, reqs, veduplicated, Config.CACHED_TESTCASES]
