@@ -2,6 +2,7 @@
 
 package:
   name: docsteady
+  noarch: python
   version: {{ version }}
 
 source:
@@ -9,6 +10,7 @@ source:
 
 build:
   noarch: python
+  noarch_python: True
   number: 0
   script: $PYTHON setup.py install --single-version-externally-managed --record=record.txt
   entry_points:

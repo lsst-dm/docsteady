@@ -294,6 +294,8 @@ class ScriptResult(Schema):
 2) conda build recipe/
 
 3) on a different terminal activate the base conda env, where you  have anaconda installed, and you have logged in
+   (You may need to anaconda login - credentials in vault)
+
 
 4) copy and paste the anaconda upload command line proposed at the end of the build, and add --user lsst-dm:
 (othervise it will be uloaded to the user logged in) e.g. 
