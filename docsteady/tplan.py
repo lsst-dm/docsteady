@@ -67,6 +67,7 @@ class TestPlan(Schema):
     observing_required = fields.Boolean()
     overall_assessment = HtmlPandocField()
     recommended_improvements = HtmlPandocField()
+    document_id = fields.String()
     # Note: Add More custom fields above here
     # (and don't forget preprocess_plan)
 
