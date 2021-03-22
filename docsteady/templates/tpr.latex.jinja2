@@ -30,6 +30,7 @@
 \usepackage{arydshln}
 \usepackage{attachfile}
 \usepackage{array}
+\usepackage{dashrule}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}{{ '}' }}p{{ '{' }}#1}{{ '}' }}
 
@@ -366,58 +367,45 @@ Detailed steps results:
 \begin{tabular}{p{2cm}p{14cm}}
 \toprule
 Step {{ loop.index }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
-\toprule
- & Description \\ \hline
 \end{tabular}
+ Description \\
 {\footnotesize
 {{ script_result['description'] }}
 }
       {% if 'example_code' in script_result.custom_field_values %}
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Example Code \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
  {\footnotesize
 {{ script_result.custom_field_values.example_code }}
 }
       {% endif %}
       {% if script_result['testdata'] %}
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Test Data \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Test Data \\
  {\footnotesize
 {{ script_result['testdata'] }}
 }
       {% endif %}
       {% if script_result['example_code'] %}
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Example Code \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
 {\footnotesize
 {{ script_result['example_code'] }}
 }
       {% endif %}
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Expected Result \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Expected Result \\
 {\footnotesize
 {{ script_result['expected_result'] }}
 }
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Actual Result \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Actual Result \\
 {\footnotesize
 {{ script_result['comment'] }}
 }
       {% if script_result['result_issues'] %}
-\begin{tabular}{p{2cm}p{14cm}}
-\hline
- & Issues found executing this step:  \\ \hline
-\end{tabular}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Issues found executing this step:  \\
 {\footnotesize
 \begin{itemize}
         {% for issue in script_result['result_issues'] %}
