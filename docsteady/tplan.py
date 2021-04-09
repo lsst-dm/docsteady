@@ -24,6 +24,7 @@ Code for Test Report (Run) Model Generation
 import requests
 from marshmallow import Schema, fields, pre_load
 from base64 import b64encode
+import datetime
 
 from .cycle import TestCycle, TestResult
 from .spec import TestCase
@@ -68,6 +69,7 @@ class TestPlan(Schema):
     overall_assessment = HtmlPandocField()
     recommended_improvements = HtmlPandocField()
     document_id = fields.String()
+    extract_date = fields.String()
     # Note: Add More custom fields above here
     # (and don't forget preprocess_plan)
 
@@ -77,7 +79,7 @@ class TestPlan(Schema):
         During pre_load, we modify the input dictionary to make it look like
         extra data was in the request information. This means that we "pull up"
         custom fields in from the ``customFields`` dict, and we also, for the
-        test plan, extract milestone information from the folrder information.
+        test plan, extract milestone information from the folder information.
 
         Marshmallow will see the modified input dictionary and use the
         schema definition appropriately.
@@ -101,6 +103,7 @@ class TestPlan(Schema):
             _set_if("overall_assessment", "Overall Assessment")
             _set_if("recommended_improvements", "Recommended Improvements")
             _set_if("document_id", "Document ID")
+            data['extract_date'] = datetime.date.today().isoformat()
             # Note: Add More custom fields above here
 
         # Derived fields
