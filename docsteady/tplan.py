@@ -24,6 +24,7 @@ Code for Test Report (Run) Model Generation
 import requests
 from marshmallow import Schema, fields, pre_load
 from base64 import b64encode
+import datetime
 
 from .cycle import TestCycle, TestResult
 from .spec import TestCase
@@ -68,6 +69,7 @@ class TestPlan(Schema):
     overall_assessment = HtmlPandocField()
     recommended_improvements = HtmlPandocField()
     document_id = fields.String()
+    extract_date = datetime.now()
     # Note: Add More custom fields above here
     # (and don't forget preprocess_plan)
 
@@ -101,6 +103,7 @@ class TestPlan(Schema):
             _set_if("overall_assessment", "Overall Assessment")
             _set_if("recommended_improvements", "Recommended Improvements")
             _set_if("document_id", "Document ID")
+            _set_if("extract_date", "Extraction Date")
             # Note: Add More custom fields above here
 
         # Derived fields
