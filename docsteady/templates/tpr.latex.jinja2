@@ -52,7 +52,7 @@
 
 \title{{ '{' }}{{ testplan.doc_name }} Test Plan and Report}
 \setDocRef{\lsstDocType-\lsstDocNum}
-\date{\vcsDate}
+\date{ {{ testplan['extract_date'] }} }
 \author{ {{ testplan['owner'] }} }
 
 \input{history_and_info.tex}
@@ -61,7 +61,9 @@
 \setDocAbstract{
 This is the test plan and report for
 \textbf{ {{ testplan.milestone_name }}}{% if testplan.milestone_id != "" %} ({{ testplan.milestone_id }}){% endif %},
-an LSST milestone pertaining to the {{ metadata.component_long_name }}.
+an LSST milestone pertaining to the {{ metadata.component_long_name }}.\\
+This document is based on content automatically extracted from the Jira test database on \docDate.
+The most recent change to the document repository was on \vcsDate.
 }
 
 
