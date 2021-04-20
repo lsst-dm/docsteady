@@ -204,7 +204,7 @@ def download_and_rewrite_images(value):
                 fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)
-        if img.previous_element.name != "br":
+        if img.previous_element is not None and img.previous_element.name != "br":
             img.insert_before(soup.new_tag("br"))
         img["style"] = ""
         # fixing the aspect ratio of images is working only with pandoc 1.19.1
