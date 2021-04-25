@@ -377,7 +377,6 @@ def get_tcs(veid):
                     tcs[tc[0]]['lastR'] = get_tc_results(tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
-                #tcases[tc[0]] = tcs[tc[0]]
                 Config.CACHED_TESTCASES[tc[0]] = tcs[tc[0]]
     return tcs
 
