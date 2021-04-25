@@ -141,7 +141,7 @@ class Config:
            '10301': 'Code Review', '10401': 'Planning', '10403': 'Blocked',
            '10404': 'Awaiting Signoff', '10405': "Won't Fix", '10505': "Can't Reproduce",
            '10605': 'Withdrawn', '10606': 'Flagged', '10705': 'Retired', '10805': 'Proposed',
-           '10806': 'Adopted',  '10906': 'Duplicate', '11005': 'Invalid', '11105': 'Implemented',
+           '10806': 'Adopted', '10906': 'Duplicate', '11005': 'Invalid', '11105': 'Implemented',
            '11205': 'Backlog', '11206': 'Selected for Development', '11207': 'With PubBoard',
            '11208': 'With Reviewer', '11209': 'With Project', '11210': 'Closeout Review',
            '11211': 'Denied', '11212': 'Journal Submitted', '11213': 'Journal In Review',

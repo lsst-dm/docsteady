@@ -217,7 +217,7 @@ def do_ve_model(component, subcomponent):
     create_folders_and_files()
 
     print(f"Looking for all Verification Elements in component '{component}', "
-           "sub-component '{subcomponent}'.")
+          "sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
