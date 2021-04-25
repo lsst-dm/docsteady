@@ -15,11 +15,26 @@ Alternatively you may specify them on the command line using the ``--username`` 
 If neither of these are done the username and password will be prompted interactively.
 
 Personal Jira credentials may be used. 
-For CI purposes, a general set of credentials are available, as specified in section auth_.
+For CI purposes, a general set of credentials are available, as specified in section :ref:`auth`.
 
-In order to execute any of the docsteady commands described in the following subsections, a conda environment providing docsteady must be activated, as described in install_.
+In order to execute any of the docsteady commands described in the following subsections, a conda environment providing docsteady must be activated, as described in :ref:`install`.
 
 Use ``--help`` to get the list of available options for each of the docsteady commands.
+
+.. _quick:
+
+Quick quide
+############
+
+- ``generate-spec``: to generate a Test Specification (baselining test cases)
+- ``generate-report``: for test plans and reports
+- ``generate-vcd``: to generate the Verification Control Documents
+- ``baseline-ve``: to generate Verification Elements baseline documents.
+
+More details on the procedures and logic applied in the document generation
+is available in this SPIE Paper :cite:`DMTN-140`.  
+
+
 
 Test Specification Generation
 #############################

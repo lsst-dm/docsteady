@@ -41,7 +41,7 @@ master_doc = 'index'
 html_context = {
     # Enable "Edit in GitHub" link
     'display_github': True,
-    'github_user': 'lsst',
+    'github_user': 'lsst-dm',
     'github_repo': 'docsteady',
     # TRAVIS_BRANCH is available in CI, but master is a safe default
     'github_version': os.getenv('TRAVIS_BRANCH', default='master') + '/docs/'
@@ -66,11 +66,8 @@ source_encoding = 'utf-8'
 
 # BibTeX configuration
 bibtex_bibfiles = [
-    '../texmf/bibtex/bib/lsst.bib',
-    '../texmf/bibtex/bib/books.bib',
-    '../texmf/bibtex/bib/lsst-dm.bib',
-    '../texmf/bibtex/bib/refs.bib',
-    '../texmf/bibtex/bib/refs_ads.bib',
+    './lsstbib/lsst.bib',
+    './lsstbib/refs_ads.bib',
 ]
 
 # Intersphinx configuration.

@@ -45,6 +45,11 @@ changes:
 	@echo
 	@echo "The overview file is in $(BUILDDIR)/changes."
 
+refresh-bib:
+	refresh-lsst-bib -d lsstbib
+	@echo
+	@echo "Commit the new bibliographies: git add lsstbib && git commit -m \"Update bibliographies.\""
+
 linkcheck:
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
 	@echo
