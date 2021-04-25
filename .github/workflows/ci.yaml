@@ -52,6 +52,3 @@ jobs:
         run: |
           ltd upload --product docsteady --gh --dir docs/_build/html
 
-      - name: Log into Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
