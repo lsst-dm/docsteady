@@ -145,7 +145,8 @@ def build_vcd_model(component):
     # get the number of issue in the componenet
     resp = rs.get("https://jira.lsstcorp.org/rest/api/latest/component/{component_id}/relatedIssueCounts",
                   auth=Config.AUTH)
-    cmp_count: {} = resp.json()
+    cmp_count : {}
+    cmp_count = resp.json()
     max_res = cmp_count['issueCount']
 
     print(f"Getting {max_res} Verification Elements from {component}.")
@@ -155,7 +156,6 @@ def build_vcd_model(component):
 
     velem = {}
     reqs = {}
-    #tcases = {}
 
     veresp = resp.json()
     i = 0
@@ -201,7 +201,6 @@ def build_vcd_model(component):
                     tmp['tcs'][tc['key']]['lastR'] = tc['lastTestResultStatus']
                 else:
                     tmp['tcs'][tc['key']]['lastR'] = None
-                #if tc['key'] not in tcases.keys():
                 if tc['key'] not in Config.CACHED_TESTCASES.keys():
                     tctmp = {}
                     if tc['owner']:
@@ -285,7 +284,7 @@ def db_get(dbquery) -> {}:
     db.ping(reconnect=True)
     try:
         cursor.execute(dbquery)
-    except:
+    except BaseException:
         print(dbquery)
         exit
     data = cursor.fetchall()
