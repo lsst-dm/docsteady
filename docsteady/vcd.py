@@ -145,7 +145,7 @@ def build_vcd_model(component):
     # get the number of issue in the componenet
     resp = rs.get("https://jira.lsstcorp.org/rest/api/latest/component/{component_id}/relatedIssueCounts",
                   auth=Config.AUTH)
-    cmp_count : {}
+    cmp_count: {}
     cmp_count = resp.json()
     max_res = cmp_count['issueCount']
 
@@ -262,7 +262,6 @@ def build_vcd_model(component):
                 tmpr['dmtr'] = "NA"
                 tmpr['tplan'] = "NA"
             Config.CACHED_TESTCASES[tck]['lastR'] = tmpr
-    # print(" -")
 
     fsum = open("summary.tex", 'w')
     print('\\newpage\n\\section{Summary Information}', file=fsum)
@@ -368,9 +367,6 @@ def get_tcs(veid):
     for tc in rawtc:
         # print(tc)
         if tc[0] not in tcs:
-            # tcs.append(tc[0])
-            #if tc[0] in tcases.keys():
-            #    tcs[tc[0]] = tcases[tc[0]]
             if tc[0] in Config.CACHED_TESTCASES.keys():
                 tcs[tc[0]] = Config.CACHED_TESTCASES[tc[0]]
             else:

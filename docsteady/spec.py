@@ -261,7 +261,6 @@ def build_spec_model(folder):
         else:
             startAt = startAt + max_tests
 
-
     alltestcases = {}
     alltestcases["active"] = testcases
     alltestcases['deprecated'] = deprecated
