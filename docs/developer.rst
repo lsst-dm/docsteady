@@ -180,8 +180,7 @@ Spec model and `generate-spec` target
 - `testcases`: List of testcases (ordered) (type: `List[TestCase]`)
 - `requirements_to_testcases`: Map of requirement key to testcase key (type: `Dict[str, str]`)
 - `requirements_map`: All found requirements - requirement key to requirement (type: `Dict[str, Issue]`)
-- `testcases_map`: All found testcases - testcase key to testcase 
-(type: `Dict[str, TestCase]`). This includes all test cases found in test scripts.
+- `testcases_map`: All found testcases - testcase key to testcase (type: `Dict[str, TestCase]`). This includes all test cases found in test scripts.
 
 
 Spec Model
@@ -254,95 +253,94 @@ Simple Example
 If you added example template (`docsteady/templates/example-spec.markdown.jinja2`),
 defined as:
 
-```jinja2
-# Testcases
+.. code-block:: jinja2
 
-{% for testcase in testcases %}
-## {{ testcase.name }}
-On the web at {{ testcase.jira_url }}
+        # Testcases
 
-### Requirements:
-{% for requirement in testcase.requirements %}
-* {{ requirement.key }} at {{ requirement.jira_url }}
-{% endfor %}
+        {% for testcase in testcases %}
+        ## {{ testcase.name }}
+        On the web at {{ testcase.jira_url }}
 
-{% endfor %}
-```
+        ### Requirements:
+        {% for requirement in testcase.requirements %}
+        * {{ requirement.key }} at {{ requirement.jira_url }}
+        {% endfor %}
 
-You could generate the resultant file, in latex (by default) via:
-* `docsteady --namespace example --template markdown generate-spec "/Data Management/Prompt`
+        {% endfor %}
 
-Or actually ask for it in markdown:
-* `docsteady --namespace example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
+You could generate the resultant file, in latex (by default) via::
+  `docsteady --namespace example --template markdown generate-spec "/Data Management/Prompt`
 
-Or HTML:
-* `docsteady --namespace example --template markdown generate-spec --format html "/Data Management/Prompt"`
+Or actually ask for it in markdown::
+  `docsteady --namespace example --template markdown generate-spec --format markdown "/Data Management/Prompt"`
+
+Or HTML::
+  `docsteady --namespace example --template markdown generate-spec --format html "/Data Management/Prompt"`
 
 Cycle model and `generate-cycle` 
-----------------------------------
+--------------------------------
 
 `generate-cycle` template objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-* `testcycle`: Test Cycle object (type: `TestCycle`)
-* `testresult`: List of Test results as found from the test cycle (type: `List[TestResult]`)
-* `testcases_map`: All found testcases when processing test results - testcase key to testcase 
-(type: `Dict[str, TestCase]`). This includes all test cases found from the test results.
+- `testcycle`: Test Cycle object (type: `TestCycle`)
+- `testresult`: List of Test results as found from the test cycle (type: `List[TestResult]`)
+- `testcases_map`: All found testcases when processing test results - testcase key to testcase (type: `Dict[str, TestCase]`). This includes all test cases found from the test results.
 
 Cycle model
-^^^^^^^^^^
+^^^^^^^^^^^
 
-```python
-class TestCycle(Schema):
-    key = fields.String(required=True)
-    name = fields.String(required=True)
-    description = fields.String(required=True)
-    status = fields.String(required=True)
-    execution_time = fields.Integer(required=True, load_from="executionTime")
-    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
-    updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
-    planned_start_date = fields.Function(deserialize=lambda o: as_arrow(o['plannedStartDate']))
-    owner_id = fields.String(load_from="owner", required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
-    custom_fields = fields.Dict(load_from="customFields")
-    items = fields.Nested(TestCycleItem, many=True)
+.. code-block:: py
+   
+        class TestCycle(Schema):
+            key = fields.String(required=True)
+            name = fields.String(required=True)
+            description = fields.String(required=True)
+            status = fields.String(required=True)
+            execution_time = fields.Integer(required=True, load_from="executionTime")
+            created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
+            updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
+            planned_start_date = fields.Function(deserialize=lambda o: as_arrow(o['plannedStartDate']))
+            owner_id = fields.String(load_from="owner", required=True)
+            owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+            created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
+            custom_fields = fields.Dict(load_from="customFields")
+            items = fields.Nested(TestCycleItem, many=True)
 
-    # custom fields
-    software_version = HtmlPandocField()
+            # custom fields
+            software_version = HtmlPandocField()
 
-class TestCycleItem(Schema):
-    id = fields.Integer(required=True)
-    test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
-                                    load_from='testCaseKey', required=True)
-    user_id = fields.String(load_from="userKey")
-    user = fields.Function(deserialize=lambda obj: owner_for_id(obj["userKey"]))
-    execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
-    status = fields.String(required=True)
+        class TestCycleItem(Schema):
+            id = fields.Integer(required=True)
+            test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
+                                            load_from='testCaseKey', required=True)
+            user_id = fields.String(load_from="userKey")
+            user = fields.Function(deserialize=lambda obj: owner_for_id(obj["userKey"]))
+            execution_date = fields.Function(deserialize=lambda o: as_arrow(o['executionDate']))
+            status = fields.String(required=True)
 
-class TestResult(Schema):
-    id = fields.Integer(required=True)
-    key = fields.String(required=True)
-    automated = fields.Boolean(required=True)
-    environment = fields.String()
-    execution_time = fields.Integer(load_from='executionTime', required=True)
-    test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
-                                    load_from='testCaseKey', required=True)
-    execution_date = fields.Function(deserialize=lambda o: as_arrow(o), required=True,
-                                     load_from='executionDate')
-    script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
-                                   required=True)
-    issues = fields.Nested(Issue, many=True)
-    issue_links = fields.List(fields.String(), load_from="issueLinks")
-    user_id = fields.String(load_from="userKey")
-    user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
-    status = fields.String(load_from='status', required=True)
+        class TestResult(Schema):
+            id = fields.Integer(required=True)
+            key = fields.String(required=True)
+            automated = fields.Boolean(required=True)
+            environment = fields.String()
+            execution_time = fields.Integer(load_from='executionTime', required=True)
+            test_case_key = fields.Function(deserialize=lambda key: test_case_for_key(key)["key"],
+                                            load_from='testCaseKey', required=True)
+            execution_date = fields.Function(deserialize=lambda o: as_arrow(o), required=True,
+                                             load_from='executionDate')
+            script_results = fields.Nested(ScriptResult, many=True, load_from="scriptResults",
+                                           required=True)
+            issues = fields.Nested(Issue, many=True)
+            issue_links = fields.List(fields.String(), load_from="issueLinks")
+            user_id = fields.String(load_from="userKey")
+            user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
+            status = fields.String(load_from='status', required=True)
 
-class ScriptResult(Schema):
-    index = fields.Integer(load_from='index')
-    expected_result = MarkdownableHtmlPandocField(load_from='expectedResult')
-    execution_date = fields.String(load_from='executionDate')
-    description = MarkdownableHtmlPandocField(load_from='description')
-    comment = MarkdownableHtmlPandocField(load_from='comment')
-    status = fields.String(load_from='status')
-```
+        class ScriptResult(Schema):
+            index = fields.Integer(load_from='index')
+            expected_result = MarkdownableHtmlPandocField(load_from='expectedResult')
+            execution_date = fields.String(load_from='executionDate')
+            description = MarkdownableHtmlPandocField(load_from='description')
+            comment = MarkdownableHtmlPandocField(load_from='comment')
+            status = fields.String(load_from='status')
 
