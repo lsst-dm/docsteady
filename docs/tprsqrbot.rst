@@ -15,7 +15,7 @@ the corresponding document handle has to be added in the ``Document ID`` field i
 .. _doc_handle:
 
 Document Handle
-===============
+---------------
 All test report handles are allocated by docushare. 
 There is no API for docushare so you have to log in and create the appropriate 
 placeholder document to get the handle. 
@@ -25,7 +25,7 @@ If you do not have privileges to create a document in docushare ask Rob McKerche
 .. _sqrbot_jr:
 
 SQRBOT-JR
-==========
+----------
 
 In SLACK start a chat with @sqrbot-jr. Type::
 
@@ -35,3 +35,7 @@ select ``test-report``, it will ask more questions like the :ref:`handle <doc_ha
 Then sit back, it will create the repo put a document shell in there for you. 
 It will also add the ``docgen from Jira`` github action to pull contents from
 jira when you need it. Look at the actions in the new repo. 
+
+Regenerate the document
+-----------------------
+Once created you may update the document from Jira at anytime using the :ref:`githubaction`.
