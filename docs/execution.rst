@@ -23,7 +23,7 @@ Use ``--help`` to get the list of available options for each of the docsteady co
 
 .. _quick:
 
-Quick quide
+Quick guide
 ############
 
 - ``generate-spec``: to generate a Test Specification (baselining test cases)
@@ -47,13 +47,13 @@ The syntax to extract a test specification is the following::
 
   docsteady generate-spec "</tm4j_folder>" jira_docugen.tex
 
-where ``</tm4j_folder>`` shouldlbe replaced by the exact folder where the test cases are defined in the Jira ``Test Cases`` tab.
+where ``</tm4j_folder>`` should be replaced by the exact folder where the test cases are defined in the Jira ``Test Cases`` tab.
 For example, the command to extract the DM Acceptance test specification, LDM-639, is the following:
 
 ``docsteady generate-spec "/Data Management/Acceptance|LDM-639" [jira_docugen.tex]``
 
 Note that:
-- the output file \textit{jira\_docugen.tex`` is optional in the execution of docsteady but required in this context in order to include the extracted information in a \LaTeX~document (i.e. LDM-639.tex). If omitted, the docsteady output will just be printed in the terminal;
+- the output file `jira_docugen.tex` is optional in the execution of docsteady but required in this context in order to include the extracted information in a \LaTeX~document (i.e. LDM-639.tex). If omitted, the docsteady output will just be printed in the terminal;
 - the folder name in Jira includes at the end the test specification document handle. This is a best practice to use when organizing test cases in Jira since it helps to orient the user in the folder structure;
 - an appendix with the traceability to the requirements is produced in the file `jira_docugen.appendix.tex`, to be included in the test specification TeX file.
 
@@ -78,11 +78,9 @@ The following command extracts a Test Plan and Report using Jira REST API:
 
 Where:
 
-\begin{itemize``
-\item ``LVV-PXX`` is the TM4J object that describes the test campaign, for example ``LVV-P72``;
-\item ``file.tex`` is the Test Plan and Report tex file where the document will be rendered, for example ``DMTR-231.tex``;
-\item ``--trace true`` (optional) generates an appendix with the traceability information.
-\end{itemize``
+- ``LVV-PXX`` is the TM4J object that describes the test campaign, for example ``LVV-P72``;
+- ``file.tex`` is the Test Plan and Report tex file where the document will be rendered, for example ``DMTR-231.tex``;
+- ``--trace true`` (optional) generates an appendix with the traceability information.
 
 Each TM4J test plan and related information in Jira is rendered in a different Test Plan and Report document,
 the filename of which usually corresponds also to the document handle in DocuShare.
@@ -94,7 +92,7 @@ The generated file can be built directly into the corresponding pdf, however add
 - history\_and\_info.tex
 
 When creating the Git repository using ``sqrbot-jr``, all the required files should already be present.
-See :cite:SQR-006 for more information regarding sqrbot-jr.
+For more info on documents, change control and ``sqrbot-jr`` see `The dev guide<https://developer.lsst.io/project-docs/change-controlled-docs.html#ccd-create>`.
 
 In case you want to generate a Test Plan and Report for a different subsystem, not DM, you can use the namespace global option::
 
@@ -102,7 +100,7 @@ In case you want to generate a Test Plan and Report for a different subsystem, n
 
 Valid namespaces are:
 
-- SE: system Enginering
+- SE: system Engineering
 - DM: Data Management
 - T&S: Telescope & Site
 
@@ -132,7 +130,7 @@ See :ref:`components<components>` for the complete list of components.
 If omitted, the DM component is selected by default.
 
 The ``--subcomponent <SUBC>`` is optional. If omitted all verification elements of the specified component will be extracted.
-See \ref{sec:subcomp`` for the description of the DM subcomponents.
+See :ref:`subcomp` for the description of the DM subcomponents.
 
 If the option ``--details true`` is provided, an extra technical note is generated, including all test case details.
 
@@ -178,7 +176,7 @@ For your convenience, the credentials can be specified in the following environm
 
 otherwise, it is required to specify them from the command line using the options ``--vcduser``, ``--vcdpwd``, and ``--jiradb``.
 In case credential options are omitted and no environment variables are defined, they will be prompted interactively.
-Note also that the Jira database IP address may change. Updated information are maintained in the vault specified in section \ref{sec:auth``.
+Note also that the Jira database IP address may change. Updated information are maintained in the vault specified in section :ref:`auth`.
 
 The following command extracts all VCD information regarding ``DM`` and generates the file ``jira_docugen.tex``::
  
@@ -203,7 +201,7 @@ Each component corresponds to a Rubin Observatory Construction subsystem.
 - ``DM``: Data Management, the default component for all docsteady commands.
 - ``EPO``: Education and Public Outreach
 - ``OCS``: Observatory Control System
-- ``PSE``: Project System Engineering, used for Commisioning (SitCom)
+- ``PSE``: Project System Engineering, used for Commissioning (SitCom)
 - ``T&S``: Telescope and Site
 
 In case the subcomponent specified is "None", all VE without subcomponents will be extracted.
