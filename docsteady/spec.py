@@ -178,17 +178,13 @@ class TestCase(Schema):
 def get_lvv_details(key):
     """ Get LVV information from Jira
 
-    PARAMETERS
-    ----------
-    key : `str`
-        LVV jira Key
+    :param key: `str` LVV jira Key
 
-    RETURNS
-    -------
-    lvv : dictionary
+    :return: lvv a  dictionary
         The LVV information that is not available in the test case.
         In a first stage, the only information required are
         the High Level Requirements
+
     """
 
     lvv = dict()
