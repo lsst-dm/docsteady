@@ -4,7 +4,7 @@
 # see metadata.yaml in this repo for to update document-specific metadata
 
 import os
-
+from pathlib import Path
 import sphinx_rtd_theme
 from documenteer.sphinxconfig.utils import form_ltd_edition_name
 
@@ -67,10 +67,13 @@ exclude_patterns = ['README.rst', '_build']
 source_encoding = 'utf-8'
 
 # BibTeX configuration
-bibtex_bibfiles = [
-    './lsstbib/lsst.bib',
-    './lsstbib/refs_ads.bib',
-]
+bibtex_bibfiles = []
+if Path("local.bib").exists():
+    bibtex_bibfiles.append("local.bib")
+for path in Path("lsstbib").glob("*.bib"):
+    bibtex_bibfiles.append(str(path))
+
+bibtex_default_style = "lsst_aa"
 
 # Intersphinx configuration.
 # http://www.sphinx-doc.org/en/stable/ext/intersphinx.html
