@@ -3,6 +3,8 @@
 Developing docsteady
 ====================
 
+See also the `API docs<api/docsteady.html>` 
+
 .. _release_new_version:
 
 Releasing a new version

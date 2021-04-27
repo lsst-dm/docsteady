@@ -10,6 +10,8 @@ from documenteer.sphinxconfig.utils import form_ltd_edition_name
 
 
 extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',

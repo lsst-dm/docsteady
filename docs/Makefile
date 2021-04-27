@@ -30,7 +30,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html:
+html:   api
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -55,3 +55,6 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
+
+api: 
+	sphinx-apidoc  -o api ../docsteady
