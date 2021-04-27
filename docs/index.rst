@@ -5,7 +5,7 @@ docsteady is a python package that talks to
 Jira and the Adaptavist Test Management system to output Test folders and
 Test plans to a variety of documents by utilizing pandoc.
 
-See :cite:`DMTN-140` for a high level overview of the process and the logic implemented in docsteady.
+See :dmtn:`140` for a high level overview of the process and the logic implemented in docsteady.
 
 
 .. toctree::

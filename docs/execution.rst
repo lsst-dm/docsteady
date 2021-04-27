@@ -32,7 +32,7 @@ Quick quide
 - ``baseline-ve``: to generate Verification Elements baseline documents.
 
 More details on the procedures and logic applied in the document generation
-is available in this SPIE Paper :cite:`DMTN-140`.  
+is available in this SPIE Paper :dmtn:`140`.  
 
 
 
