@@ -163,7 +163,7 @@ def generate_report(format, username, password, trace, plan, path):
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
     target = "tpr"
-    
+
     if Config.NAMESPACE.upper() not in Config.COMPONENTS.keys():
         print(f"Wrong input component {Config.NAMESPACE}")
         exit()
@@ -324,8 +324,6 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec,
             if tmp_ve['priority'] == "":
                 tmp_ve['priority'] = "Not Set"
             tmp_ve['Requirement ID'] = ve_model[ve]['req_id']
-            # tmp_ve['Requirement Text'] = ""  # not needed for the VCD
-            # tmp_ve['Requirement Specification'] = ""  # not needed for the VCD
             tmp_ve['verified_by'] = []
             if "verified_by" in ve_model[ve].keys():
                 for vby in ve_model[ve]['verified_by']:
@@ -419,7 +417,7 @@ def baseline_ve(format, username, password, details, subcomponent, path):
     component = Config.NAMESPACE.upper()
 
     if not subcomponent:
-        subcomponent=""
+        subcomponent = ""
 
     ve_model = do_ve_model(component, subcomponent)
 

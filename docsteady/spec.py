@@ -178,17 +178,15 @@ class TestCase(Schema):
 def get_lvv_details(key):
     """ Get LVV information from Jira
 
-    PARAMETERS
-    ----------
-    key: `str`
-        LVV jira Key
-    RETURNS
-    -------
-    lvv: dictionary
+    :param key: `str` LVV jira Key
+
+    :return: lvv a  dictionary
         The LVV information that is not available in the test case.
         In a first stage, the only information required are
         the High Level Requirements
+
     """
+
     lvv = dict()
     lvv['high_level_req'] = []
     if key != "":
@@ -260,7 +258,6 @@ def build_spec_model(folder):
             break
         else:
             startAt = startAt + max_tests
-
 
     alltestcases = {}
     alltestcases["active"] = testcases

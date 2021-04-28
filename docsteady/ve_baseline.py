@@ -151,7 +151,8 @@ def get_ve_details(rs, key):
             ve_details['verified_by'][vby]['component'] = jvby_cmp_raw['fields']['components'][0]['name']
             if 'customfield_15001' in jvby_cmp_raw['fields'].keys():
                 if jvby_cmp_raw['fields']['customfield_15001']:
-                    ve_details['verified_by'][vby]['subcomponent'] = jvby_cmp_raw['fields']['customfield_15001']['value']
+                    tmp = jvby_cmp_raw['fields']['customfield_15001']['value']
+                    ve_details['verified_by'][vby]['subcomponent'] = tmp
 
     return ve_details
 
@@ -185,7 +186,7 @@ def extract_ves(rs, cmp, subcmp):
             # get all VES for given Component/SubComponent
             result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
         if result.status_code in [401, 403]:  # Forbidden
-            print ("Wrong password ? Access denied to "+result.url)
+            print("Wrong password ? Access denied to " + result.url)
             exit(2)
         jresult = result.json()
         if "errors" in jresult.keys():
@@ -215,7 +216,8 @@ def do_ve_model(component, subcomponent):
     # create folders for images and attachments if not already there
     create_folders_and_files()
 
-    print(f"Looking for all Verification Elements in component '{component}', sub-component '{subcomponent}'.")
+    print(f"Looking for all Verification Elements in component '{component}', "
+          "sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 

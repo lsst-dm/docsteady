@@ -145,7 +145,8 @@ def build_vcd_model(component):
     # get the number of issue in the componenet
     resp = rs.get("https://jira.lsstcorp.org/rest/api/latest/component/{component_id}/relatedIssueCounts",
                   auth=Config.AUTH)
-    cmp_count: {} = resp.json()
+    cmp_count: {}
+    cmp_count = resp.json()
     max_res = cmp_count['issueCount']
 
     print(f"Getting {max_res} Verification Elements from {component}.")
@@ -155,7 +156,6 @@ def build_vcd_model(component):
 
     velem = {}
     reqs = {}
-    #tcases = {}
 
     veresp = resp.json()
     i = 0
@@ -201,7 +201,6 @@ def build_vcd_model(component):
                     tmp['tcs'][tc['key']]['lastR'] = tc['lastTestResultStatus']
                 else:
                     tmp['tcs'][tc['key']]['lastR'] = None
-                #if tc['key'] not in tcases.keys():
                 if tc['key'] not in Config.CACHED_TESTCASES.keys():
                     tctmp = {}
                     if tc['owner']:
@@ -263,7 +262,6 @@ def build_vcd_model(component):
                 tmpr['dmtr'] = "NA"
                 tmpr['tplan'] = "NA"
             Config.CACHED_TESTCASES[tck]['lastR'] = tmpr
-    # print(" -")
 
     fsum = open("summary.tex", 'w')
     print('\\newpage\n\\section{Summary Information}', file=fsum)
@@ -285,7 +283,7 @@ def db_get(dbquery) -> {}:
     db.ping(reconnect=True)
     try:
         cursor.execute(dbquery)
-    except:
+    except BaseException:
         print(dbquery)
         exit
     data = cursor.fetchall()
@@ -369,9 +367,6 @@ def get_tcs(veid):
     for tc in rawtc:
         # print(tc)
         if tc[0] not in tcs:
-            # tcs.append(tc[0])
-            #if tc[0] in tcases.keys():
-            #    tcs[tc[0]] = tcases[tc[0]]
             if tc[0] in Config.CACHED_TESTCASES.keys():
                 tcs[tc[0]] = Config.CACHED_TESTCASES[tc[0]]
             else:
@@ -382,7 +377,6 @@ def get_tcs(veid):
                     tcs[tc[0]]['lastR'] = get_tc_results(tc[0])
                 else:
                     tcs[tc[0]]['lastR'] = None
-                #tcases[tc[0]] = tcs[tc[0]]
                 Config.CACHED_TESTCASES[tc[0]] = tcs[tc[0]]
     return tcs
 
