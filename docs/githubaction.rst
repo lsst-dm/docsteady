@@ -15,11 +15,11 @@ If the button does not appear you need to be add to the organization to which th
 You may find `owners` of the org, who can do this, by selecting `role` `owner` in the pull down on
 the right of the org people page e.g. :
 
--   `DM owners <https://github.com/orgs/lsst-dm/people?query=role%3Aowner>`
--   `SITCOM owners <https://github.com/orgs/lsst-sitcom/people?query=role%3Aowner>`
+-   `DM owners <https://github.com/orgs/lsst-dm/people?query=role%3Aowner>`__
+-   `SITCOM owners <https://github.com/orgs/lsst-sitcom/people?query=role%3Aowner>`__
     
 
-To look at an example see `SCTR-14 action <https://github.com/lsst-sitcom/SCTR-14/actions/workflows/docgen_from_Jira.yaml>`.
+To look at an example see `SCTR-14 action <https://github.com/lsst-sitcom/SCTR-14/actions/workflows/docgen_from_Jira.yaml>`__.
 
 Know Problem
 ------------

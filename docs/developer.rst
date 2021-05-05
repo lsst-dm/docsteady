@@ -3,7 +3,7 @@
 Developing docsteady
 ====================
 
-See also the `API docs<api/docsteady.html>` 
+See also the `API docs<api/docsteady.html>__` 
 
 .. _release_new_version:
 
@@ -37,7 +37,7 @@ It has been observed that any small change in the version of pandoc may lead to 
 Therefore, in order to ensure the expected pandoc behavior, it is important to set-up the conda environment corresponding to the latest docsteady working version.
 The environment set-up is explained in section :ref:`install<install>`.
 
-The docsteady source code is available at `On github <https://github.com/lsst-dm/docsteady>`
+The docsteady source code is available at `On github <https://github.com/lsst-dm/docsteady>__`
 
 To test changes done locally in the source code, use the following procedure:
 
