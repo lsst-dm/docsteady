@@ -41,6 +41,7 @@ jobs:
 
       - name: Compile documentation
         run: |
+          export PYTHONPATH=.
           cd docs
           make html
 
