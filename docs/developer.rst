@@ -3,7 +3,7 @@
 Developing docsteady
 ====================
 
-See also the `API docs<api/docsteady.html>__` 
+See also the :ref:`API docs <api/docsteady>` 
 
 .. _release_new_version:
 

@@ -57,4 +57,4 @@ linkcheck:
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 api: 
-	sphinx-apidoc   -a -o api ../
+	(cd ..; sphinx-apidoc   -a -o docs/api docsteady) 
