@@ -92,7 +92,8 @@ The generated file can be built directly into the corresponding pdf, however add
 - history\_and\_info.tex
 
 When creating the Git repository using ``sqrbot-jr``, all the required files should already be present.
-For more info on documents, change control and ``sqrbot-jr`` see `The dev guide<https://developer.lsst.io/project-docs/change-controlled-docs.html#ccd-create>`.
+For more info on documents, change control and ``sqrbot-jr`` see 
+`The dev guide<https://developer.lsst.io/project-docs/change-controlled-docs.html#ccd-create>`__.
 
 In case you want to generate a Test Plan and Report for a different subsystem, not DM, you can use the namespace global option::
 
