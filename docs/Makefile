@@ -57,4 +57,4 @@ linkcheck:
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 api: 
-	(cd ..; sphinx-apidoc   -a -o docs/api docsteady) 
+	(cd ..;export PYTHONPATH="."; sphinx-apidoc   -a -o docs/api docsteady) 
