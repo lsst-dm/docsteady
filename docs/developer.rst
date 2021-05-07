@@ -20,7 +20,7 @@ Releasing a new version
 3) on a different terminal activate the base conda env, where you  have anaconda installed, and you have logged in
        (You may need to anaconda login - credentials in 1password)
 
-4) copy and paste the anaconda upload command line proposed at the end of the build, and add --user lsst-dm:
+4) copy and paste the anaconda upload command line proposed at the end of the build, and add ``--user lsst-dm``:
        (otherwise it will be uploaded to the user logged in) e.g.
        ``` anaconda upload --user lsst-dm /usr/local/anaconda3/conda-bld/noarch/docsteady-2.0_0_gae9669c-py_0.tar.bz2 ```
 
