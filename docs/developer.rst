@@ -77,7 +77,10 @@ Two generic set of credentials to access the Jira REST API and the Jira database
 These credentials are available at ``1password.com``, in the LSST-IT architecture vault, but not yet integrated into docsteady.
 In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted, as specified in this technical note.
 
-For the githubaction these should be added as secrets in the organisation.
+For the VCD there is the option of running direct agaisn tthe DB in the 1password look for `Jira DataBase RO credentials`,
+the DB IP number is also in that enry.
+
+For the githubaction these should be added as secrets in the organisation. This has been done for PSE and DM. 
 
 
 
