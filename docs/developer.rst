@@ -3,7 +3,7 @@
 Developing docsteady
 ====================
 
-See also the :ref:`API docs <api/docsteady>` 
+See also the :doc:`API docs <api/docsteady>` 
 
 .. _release_new_version:
 
@@ -20,7 +20,7 @@ Releasing a new version
 3) on a different terminal activate the base conda env, where you  have anaconda installed, and you have logged in
        (You may need to anaconda login - credentials in 1password)
 
-4) copy and paste the anaconda upload command line proposed at the end of the build, and add --user lsst-dm:
+4) copy and paste the anaconda upload command line proposed at the end of the build, and add ``--user lsst-dm``:
        (otherwise it will be uploaded to the user logged in) e.g.
        ``` anaconda upload --user lsst-dm /usr/local/anaconda3/conda-bld/noarch/docsteady-2.0_0_gae9669c-py_0.tar.bz2 ```
 
@@ -77,7 +77,10 @@ Two generic set of credentials to access the Jira REST API and the Jira database
 These credentials are available at ``1password.com``, in the LSST-IT architecture vault, but not yet integrated into docsteady.
 In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted, as specified in this technical note.
 
-For the githubaction these should be added as secrets in the organisation.
+For the VCD, there is the option of running directly against the Jira database.
+In the 1password vault, the credentials and database IP address are under `Jira DataBase RO Credentials`.
+
+For the GitHub Action, the REST API credentials have been added as secrets in the GitHub organization for PSE and DM reports.
 
 
 
@@ -345,4 +348,3 @@ Cycle model
             description = MarkdownableHtmlPandocField(load_from='description')
             comment = MarkdownableHtmlPandocField(load_from='comment')
             status = fields.String(load_from='status')
-
