@@ -7,4 +7,3 @@ build
 .pytest_cache
 _build
 VCD
-docsteady.py

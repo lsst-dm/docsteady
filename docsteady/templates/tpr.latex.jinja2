@@ -374,7 +374,7 @@ Step {{ loop.index }} & Step Execution Status: \textbf{ {{ script_result['status
 {\footnotesize
 {{ script_result['description'] }}
 }
-      {% if 'example_code' in script_result.custom_field_values %}
+      {% if script_result.custom_field_values and 'example_code' in script_result.custom_field_values %}
 \hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
   Example Code \\
  {\footnotesize
