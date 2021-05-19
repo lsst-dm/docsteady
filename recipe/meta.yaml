@@ -29,7 +29,6 @@ requirements:
     - python 3.7
     - requests
     - setuptools_scm
-    - importlib
   run:
     - arrow
     - BeautifulSoup4
@@ -42,7 +41,6 @@ requirements:
     - pypandoc
     - python 3.7
     - requests
-    - importlib
 
 about:
   home: https://github.com/lsst-dm/docsteady
