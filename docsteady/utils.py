@@ -95,7 +95,7 @@ class MarkdownableHtmlPandocField(fields.String):
     def _deserialize(self, value, attr, data):
         if value and isinstance(value, str) and Config.TEMPLATE_LANGUAGE:
             # If it exists, look for markdown text
-            value = download_and_rewrite_images(value)
+            value = download_and_rewrite_images(value).replace('Â','')
             soup = BeautifulSoup(value, "html.parser")
             # normalizes HTML, replace breaks with newline, non-breaking spaces
             description_txt = str(soup).replace("<br/>", "\n").replace("\xa0", " ")
