@@ -151,8 +151,9 @@ def build_tpr_model(tplan_key):
     attachments = {}
 
     # get test plan information
-    # print("test Plan:", Config.TESTPLAN_URL.format(testplan=tplan_key))
-    resp = rs.get(Config.TESTPLAN_URL.format(testplan=tplan_key))
+    tplan_url = Config.TESTPLAN_URL.format(testplan=tplan_key)
+    # print("test Plan:", tplan_url)
+    resp = rs.get(tplan_url)
     resp.raise_for_status()
     testplan, errors = TestPlan().load(resp.json())
     if "document_id" not in testplan or testplan["document_id"] == "":
