@@ -74,7 +74,10 @@ class VerificationE(Schema):
         data["raw_upper_req"] = data_fields["customfield_13515"]
         data["raw_test_cases"] = data_fields["customfield_15106"]
         data["verified_by"] = self.extract_verified_by(data_fields)
-        data["req_doc_id"] = data_fields["customfield_14701"]["value"]
+        ref = data_fields["customfield_14701"]["value"]
+        if (":" in ref):
+            ref = ref.split(":")[0]
+        data["req_doc_id"] = ref
         return data
 
     def extract_verified_by(self, data_fields):
