@@ -26,7 +26,7 @@ following commands are available:
 * `generate-vcd`: to generate the Verification Control Documents
 * `baseline-ve`: to generate Verification Elements baseline documents.
 
-See [The docs](docsteady.lsst.io).
+See [the docsteady documentation](https://docsteady.lsst.io/).
 
 
 # Developers
