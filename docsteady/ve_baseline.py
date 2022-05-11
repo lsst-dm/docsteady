@@ -138,11 +138,9 @@ def get_ve_details(rs, key):
 
     # cache reqs
     if 'req_id' in ve_details.keys():
-        ve_long_name = ve_details['summary'].split(":")
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
         Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
-        #Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_long_name[0])
 
     # get component/subcomponent of verified_by
     if "verified_by" in ve_details.keys():
