@@ -104,7 +104,7 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(key.replace("LVV-", ""), end=".", flush=True)
+    print(f"get_ve_details for {key}", end=".", flush=True)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
@@ -141,7 +141,8 @@ def get_ve_details(rs, key):
         ve_long_name = ve_details['summary'].split(":")
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_long_name[0])
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+        #Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_long_name[0])
 
     # get component/subcomponent of verified_by
     if "verified_by" in ve_details.keys():
@@ -217,7 +218,7 @@ def do_ve_model(component, subcomponent):
     create_folders_and_files()
 
     print(f"Looking for all Verification Elements in component '{component}', "
-          "sub-component '{subcomponent}'.")
+          f"sub-component '{subcomponent}'.")
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
