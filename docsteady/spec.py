@@ -62,7 +62,10 @@ class TestStep(Schema):
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
-            string_value = custom_field["stringValue"]
+            if ("booleanValue" in custom_field.keys()):
+                string_value = custom_field["booleanValue"]
+            else:
+                string_value = custom_field["stringValue"]
             name = custom_field["customField"]["name"]
             name = name.lower().replace(" ", "_")
             data[name] = string_value
