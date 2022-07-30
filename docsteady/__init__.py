@@ -211,11 +211,11 @@ def generate_report(format, username, password, trace, plan, path):
                            testcycles=list(testcycles_map.values()),  # For convenience (sorted)
                            testcycles_map=testcycles_map,
                            testresults=[],  # no results lpan
-                           testresults_map={}, # no results for plan
+                           testresults_map={},  # no results for plan
                            attachments=plan_dict['attachments'],
                            testcases_map=testcases_map)
 
-    path = path.replace(".tex","plan.tex")
+    path = path.replace(".tex", "plan.tex")
     file = open(path, "w") if path else sys.stdout
     print(_as_output_format(text), file=file or sys.stdout)
 
