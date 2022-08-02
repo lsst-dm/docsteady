@@ -1,0 +1,348 @@
+{%- macro curlies(item) -%}
+{{ "{" }}{{ item }}{{ "}" }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro href(url, text) -%}
+\href{{ "{" }}{{ url|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}{{ "}" }}{{ curlies(text) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro tplan_href(tplan) -%}
+\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro tcycle_href(tcycle) -%}
+\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCycle/" ~ tcycle }}{{ "}" }}{{ curlies(tcycle) }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+{%- macro text2latex(text) -%}
+  {{ text|replace("#", "\\#")|replace("%", "\\%")|replace("_", "\\_") }}
+{%- endmacro -%}
+{# --------------------------------------------------------------------------------#}
+% generated from JIRA project {{ metadata.project }}
+% using template at {{ metadata.template }}.
+% using docsteady version {{ metadata.docsteady_version }}
+% Please do not edit -- update information in Jira instead
+{% set SYS = metadata.namespace|replace("&", "") %}
+\documentclass[{{ SYS }},lsstdraft,STR,toc]{lsstdoc}
+\usepackage{geometry}
+\usepackage{longtable,booktabs}
+\usepackage{enumitem}
+\usepackage{arydshln}
+\usepackage{attachfile}
+\usepackage{array}
+\usepackage{dashrule}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}{{ '}' }}p{{ '{' }}#1}{{ '}' }}
+
+\input meta.tex
+
+\newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/blob/\gitref/attachments}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\setcounter{tocdepth}{4}
+
+\begin{document}
+
+\def\milestoneName{{ '{' }}{{ testplan.milestone_name }}{{ '}' }}
+\def\milestoneId{{ '{' }}{{ testplan.milestone_id }}{{ '}' }}
+\def\product{{ '{' }}{{ testplan.product }}{{ '}' }}
+
+\setDocCompact{true}
+
+\title{{ '{' }}{{ testplan.doc_name }} Test Plan }
+\setDocRef{\lsstDocType-\lsstDocNum}
+\date{ {{ testplan['extract_date'] }} }
+\author{ {{ testplan['owner'] }} }
+
+\input{history_and_info.tex}
+
+
+\setDocAbstract{
+This is the test plan for
+\textbf{ {{ testplan.milestone_name }}}{% if testplan.milestone_id != "" %} ({{ testplan.milestone_id }}){% endif %},
+an LSST milestone pertaining to the {{ metadata.component_long_name }}.\\
+This document is based on content automatically extracted from the Jira test database on \docDate.
+The most recent change to the document repository was on \vcsDate.
+}
+
+
+\maketitle
+
+\section{Introduction}
+\label{sect:intro}
+
+
+\subsection{Objectives}
+\label{sect:objectives}
+
+{% if testplan['objective'] %}
+{{ testplan['objective'] }}
+{% else %}
+Test Plab Objective Not provided.
+{% endif %}
+
+{% for extraField in testplan['objective']['extraFields'] %}
+
+  \subsubsection{ {{ extraField['name']}} }
+  {{ extraField['content'] }}
+
+{% endfor %}
+
+\subsection{System Overview}
+\label{sect:systemoverview}
+
+{{ testplan['system_overview'] }}
+
+\subsection{Document Overview}
+\label{sect:docoverview}
+
+This document was generated from Jira, obtaining the relevant information from the
+{{ tplan_href(testplan['key']) }}
+~Jira Test Plan and related Test Cycles (
+{% for cycle in testcycles %}
+{{ tcycle_href(cycle.key) }}
+{% endfor %}
+).
+
+Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}),
+the applicable documentation, and explains how this document is organized.
+Section \ref{sect:testplan} provides additional information about the test plan, like for example the configuration
+used for this test or related documentation.
+Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
+
+Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary},
+an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+
+The current status of test plan {{ tplan_href(testplan['key']) }} in Jira is \textbf{ {{ testplan['status'] }} }.
+
+\subsection{References}
+\label{sect:references}
+\renewcommand{\refname}{}
+\bibliography{lsst,refs,books,refs_ads,local}
+
+
+\newpage
+\section{Test Plan Details}
+\label{sect:testplan}
+
+
+\subsection{Data Collection}
+
+{% if testplan.observing_required %}
+  Observing is required for this test campaign.
+{% else %}
+  Observing is not required for this test campaign.
+{% endif %}
+
+\subsection{Verification Environment}
+\label{sect:hwconf}
+{% if testplan.verification_environment %}
+  {{ testplan.verification_environment }}
+{% endif %}
+
+{% if testplan.entry_criteria %}
+  \subsection{Entry Criteria}
+  {{ testplan.entry_criteria }}
+{% endif %}
+
+{% if testplan.exit_criteria %}
+  \subsection{Exit Criteria}
+  {{ testplan.exit_criteria }}
+{% endif %}
+
+
+\subsection{Related Documentation}
+
+{% if testplan.verification_artifacts %}
+Docushare collection where additional relevant documentation can be found:
+
+\begin{itemize}
+\item {{ testplan.verification_artifacts }}
+\end{itemize}
+
+{% endif %}
+
+
+\subsection{PMCS Activity}
+
+Primavera milestones related to the test campaign:
+{% if testplan.pmcs_activity %}
+{{ testplan.pmcs_activity }}
+{% else %}
+  {% if testplan.milestone_id == "" %}
+\begin{itemize}
+\item None
+\end{itemize}
+  {% else %}
+\begin{itemize}
+\item {{ testplan.milestone_id }}
+\end{itemize}
+  {% endif %}
+{% endif %}
+
+
+\newpage
+\section{Personnel}
+\label{sect:personnel}
+
+The personnel involved in the test campaign is shown in the following table.
+
+{\small
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
+\hline
+\multicolumn{2}{r}{T. Plan {{ tplan_href(testplan.key) }} owner:} &
+\multicolumn{2}{l}{\textbf{ {{ testplan.owner }} } }\\\hline
+{% for cycle in testcycles %}
+\multicolumn{2}{r}{T. Cycle {{ tcycle_href(cycle.key) }} owner:} &
+\multicolumn{2}{l}{\textbf{
+  {% if cycle.owner %}{{ cycle.owner }} {% else %}Undefined {% endif %}
+}
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+  {% for test_item in cycle.test_items %}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+& {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small {{ testcases_map[test_item.test_case_key].test_personnel }} }
+\medskip
+\end{minipage}
+\\ \hline
+  {% endfor %}
+{% endfor %}
+\end{longtable}
+}
+
+\newpage
+
+\section{Test Campaign Overview}
+\label{sect:overview}
+
+\subsection{Summary}
+\label{sect:summarytable}
+
+{\small
+\begin{longtable}{p{2cm}cp{2.3cm}p{8.6cm}p{2.3cm}}
+\toprule
+\multicolumn{2}{r}{ T. Plan {{ tplan_href(testplan['key']) }}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ {{ testplan['name'] }} }} & {{ testplan['status'] }} \\\hline
+{% for cycle in testcycles %}
+\multicolumn{2}{r}{ T. Cycle {{ tcycle_href(cycle.key) }}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ {{ cycle.name }} }} & {{ cycle.status }} \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+  {% for test_item in testcycles_map[cycle.key].test_items %}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+&  {{ testcases_map[test_item.test_case_key].version }}
+\\
+  {% endfor %}
+\\\hline
+{% endfor %}
+\caption{Test Campaign Summary}
+\label{table:summary}
+\end{longtable}
+}
+
+\subsection{Overall Assessment}
+\label{sect:overallassessment}
+
+{% if testplan.overall_assessment %}
+{{ testplan.overall_assessment }}
+{% else %}
+Not yet available.
+{% endif %}
+
+\subsection{Recommended Improvements}
+\label{sect:recommendations}
+
+\newpage
+\section{Detailed Tests}
+\label{sect:detailedtests}
+
+{% for cycle in testcycles %}
+\subsection{Test Cycle {{ cycle.key }} }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
+
+Test Cycle name: {{ cycle.name }}\\
+Status: {{ cycle.status }}
+
+{{ cycle.description }}
+
+\subsubsection{Software Version/Baseline}
+  {% if cycle.software_version %}
+{{cycle.software_version}}
+  {% else %}
+Not provided.
+  {% endif %}
+
+\subsubsection{Configuration}
+  {% if cycle.configuration %}
+{{ cycle.configuration }}
+  {% else %}
+Not provided.
+  {% endif %}
+
+\subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
+
+  {% for test_item in testcycles_map[cycle.key].test_items %}
+\paragraph{ {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
+
+Version \textbf{{ "{" }}{{ testcases_map[ test_item['test_case_key'] ]['version'] }}{{ "}" }}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
+test case in Jira.
+
+{{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
+
+\textbf{ Preconditions}:\\
+{{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
+
+Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+
+
+Detailed steps :
+
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
+\begin{tabular}{p{2cm}}
+\toprule
+Step {{ loop.index }}  \\ \hline
+\end{tabular}
+ Description \\
+{\footnotesize
+{{ script_result['description'] }}
+}
+      {% if script_result.custom_field_values and 'example_code' in script_result.custom_field_values %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
+ {\footnotesize
+{{ script_result.custom_field_values.example_code }}
+}
+      {% endif %}
+      {% if script_result['testdata'] %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Test Data \\
+ {\footnotesize
+{{ script_result['testdata'] }}
+}
+      {% endif %}
+      {% if script_result['example_code'] %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
+{\footnotesize
+{{ script_result['example_code'] }}
+}
+      {% endif %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Expected Result \\
+{\footnotesize
+{{ script_result['expected_result'] }}
+}
+
+  {% endfor %}
+  {% endfor %}
+{% endfor %}
+
+
+\input{appendix.tex}
+\end{document}

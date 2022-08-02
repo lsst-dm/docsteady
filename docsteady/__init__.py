@@ -203,7 +203,25 @@ def generate_report(format, username, password, trace, plan, path):
 
     file = open(path, "w") if path else sys.stdout
     print(_as_output_format(text), file=file or sys.stdout)
+    if file != sys.stdout:
+        file.close()
+    # output the plan - TR without results
+    template = env.get_template(f"tpnoresult.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    metadata["template"] = template.filename
+    text = template.render(metadata=metadata,
+                           testplan=plan_dict['tplan'],
+                           testcycles=list(testcycles_map.values()),  # For convenience (sorted)
+                           testcycles_map=testcycles_map,
+                           testresults=list(testresults_map.values()),  # steps are in the results
+                           testresults_map=testresults_map,
+                           attachments=plan_dict['attachments'],
+                           testcases_map=testcases_map)
 
+    path = path.replace(".tex", "-plan.tex")
+    file = open(path, "w") if path else sys.stdout
+    print(_as_output_format(text), file=file or sys.stdout)
+    if file != sys.stdout:
+        file.close()
     if trace:
         # Will exit if it can't find a template
         appendix_template = _try_appendix_template(target, env)
