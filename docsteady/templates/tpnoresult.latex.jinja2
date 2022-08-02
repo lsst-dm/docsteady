@@ -298,6 +298,48 @@ test case in Jira.
 \textbf{ Preconditions}:\\
 {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
+Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+
+
+Detailed steps :
+
+    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
+\begin{tabular}{p{2cm}}
+\toprule
+Step {{ loop.index }}  \\ \hline
+\end{tabular}
+ Description \\
+{\footnotesize
+{{ script_result['description'] }}
+}
+      {% if script_result.custom_field_values and 'example_code' in script_result.custom_field_values %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
+ {\footnotesize
+{{ script_result.custom_field_values.example_code }}
+}
+      {% endif %}
+      {% if script_result['testdata'] %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Test Data \\
+ {\footnotesize
+{{ script_result['testdata'] }}
+}
+      {% endif %}
+      {% if script_result['example_code'] %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Example Code \\
+{\footnotesize
+{{ script_result['example_code'] }}
+}
+      {% endif %}
+\hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
+  Expected Result \\
+{\footnotesize
+{{ script_result['expected_result'] }}
+}
+
+  {% endfor %}
   {% endfor %}
 {% endfor %}
 
