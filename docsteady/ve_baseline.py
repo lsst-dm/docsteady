@@ -31,12 +31,16 @@ from .vcd import VerificationE
 from .spec import TestCase
 from .utils import create_folders_and_files
 
+# for dubuging we do not need the hundreads of verificaiton elements
+DOFEW = False
+FEWCOUNT = 3
+
 
 def get_testcase(rs, tckey):
     """
 
     :param rs:
-    :param key:
+    :param tckey:
     :return:
     """
     r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
@@ -104,7 +108,7 @@ def get_ve_details(rs, key):
     :return:
     """
 
-    print(f"get_ve_details for {key}", end=".", flush=True)
+    print(f"get_ve_details {key}", end=".", flush=True)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
@@ -173,6 +177,7 @@ def extract_ves(rs, cmp, subcmp):
     cmp = cmp.replace("&", "%26")
     # if subcomponents have & character, need to be encoded as above
     subcmp = subcmp.replace("&", "%26")
+    count = 0
 
     while True:
         if subcmp == "":
@@ -195,12 +200,17 @@ def extract_ves(rs, cmp, subcmp):
         totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
+            count = count + 1
+            if DOFEW and count >= FEWCOUNT:
+                break
         print("")
         startAt = startAt + max
         if startAt > totals:
             break
         else:
             print(f"[Found {startAt} VEs. Continuing...]")
+            if DOFEW and count >= FEWCOUNT:
+                break
 
     return ve_details
 
