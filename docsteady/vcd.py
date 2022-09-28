@@ -566,7 +566,7 @@ def do_req_coverage(ves, ve_coverage):
     vecount = Counter()
     for ve in ves:
         element = ve_coverage[ve]
-        # This implies there is only one VE per requirement which I htink is the case
+        # This implies there is only one VE per requirement (true for now)
         cover = element['coverage']
         vecount.update([cover])
     if vecount['WithFailures'] and vecount['WithFailures'] > 0:
@@ -588,7 +588,8 @@ def do_req_coverage(ves, ve_coverage):
 
 
 def find_vekey(reqname, ve_keys):
-    """ Look through the keys until we find the one my requirment starts with"""
+    """ Look through the keys until we find the one my requirment starts with
+    """
     for k in ve_keys:
         if k.startswith(reqname):
             return k
