@@ -65,7 +65,10 @@ class VerificationE(Schema):
         data["ve_status"] = data_fields["status"]["name"]
         if data_fields["priority"]:
             data["ve_priority"] = data_fields["priority"]["name"]
-        data["req_id"] = data_fields["customfield_15502"]
+        try:
+            data["req_id"] = data_fields["customfield_15502"]
+        except KeyError:
+            print(f'Failed to get req_id customfield_15502 for {data["key"]}')
         data["req_spec"] = data['renderedFields']["customfield_13513"]
         data["req_discussion"] = data['renderedFields']["customfield_13510"]
         if data_fields["customfield_15204"]:
@@ -425,7 +428,8 @@ def get_ves(comp):
                     tsum = vby[1].split(':')
                     vbytmp.append(tsum[0])
                     verifying_ves.append(str(vby[0]))
-                tmpve['verifiedby'] = vbytmp
+                tmpve['verified_by'] = vbytmp  # was without _ no idea how it worked a year earlier
+
             # get the parent requirement
             query = ("select cf.id, cf.cfname, cvf.textvalue, "
                      "(select customvalue from customfieldoption where id = cvf.stringvalue) "
@@ -553,6 +557,7 @@ def do_req_coverage(ves, ve_coverage):
     """
     Calculate the coverage level of a requirement
     based on the downstram verification elements.
+    :param myvreq: version requirement name
     :param ves:
     :param ve_coverage:
     :return:
@@ -560,7 +565,10 @@ def do_req_coverage(ves, ve_coverage):
     nves = len(ves)
     vecount = Counter()
     for ve in ves:
-        vecount.update([ve_coverage[ve]['coverage']])
+        element = ve_coverage[ve]
+        # This implies there is only one VE per requirement (true for now)
+        cover = element['coverage']
+        vecount.update([cover])
     if vecount['WithFailures'] and vecount['WithFailures'] > 0:
         rcoverage = "WithFailures"
     else:
@@ -579,13 +587,20 @@ def do_req_coverage(ves, ve_coverage):
     return rcoverage
 
 
+def find_vekey(reqname, ve_keys):
+    """ Look through the keys until we find the one my requirment starts with
+    """
+    for k in ve_keys:
+        if k.startswith(reqname):
+            return k
+
+
 def summary(dictionary):
     """generate and print summary information"""
     global veduplicated
     mtrs = dict()
 
     verification_elements = dictionary[0]
-
     reqs = dictionary[1]
 
     tcases = dictionary[3]
@@ -594,27 +609,28 @@ def summary(dictionary):
     mtrs['nv'] = len(verification_elements)
     mtrs['nt'] = len(tcases)
 
-    for req in dictionary[1].values():
+    for reqname, req in reqs.items():
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
-        # print('VE - KEYS ', dictionary[0].keys())
         for ve in req['VEs']:
-            if 'verifiedby' in dictionary[0][ve].keys():
+            keys = verification_elements[ve].keys()
+            verified_by = 'verified_by' in keys
+            if verified_by and verification_elements[ve]['verified_by']:
                 # I calculate the coverage looking at the test cases
                 # associated with the verifying VEs
                 vbytcs = dict()
-                for vby in dictionary[0][ve]['verifiedby']:
-                    if vby in dictionary[0].keys():
-                        vbytcs.update(dictionary[0][vby]['tcs'])
+                for vby in verification_elements[ve]['verified_by']:
+                    if verification_elements[ve]['tcs']:
+                        vbytcs.update(verification_elements[ve]['tcs'])
                     else:
                         print(f'Tests not found for {vby} verifying {ve}.')
                 vcoverage = do_ve_coverage(vbytcs, dictionary[3])
             else:
-                vcoverage = do_ve_coverage(dictionary[0][ve]['tcs'], dictionary[3])
+                vcoverage = do_ve_coverage(verification_elements[ve]['tcs'], tcases)
             Config.VE_STATUS_COUNT.update([vcoverage])
-            dictionary[0][ve]['coverage'] = vcoverage
+            verification_elements[ve]['coverage'] = vcoverage
         # Calculating the requirement coverage based on the VE coverage
-        rcoverage = do_req_coverage(req['VEs'], dictionary[0])
+        rcoverage = do_req_coverage(req['VEs'], verification_elements)
         Config.REQ_STATUS_COUNT.update([rcoverage])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + ".zAll." + rcoverage])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"] + "." + req["priority"] + "." + rcoverage])

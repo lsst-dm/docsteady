@@ -368,7 +368,16 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec,
             if 'req_doc_id' in ve_model[ve].keys():
                 req_dict[ve_model[ve]['req_id']]['reqDoc'] = ve_model[ve]['req_doc_id']
             ve_dict[ve_long_name[0]] = tmp_ve
-        vcd_dict = [ve_dict, req_dict, [], Config.CACHED_TESTCASES]
+        # Not sure why the ve_dict is keyed on Requirement with a version -
+        # everything wants verificaiton element so remaking it (wom)
+        # vee_dict will be all VEs keyed on verification element
+        # ve_dict remains keyed on versioned requirement.
+        vee_dict = {}
+        for vreq, elem in ve_dict.items():
+            lvv = elem['jkey']
+            vee_dict[lvv] = elem
+        # now keyed on verification element it should work in jinga
+        vcd_dict = [vee_dict, req_dict, [], Config.CACHED_TESTCASES]
         # creating the lookup Specs to Reqs
         for req, values in req_dict.items():
             if values['reqDoc'] not in Config.REQ_PER_DOC.keys():
