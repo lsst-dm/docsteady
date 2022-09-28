@@ -428,7 +428,7 @@ def get_ves(comp):
                     tsum = vby[1].split(':')
                     vbytmp.append(tsum[0])
                     verifying_ves.append(str(vby[0]))
-                tmpve['verified_by'] = vbytmp  # was without _
+                tmpve['verified_by'] = vbytmp  # was without _ no idea how it worked a year earlier
 
             # get the parent requirement
             query = ("select cf.id, cf.cfname, cvf.textvalue, "
@@ -566,7 +566,7 @@ def do_req_coverage(ves, ve_coverage):
     vecount = Counter()
     for ve in ves:
         element = ve_coverage[ve]
-        # there is only one VE per requirement ?
+        # This implies there is only one VE per requirement which I htink is the case
         cover = element['coverage']
         vecount.update([cover])
     if vecount['WithFailures'] and vecount['WithFailures'] > 0:
@@ -588,7 +588,7 @@ def do_req_coverage(ves, ve_coverage):
 
 
 def find_vekey(reqname, ve_keys):
-    """ Look thorugh the keys until i find the one my equiement starts with"""
+    """ Look through the keys until we find the one my requirment starts with"""
     for k in ve_keys:
         if k.startswith(reqname):
             return k
@@ -611,7 +611,6 @@ def summary(dictionary):
     for reqname, req in reqs.items():
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]])
         Config.REQ_STATUS_PER_DOC_COUNT.update([req["reqDoc"]+"."+req["priority"]])
-        # all this had verifiedby no _
         for ve in req['VEs']:
             keys = verification_elements[ve].keys()
             verified_by = 'verified_by' in keys
