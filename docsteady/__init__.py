@@ -369,7 +369,7 @@ def generate_vcd(format, jiradb, vcduser, vcdpwd, username, password, sql, spec,
                 req_dict[ve_model[ve]['req_id']]['reqDoc'] = ve_model[ve]['req_doc_id']
             ve_dict[ve_long_name[0]] = tmp_ve
         # Not sure why the ve_dict is keyed on Requirement with a version -
-        # everying wants verificaiton element do remaking it (wom)
+        # everying wants verificaiton element so remaking it (wom)
         vee_dict = {}
         for vreq, elem in ve_dict.items():
             lvv = elem['jkey']
