@@ -152,7 +152,8 @@ class TestResult(Schema):
     def postprocess(self, data):
         data['issues'] = self.process_issues(data)
         # Force Sort script results after loading
-        data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
+        # if the results are sorted here all the step1s bunch etc .. giving an odd report
+        # data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
         return data
 
     def process_issues(self, data):

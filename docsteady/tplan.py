@@ -70,6 +70,7 @@ class TestPlan(Schema):
     recommended_improvements = HtmlPandocField()
     document_id = fields.String()
     extract_date = fields.String()
+
     # Note: Add More custom fields above here
     # (and don't forget preprocess_plan)
 
@@ -126,8 +127,35 @@ class TestPlan(Schema):
         return data
 
 
-def build_tpr_model(tplan_key):
+def labelResults(result):
+    # The results index is not unqique - if there are multiple parameters the
+    # script repeats each step  for each set of parameters (think multiple pointings)
+    # Previously this was sorted on index which works for one run but not for multiples.
+    # We have to assume order is preserved but reading it is hard.
+    # Jira does not number them 1.1 1.2 etc . but based on the order we could label them
+    do_level = False
+    step0 = 0
+    # first see if we have multiple step 0s
+    for r in result['script_results']:
+        if r['index'] == 0:
+            step0 = step0 + 1
+        if step0 > 1:
+            do_level = True
+            break
 
+    level = 0
+    for i, r in enumerate(result['script_results']):
+        if r['index'] == 0:
+            level = level + 1
+        if do_level:
+            r['label'] = level + r['index'] / 10.0
+        else:
+            r['label'] = r['index'] + 1
+
+    pass
+
+
+def build_tpr_model(tplan_key):
     # create folders for images and attachments if not already there
     create_folders_and_files()
 
@@ -183,7 +211,9 @@ def build_tpr_model(tplan_key):
             # print(result['key'], result['id'])
             if result["status"] != "Not Executed" or \
                     result['test_case_key'] not in test_results_map[cycle_key]:
-                result['sorted'] = sorted(result['script_results'], key=lambda step: step["index"])
+                # Jira does not number them 1.1 1.2 etc .. perhpas we should?
+                labelResults(result)
+                result['sorted'] = sorted(result['script_results'], key=lambda step: step["label"])
                 test_results_map[cycle_key][result['test_case_key']] = result
                 attachments['results'][result['id']] = \
                     download_attachments(rs, Config.TESTRESULT_ATTACHMENTS.format(result_ID=result['id']))
