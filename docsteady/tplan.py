@@ -129,10 +129,12 @@ class TestPlan(Schema):
 
 def labelResults(result):
     # The results index is not unqique - if there are multiple parameters the
-    # script repeats each step  for each set of parameters (think multiple pointings)
-    # Previously this was sorted on index which works for one run but not for multiples.
-    # We have to assume order is preserved but reading it is hard.
-    # Jira does not number them 1.1 1.2 etc . but based on the order we could label them
+    # script repeats each step  for each set of parameters
+    # (think multiple pointings)
+    # Previously this was sorted on index which works for one run
+    # but not for multiples.
+    # Jira does not number them 1.1 1.2 etc .
+    # but based on the order we label them like that
     do_level = False
     step0 = 0
     # first see if we have multiple step 0s
@@ -148,7 +150,7 @@ def labelResults(result):
         if r['index'] == 0:
             level = level + 1
         if do_level:
-            r['label'] = level + r['index'] / 10.0
+            r['label'] = level + (r['index'] + 1) / 10.0
         else:
             r['label'] = r['index'] + 1
 
@@ -211,7 +213,7 @@ def build_tpr_model(tplan_key):
             # print(result['key'], result['id'])
             if result["status"] != "Not Executed" or \
                     result['test_case_key'] not in test_results_map[cycle_key]:
-                # Jira does not number them 1.1 1.2 etc .. perhpas we should?
+                # Jira does not number them 1.1 1.2 etc
                 labelResults(result)
                 result['sorted'] = sorted(result['script_results'], key=lambda step: step["label"])
                 test_results_map[cycle_key][result['test_case_key']] = result
@@ -233,11 +235,7 @@ def build_tpr_model(tplan_key):
     attachments['n_attachments'] = n_attachments
 
     # print(attachments)
-    tpr = {}
-    tpr['tplan'] = testplan
-    tpr['test_cycles_map'] = test_cycles_map
-    tpr['test_results_map'] = test_results_map
-    tpr['test_cases_map'] = test_cases_map
-    tpr['attachments'] = attachments
+    tpr = {'tplan': testplan, 'test_cycles_map': test_cycles_map, 'test_results_map': test_results_map,
+           'test_cases_map': test_cases_map, 'attachments': attachments}
 
     return tpr
