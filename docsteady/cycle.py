@@ -141,7 +141,7 @@ class TestResult(Schema):
     user = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="userKey")
     status = fields.String(load_from='status', required=True)
     # These fields are not used at the moment,
-    # but may be we need them in the future
+    # but maybe we need them in the future
     # automated = fields.Boolean(required=True)
     # environment = fields.String()
     # execution_time = fields.Integer(load_from='executionTime', required=True)
@@ -151,8 +151,6 @@ class TestResult(Schema):
     @post_load
     def postprocess(self, data):
         data['issues'] = self.process_issues(data)
-        # Force Sort script results after loading
-        data['script_results'] = sorted(data["script_results"], key=lambda step: step["index"])
         return data
 
     def process_issues(self, data):

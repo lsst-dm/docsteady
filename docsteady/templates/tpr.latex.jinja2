@@ -31,6 +31,7 @@
 \usepackage{attachfile}
 \usepackage{array}
 \usepackage{dashrule}
+\usepackage{pdfpages}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}{{ '}' }}p{{ '{' }}#1}{{ '}' }}
 
@@ -369,7 +370,7 @@ Detailed steps results:
     {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
 \begin{tabular}{p{2cm}p{14cm}}
 \toprule
-Step {{ loop.index }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
+Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
 \end{tabular}
  Description \\
 {\footnotesize
