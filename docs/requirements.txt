@@ -1,4 +1,5 @@
 documenteer>=0.6
-sphinx-rtd-theme==0.2.4
+sphinx-rtd-theme
 sphinx-prompt
 docsteady
+ltd-conveyor
