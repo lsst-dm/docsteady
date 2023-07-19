@@ -92,7 +92,7 @@ skip = ["docs/conf.py"]
 # enables magical assert processing (showing a full diff on assert failures
 # with complex data structures rather than only the assert message) in files
 # listed in python_files.
-python_files = ["tests/*.py", "tests/*/*.py"]
+python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"]
 
 [tool.mypy]
 disallow_untyped_defs = true

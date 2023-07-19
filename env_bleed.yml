@@ -6,9 +6,9 @@ dependencies:
   - BeautifulSoup4
   - click
   - jinja2
-  - marshmallow 
+  - marshmallow
   - pillow
-  - pandoc 
+  - pandoc
   - pymysql
   - pypandoc
   - python 3.11

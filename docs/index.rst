@@ -14,6 +14,6 @@ See :dmtn:`140` for a high level overview of the process and the logic implement
    tprsqrbot
    install
    execution
-   githubaction   
+   githubaction
    developer
    api/modules
