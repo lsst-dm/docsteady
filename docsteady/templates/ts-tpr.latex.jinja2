@@ -70,7 +70,7 @@ This is the test plan and report for \milestoneId{} (\milestoneName{}), an LSST 
 \subsection{Document Overview}
 \label{sect:docoverview}
 
-This document was generated from Jira, obtaining the relevant information from the 
+This document was generated from Jira, obtaining the relevant information from the
 \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testPlan/{{ testplan['key'] }}{{ '}' }}{{ '{' }}{{ testplan['key'] }}{{ '}' }}
 ~Jira Test Plan and related Test Cycles (
 {% for cycle in testcycles %}
@@ -134,7 +134,7 @@ The following personnel are involved in this test activity:
 \item Test Cycles:
 \begin{itemize}
 {% for cycle in testcycles %}
-  \item {{ cycle.key }} owner: 
+  \item {{ cycle.key }} owner:
   {% if cycle.owner %}
     {{ cycle.owner }}
   {% else %}
@@ -164,7 +164,7 @@ The following personnel are involved in this test activity:
   \multicolumn{3}{c}{ Test Cycle {\bf {{ cycle.key }}: {{ cycle.name }} }} \\\hline
   {\bf \footnotesize test case} & {\bf \footnotesize status} & {\bf \footnotesize comment} & {\bf \footnotesize issues} \\\toprule
   {% for test_result in testresults_map[cycle.key] %}
-    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }} 
+    \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_result['test_case_key'] }}{{ '}' }}{{ '{' }}{{ test_result['test_case_key'] }}{{ '}' }}
     & {{ test_result['status'] }} & {{ test_result['comment'] }} &
     {% for issue_key in test_result['result_issue_keys'] %}
       \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
@@ -267,7 +267,7 @@ test case in Jira.
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      & Expected Result & 
+      & Expected Result &
 
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ script_result['expected_result'] }}
@@ -275,7 +275,7 @@ test case in Jira.
       } \end{minipage} \\
       \\ \cdashline{2-3}
 
-      & \begin{minipage}[t]{2cm}{Actual\\ Result}\end{minipage}   & 
+      & \begin{minipage}[t]{2cm}{Actual\\ Result}\end{minipage}   &
       \begin{minipage}[t]{13cm}{\footnotesize
       {{ script_result['comment'] }}
       \vspace{\dp0}
