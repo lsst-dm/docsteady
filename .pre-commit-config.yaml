@@ -21,3 +21,6 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
+        ignore: E203, W503
+        exclude: docs/conf.py
+

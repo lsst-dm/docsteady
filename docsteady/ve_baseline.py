@@ -22,14 +22,15 @@
 Subroutines required to baseline the Verification Elements
 """
 
-import requests
 import re
 from base64 import b64encode
 
+import requests
+
 from .config import Config
-from .vcd import VerificationE
 from .spec import TestCase
 from .utils import create_folders_and_files
+from .vcd import VerificationE
 
 # for dubuging we do not need the hundreads of verificaiton elements
 DOFEW = False
@@ -57,45 +58,51 @@ def get_testcase(rs, tckey):
         r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
         if r_tc_results.status_code == 200:
             jtc_res = r_tc_results.json()
-            tc_results['key'] = jtc_res['key']
-            if jtc_res['status'] == 'Pass':
-                tc_results['status'] = 'passed'
-            elif jtc_res['status'] == "Fail":
-                tc_results['status'] = 'failed'
-            elif jtc_res['status'] == "Blocked":
-                tc_results['status'] = 'blocked'
-            elif jtc_res['status'] == "Pass w/ Deviation":
-                tc_results['status'] = 'cndpass'
+            tc_results["key"] = jtc_res["key"]
+            if jtc_res["status"] == "Pass":
+                tc_results["status"] = "passed"
+            elif jtc_res["status"] == "Fail":
+                tc_results["status"] = "failed"
+            elif jtc_res["status"] == "Blocked":
+                tc_results["status"] = "blocked"
+            elif jtc_res["status"] == "Pass w/ Deviation":
+                tc_results["status"] = "cndpass"
             else:
-                tc_results['status'] = 'notexec'
-            if 'executionDate' in jtc_res.keys():
-                tc_results['exdate'] = jtc_res['executionDate'][0:10]
-            r_tp_key = rs.get(Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res['key']))
+                tc_results["status"] = "notexec"
+            if "executionDate" in jtc_res.keys():
+                tc_results["exdate"] = jtc_res["executionDate"][0:10]
+            r_tp_key = rs.get(
+                Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res["key"])
+            )
             if r_tp_key.status_code == 200:
                 jtp_key = r_tp_key.json()
-                if 'testPlan' in jtp_key["testRun"].keys():
-                    tc_results['tplan'] = jtp_key["testRun"]["testPlan"]["key"]
+                if "testPlan" in jtp_key["testRun"].keys():
+                    tc_results["tplan"] = jtp_key["testRun"]["testPlan"]["key"]
                 else:
-                    tc_results['tplan'] = ""
+                    tc_results["tplan"] = ""
             else:
-                tc_results['tplan'] = ""
-            tc_results['tcycle'] = jtp_key["testRun"]["key"]
-            if tc_results['tplan'] and tc_results['tplan'] != "":
-                r_tp_dets = rs.get(Config.TESTPLAN_URL.format(testplan=tc_results['tplan']))
+                tc_results["tplan"] = ""
+            tc_results["tcycle"] = jtp_key["testRun"]["key"]
+            if tc_results["tplan"] and tc_results["tplan"] != "":
+                r_tp_dets = rs.get(
+                    Config.TESTPLAN_URL.format(testplan=tc_results["tplan"])
+                )
                 if r_tp_dets.status_code == 200:
                     jtp_dets = r_tp_dets.json()
                     if "Document ID" in jtp_dets["customFields"].keys():
-                        tc_results['TPR'] = jtp_dets["customFields"]["Document ID"]
+                        tc_results["TPR"] = jtp_dets["customFields"][
+                            "Document ID"
+                        ]
                     else:
-                        tc_results['TPR'] = ""
+                        tc_results["TPR"] = ""
                 else:
-                    tc_results['TPR'] = ""
+                    tc_results["TPR"] = ""
             else:
-                tc_results['TPR'] = ""
+                tc_results["TPR"] = ""
         else:
             tc_results = None
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
-        tc_details['lastR'] = tc_results
+        tc_details["lastR"] = tc_results
 
     return tc_details
 
@@ -127,35 +134,41 @@ def get_ve_details(rs, key):
                     tc_split[1] = tc_split[1].strip().replace("\n", " ")
                     ve_details["test_cases"].append(tc_split)
                     if tc_split[0] not in Config.CACHED_TESTCASES:
-                        Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(rs, tc_split[0])
+                        Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(
+                            rs, tc_split[0]
+                        )
     # populate upper level reqs from raw_upper_reqs
     if "raw_upper_req" in ve_details.keys():
         if ve_details["raw_upper_req"] != "":
-            ureqs = ve_details["raw_upper_req"].split(',\n')
+            ureqs = ve_details["raw_upper_req"].split(",\n")
             for ur in ureqs:
-                urs = ur.split('textbar')
-                u_id = urs[0].lstrip(r'\{\[\}.- ').rstrip('\\')
-                urs = ur.split(':\n')
-                u_sum = urs[1].strip().strip('{]}').lstrip('0123456789.- ')
+                urs = ur.split("textbar")
+                u_id = urs[0].lstrip(r"\{\[\}.- ").rstrip("\\")
+                urs = ur.split(":\n")
+                u_sum = urs[1].strip().strip("{]}").lstrip("0123456789.- ")
                 upper = (u_id, u_sum)
                 ve_details["upper_reqs"].append(upper)
 
     # cache reqs
-    if 'req_id' in ve_details.keys():
+    if "req_id" in ve_details.keys():
         if ve_details["req_id"] not in Config.CACHED_REQS_FOR_VES:
             Config.CACHED_REQS_FOR_VES[ve_details["req_id"]] = []
-        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(ve_details["key"])
+        Config.CACHED_REQS_FOR_VES[ve_details["req_id"]].append(
+            ve_details["key"]
+        )
 
     # get component/subcomponent of verified_by
     if "verified_by" in ve_details.keys():
-        for vby in ve_details['verified_by'].keys():
+        for vby in ve_details["verified_by"].keys():
             vby_cmp_raw = rs.get(Config.GET_ISSUE_COMPONENT.format(issue=vby))
             jvby_cmp_raw = vby_cmp_raw.json()
-            ve_details['verified_by'][vby]['component'] = jvby_cmp_raw['fields']['components'][0]['name']
-            if 'customfield_15001' in jvby_cmp_raw['fields'].keys():
-                if jvby_cmp_raw['fields']['customfield_15001']:
-                    tmp = jvby_cmp_raw['fields']['customfield_15001']['value']
-                    ve_details['verified_by'][vby]['subcomponent'] = tmp
+            ve_details["verified_by"][vby]["component"] = jvby_cmp_raw[
+                "fields"
+            ]["components"][0]["name"]
+            if "customfield_15001" in jvby_cmp_raw["fields"].keys():
+                if jvby_cmp_raw["fields"]["customfield_15001"]:
+                    tmp = jvby_cmp_raw["fields"]["customfield_15001"]["value"]
+                    ve_details["verified_by"][vby]["subcomponent"] = tmp
 
     return ve_details
 
@@ -182,13 +195,25 @@ def extract_ves(rs, cmp, subcmp):
     while True:
         if subcmp == "":
             # get all VEs for a given Component
-            result = rs.get(Config.VE_COMPONENT_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+            result = rs.get(
+                Config.VE_COMPONENT_URL.format(
+                    cmpnt=cmp, maxR=max, startAt=startAt
+                )
+            )
         elif subcmp == "None":
             # get all VEs without SubComponet assigned, for a given Component
-            result = rs.get(Config.VE_NULLSUBCMP_URL.format(cmpnt=cmp, maxR=max, startAt=startAt))
+            result = rs.get(
+                Config.VE_NULLSUBCMP_URL.format(
+                    cmpnt=cmp, maxR=max, startAt=startAt
+                )
+            )
         else:
             # get all VES for given Component/SubComponent
-            result = rs.get(Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt))
+            result = rs.get(
+                Config.VE_SUBCMP_URL.format(
+                    cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt
+                )
+            )
         if result.status_code in [401, 403]:  # Forbidden
             print("Wrong password ? Access denied to " + result.url)
             exit(2)
@@ -225,15 +250,17 @@ def do_ve_model(component, subcomponent):
     # create folders for images and attachments if not already there
     create_folders_and_files()
 
-    print(f"Looking for all Verification Elements in component '{component}', "
-          f"sub-component '{subcomponent}'.")
+    print(
+        f"Looking for all Verification Elements in component '{component}', "
+        f"sub-component '{subcomponent}'."
+    )
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
     headers = {
-        'accept': 'application/json',
-        'authorization': 'Basic %s' % connection_str,
-        'Connection': 'close'
+        "accept": "application/json",
+        "authorization": "Basic %s" % connection_str,
+        "Connection": "close",
     }
 
     rs = requests.Session()

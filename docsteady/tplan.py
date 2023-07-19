@@ -21,16 +21,23 @@
 """
 Code for Test Report (Run) Model Generation
 """
+import datetime
+from base64 import b64encode
+
 import requests
 from marshmallow import Schema, fields, pre_load
-from base64 import b64encode
-import datetime
 
+from .config import Config
 from .cycle import TestCycle, TestResult
 from .spec import TestCase
-from .utils import owner_for_id, as_arrow, HtmlPandocField, SubsectionableHtmlPandocField, \
-    create_folders_and_files, download_attachments
-from .config import Config
+from .utils import (
+    HtmlPandocField,
+    SubsectionableHtmlPandocField,
+    as_arrow,
+    create_folders_and_files,
+    download_attachments,
+    owner_for_id,
+)
 
 
 class TestPlan(Schema):
@@ -41,11 +48,17 @@ class TestPlan(Schema):
     objective = SubsectionableHtmlPandocField(extractable=["scope"])
     status = fields.String(required=True)
     folder = fields.String(required=True)
-    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
-    updated_on = fields.Function(deserialize=lambda o: as_arrow(o['updatedOn']))
+    created_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["createdOn"])
+    )
+    updated_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["updatedOn"])
+    )
     owner_id = fields.String(load_from="owner", required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
-    created_by = fields.Function(deserialize=lambda obj: owner_for_id(obj), load_from="createdBy")
+    created_by = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), load_from="createdBy"
+    )
     custom_fields = fields.Dict(load_from="customFields")
 
     # See preprocess_plan function for this. It's really nested, but we
@@ -59,7 +72,9 @@ class TestPlan(Schema):
     doc_name = HtmlPandocField()
 
     # custom fields
-    system_overview = SubsectionableHtmlPandocField(extractable=["applicable_documents"])
+    system_overview = SubsectionableHtmlPandocField(
+        extractable=["applicable_documents"]
+    )
     verification_environment = HtmlPandocField()
     entry_criteria = HtmlPandocField()
     exit_criteria = HtmlPandocField()
@@ -104,23 +119,27 @@ class TestPlan(Schema):
             _set_if("overall_assessment", "Overall Assessment")
             _set_if("recommended_improvements", "Recommended Improvements")
             _set_if("document_id", "Document ID")
-            data['extract_date'] = datetime.date.today().isoformat()
+            data["extract_date"] = datetime.date.today().isoformat()
             # Note: Add More custom fields above here
 
         # Derived fields
         # Extract milestone information
-        sname = data['name'].split(":")
-        if len(sname) == 1:
-            data['milestone_id'] = ""
-            data['milestone_name'] = data['name'].strip()
-            data['doc_name'] = data['key'] + ": " + data['name'].strip()
+        sname = data["name"].split(":")
+        if len(sname) != 1:
+            data["milestone_id"] = sname[0]
+            data["milestone_name"] = (
+                data["name"].replace(sname[0], "").replace(":", "").strip()
+            )
+            data["doc_name"] = (
+                data["milestone_id"] + ": " + data["milestone_name"]
+            )
         else:
-            data['milestone_id'] = sname[0]
-            data['milestone_name'] = data['name'].replace(sname[0], '').replace(":", "").strip()
-            data['doc_name'] = data['milestone_id'] + ": " + data['milestone_name']
+            data["milestone_id"] = ""
+            data["milestone_name"] = data["name"].strip()
+            data["doc_name"] = data["key"] + ": " + data["name"].strip()
 
         # Product
-        data['product'] = data['folder'].split('/')[-1]
+        data["product"] = data["folder"].split("/")[-1]
 
         # Flatten out testRuns
         data["cycles"] = [cycle["key"] for cycle in data["testRuns"]]
@@ -138,21 +157,21 @@ def labelResults(result):
     do_level = False
     step0 = 0
     # first see if we have multiple step 0s
-    for r in result['script_results']:
-        if r['index'] == 0:
+    for r in result["script_results"]:
+        if r["index"] == 0:
             step0 = step0 + 1
         if step0 > 1:
             do_level = True
             break
 
     level = 0
-    for i, r in enumerate(result['script_results']):
-        if r['index'] == 0:
+    for i, r in enumerate(result["script_results"]):
+        if r["index"] == 0:
             level = level + 1
         if do_level:
-            r['label'] = level + (r['index'] + 1) / 10.0
+            r["label"] = level + (r["index"] + 1) / 10.0
         else:
-            r['label'] = r['index'] + 1
+            r["label"] = r["index"] + 1
 
     pass
 
@@ -168,9 +187,9 @@ def build_tpr_model(tplan_key):
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
     headers = {
-        'accept': 'application/json',
-        'authorization': 'Basic %s' % connection_str,
-        'Connection': 'close'
+        "accept": "application/json",
+        "authorization": "Basic %s" % connection_str,
+        "Connection": "close",
     }
     rs = requests.Session()
     rs.headers = headers
@@ -187,55 +206,81 @@ def build_tpr_model(tplan_key):
     resp.raise_for_status()
     testplan, errors = TestPlan().load(resp.json())
     if "document_id" not in testplan or testplan["document_id"] == "":
-        print(f"ERROR: Document ID missing in {tplan_key}. "
-              f"Please complete the metadata before proceeding with the extraction.")
+        print(
+            f"ERROR: Document ID missing in {tplan_key}. "
+            f"Please complete the metadata before proceeding with the extraction."
+        )
         exit()
-    attachments[tplan_key] = download_attachments(rs, Config.TESTPLAN_ATTACHMENTS.format(tplan_KEY=tplan_key))
+    attachments[tplan_key] = download_attachments(
+        rs, Config.TESTPLAN_ATTACHMENTS.format(tplan_KEY=tplan_key)
+    )
     n_attachments = len(attachments[tplan_key])
 
     # get test cycles and results information
-    attachments['cycles'] = dict()
-    attachments['results'] = dict()
-    for cycle_key in testplan['cycles']:
+    attachments["cycles"] = dict()
+    attachments["results"] = dict()
+    for cycle_key in testplan["cycles"]:
         # print("Test Cycle:", Config.TESTCYCLE_URL.format(testrun=cycle_key))
         resp = rs.get(Config.TESTCYCLE_URL.format(testrun=cycle_key))
         test_cycle, error = TestCycle().load(resp.json())
         test_cycles_map[cycle_key] = test_cycle
-        attachments['cycles'][cycle_key] = \
-            download_attachments(rs, Config.TESTCYCLE_ATTACHMENTS.format(tcycle_KEY=cycle_key))
-        n_attachments = n_attachments + len(attachments['cycles'][cycle_key])
+        attachments["cycles"][cycle_key] = download_attachments(
+            rs, Config.TESTCYCLE_ATTACHMENTS.format(tcycle_KEY=cycle_key)
+        )
+        n_attachments = n_attachments + len(attachments["cycles"][cycle_key])
 
         resp = rs.get(Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp.raise_for_status()
         testresults, errors = TestResult().load(resp.json(), many=True)
         test_results_map[cycle_key] = {}
         for result in testresults:
+            # Jira does not number them 1.1 1.2 etc
+            if (
+                result["status"] == "Not Executed"
+                and result["test_case_key"] in test_results_map[cycle_key]
+            ):
+                continue
             # print(result['key'], result['id'])
-            if result["status"] != "Not Executed" or \
-                    result['test_case_key'] not in test_results_map[cycle_key]:
-                # Jira does not number them 1.1 1.2 etc
-                labelResults(result)
-                result['sorted'] = sorted(result['script_results'], key=lambda step: step["label"])
-                test_results_map[cycle_key][result['test_case_key']] = result
-                attachments['results'][result['id']] = \
-                    download_attachments(rs, Config.TESTRESULT_ATTACHMENTS.format(result_ID=result['id']))
-                n_attachments = n_attachments + len(attachments['results'][result['id']])
+            labelResults(result)
+            result["sorted"] = sorted(
+                result["script_results"], key=lambda step: step["label"]
+            )
+            test_results_map[cycle_key][result["test_case_key"]] = result
+            attachments["results"][result["id"]] = download_attachments(
+                rs,
+                Config.TESTRESULT_ATTACHMENTS.format(result_ID=result["id"]),
+            )
+            n_attachments = n_attachments + len(
+                attachments["results"][result["id"]]
+            )
 
         # Get all the test cases from the test items
-        for test_item in test_cycle['test_items']:
-            if test_item['test_case_key'] not in test_cases_map.keys():
-                resp = rs.get(Config.TESTCASE_URL.format(testcase=test_item['test_case_key']))
+        for test_item in test_cycle["test_items"]:
+            if test_item["test_case_key"] not in test_cases_map.keys():
+                resp = rs.get(
+                    Config.TESTCASE_URL.format(
+                        testcase=test_item["test_case_key"]
+                    )
+                )
                 if resp.status_code == 200:
                     testcase, errors = TestCase().load(resp.json())
                 else:
-                    testcase = {'objective': 'This Test Case has been archived. '
-                                             'Information here may not completed.',
-                                'key': test_item['test_case_key'], 'status': 'ARCHIVED'}
-                test_cases_map[test_item['test_case_key']] = testcase
-    attachments['n_attachments'] = n_attachments
+                    testcase = {
+                        "objective": "This Test Case has been archived. "
+                        "Information here may not completed.",
+                        "key": test_item["test_case_key"],
+                        "status": "ARCHIVED",
+                    }
+                test_cases_map[test_item["test_case_key"]] = testcase
+    attachments["n_attachments"] = n_attachments
 
     # print(attachments)
-    tpr = {'tplan': testplan, 'test_cycles_map': test_cycles_map, 'test_results_map': test_results_map,
-           'test_cases_map': test_cases_map, 'attachments': attachments}
+    tpr = {
+        "tplan": testplan,
+        "test_cycles_map": test_cycles_map,
+        "test_results_map": test_results_map,
+        "test_cases_map": test_cases_map,
+        "attachments": attachments,
+    }
 
     return tpr

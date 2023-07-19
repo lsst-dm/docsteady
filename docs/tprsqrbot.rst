@@ -16,10 +16,10 @@ the corresponding document handle has to be added in the ``Document ID`` field i
 
 Document Handle
 ---------------
-All test report handles are allocated by docushare. 
-There is no API for docushare so you have to log in and create the appropriate 
-placeholder document to get the handle. 
-If you do not have privileges to create a document in docushare ask Rob McKercher. 
+All test report handles are allocated by docushare.
+There is no API for docushare so you have to log in and create the appropriate
+placeholder document to get the handle.
+If you do not have privileges to create a document in docushare ask Rob McKercher.
 
 
 .. _sqrbot_jr:
@@ -31,10 +31,10 @@ In SLACK start a chat with @sqrbot-jr. Type::
 
    @sqrbot-jr create project
 
-select ``test-report``, it will ask more questions like the :ref:`handle <doc_handle>` and LVV. 
-Then sit back, it will create the repo put a document shell in there for you. 
+select ``test-report``, it will ask more questions like the :ref:`handle <doc_handle>` and LVV.
+Then sit back, it will create the repo put a document shell in there for you.
 It will also add the ``docgen from Jira`` github action to pull contents from
-jira when you need it. Look at the actions in the new repo. 
+jira when you need it. Look at the actions in the new repo.
 
 Regenerate the document
 -----------------------

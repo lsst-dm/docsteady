@@ -22,15 +22,22 @@
 Code for Test Specification Model Generation
 """
 import re
-import requests
 import sys
 
+import requests
 from marshmallow import Schema, fields, post_load, pre_load
 
 from .config import Config
-from .formatters import as_anchor, alphanum_key
-from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField, test_case_for_key, get_folders, create_folders_and_files
+from .formatters import alphanum_key, as_anchor
+from .utils import (
+    HtmlPandocField,
+    MarkdownableHtmlPandocField,
+    as_arrow,
+    create_folders_and_files,
+    get_folders,
+    owner_for_id,
+    test_case_for_key,
+)
 
 
 class Issue(Schema):
@@ -52,7 +59,9 @@ class TestStep(Schema):
     description = MarkdownableHtmlPandocField()
     expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
     test_data = MarkdownableHtmlPandocField(load_from="testData")
-    custom_field_values = fields.List(fields.Dict(), load_from="customFieldValues")
+    custom_field_values = fields.List(
+        fields.Dict(), load_from="customFieldValues"
+    )
 
     # Custom fields
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
@@ -75,20 +84,28 @@ class TestCase(Schema):
     key = fields.String(required=True)
     keyid = fields.Integer()
     name = HtmlPandocField(required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj), default="Unassigned")
+    owner = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), default="Unassigned"
+    )
     owner_id = fields.String(load_from="owner")
     jira_url = fields.String()
     component = fields.String()
     folder = fields.String()
-    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
+    created_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["createdOn"])
+    )
     precondition = HtmlPandocField()
     objective = HtmlPandocField()
-    version = fields.Integer(load_from='majorVersion', required=True)
+    version = fields.Integer(load_from="majorVersion", required=True)
     status = fields.String(required=True)
     priority = fields.String(required=True)
     labels = fields.List(fields.String(), missing=list())
-    test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
-    requirement_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    test_script = fields.Method(
+        deserialize="process_steps", load_from="testScript", required=True
+    )
+    requirement_issue_keys = fields.List(
+        fields.String(), load_from="issueLinks"
+    )
     lastR = fields.Dict()
 
     # Just in case it's necessary - these aren't guaranteed to be correct
@@ -115,7 +132,7 @@ class TestCase(Schema):
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data):
         # Synthesized fields
-        data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data['key'])
+        data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data["key"])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
         custom_fields = data["customFields"]
 
@@ -140,9 +157,9 @@ class TestCase(Schema):
     @post_load
     def postprocess(self, data):
         # Need to do this here because we need requirement_issue_keys _and_ key
-        data['requirements'] = self.process_requirements(data)
+        data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
-        data['keyid'] = int(data["key"].strip("LVV-T"))
+        data["keyid"] = int(data["key"].strip("LVV-T"))
         return data
 
     def process_requirements(self, data):
@@ -152,34 +169,43 @@ class TestCase(Schema):
             for issue_key in data["requirement_issue_keys"]:
                 issue = Config.CACHED_VELEMENTS.get(issue_key, None)
                 if not issue:
-                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
+                    resp = requests.get(
+                        Config.ISSUE_URL.format(issue=issue_key),
+                        auth=Config.AUTH,
+                    )
                     resp.raise_for_status()
                     issue_resp = resp.json()
                     issue, errors = Issue().load(issue_resp)
                     if errors:
-                        raise Exception("Unable to Process Requirement: " + str(errors))
+                        raise Exception(
+                            "Unable to Process Requirement: " + str(errors)
+                        )
                     Config.CACHED_VELEMENTS[issue_key] = issue
-                Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(data['key'])
+                Config.REQUIREMENTS_TO_TESTCASES.setdefault(
+                    issue_key, []
+                ).append(data["key"])
                 issues.append(issue)
         return issues
 
     def process_steps(self, test_script):
-        if 'steps' not in test_script.keys():
+        if "steps" not in test_script.keys():
             return None
-        teststeps, errors = TestStep().load(test_script['steps'], many=True)
+        teststeps, errors = TestStep().load(test_script["steps"], many=True)
         if errors:
             raise Exception("Unable to process Test Steps: " + str(errors))
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
                 step_testcase = test_case_for_key(teststep["test_case_key"])
-                Config.CACHED_LIBTESTCASES[step_testcase['key']] = step_testcase
+                Config.CACHED_LIBTESTCASES[
+                    step_testcase["key"]
+                ] = step_testcase
         teststeps_sorted = sorted(teststeps, key=lambda step: step["index"])
         return teststeps_sorted
 
 
 def get_lvv_details(key):
-    """ Get LVV information from Jira
+    """Get LVV information from Jira
 
     :param key: `str` LVV jira Key
 
@@ -191,18 +217,19 @@ def get_lvv_details(key):
     """
 
     lvv = dict()
-    lvv['high_level_req'] = []
+    lvv["high_level_req"] = []
     if key != "":
         resp = requests.get(
-            Config.ISSUE_URL.format(issue=key),
-            auth=Config.AUTH
+            Config.ISSUE_URL.format(issue=key), auth=Config.AUTH
         )
         if resp.status_code != 200:
             print(f"Unable to download: {resp.text}")
             sys.exit(1)
         lvv_resp = resp.json()
-        if lvv_resp['fields'][Config.HIGH_LEVEL_REQS_FIELD]:
-            lvv['high_level_req'] = re.findall(r'\[([^[]+?)\|', lvv_resp['fields']['customfield_13515'])
+        if lvv_resp["fields"][Config.HIGH_LEVEL_REQS_FIELD]:
+            lvv["high_level_req"] = re.findall(
+                r"\[([^[]+?)\|", lvv_resp["fields"]["customfield_13515"]
+            )
     return lvv
 
 
@@ -227,7 +254,7 @@ def build_spec_model(folder):
         resp = requests.get(
             Config.TESTCASE_SEARCH_URL,
             params=dict(query=query, maxResults=max_tests, startAt=startAt),
-            auth=Config.AUTH
+            auth=Config.AUTH,
         )
         if resp.status_code != 200:
             print("Unable to download")
@@ -244,19 +271,19 @@ def build_spec_model(folder):
             testcase["name"] = testcase["name"].rstrip()
             if testcase["key"] not in Config.CACHED_TESTCASES:
                 Config.CACHED_TESTCASES["key"] = testcase
-                if testcase['status'] == 'Deprecated':
+                if testcase["status"] == "Deprecated":
                     deprecated.append(testcase)
                 else:
-                    if testcase['status'] not in testcases_dict.keys():
-                        testcases_dict[testcase['status']] = []
-                    testcases_dict[testcase['status']].append(testcase)
+                    if testcase["status"] not in testcases_dict.keys():
+                        testcases_dict[testcase["status"]] = []
+                    testcases_dict[testcase["status"]].append(testcase)
                     testcases.append(testcase)
-                for req in testcase['requirements']:
-                    if req['key'] not in requirements.keys():
+                for req in testcase["requirements"]:
+                    if req["key"] not in requirements.keys():
                         # get the req information
-                        lvv = get_lvv_details(req['key'])
-                        req['high_level_req'] = lvv['high_level_req']
-                        requirements[req['key']] = req
+                        lvv = get_lvv_details(req["key"])
+                        req["high_level_req"] = lvv["high_level_req"]
+                        requirements[req["key"]] = req
         if tc_count < max_tests:
             break
         else:
@@ -264,10 +291,12 @@ def build_spec_model(folder):
 
     alltestcases = {}
     alltestcases["active"] = testcases
-    alltestcases['deprecated'] = deprecated
+    alltestcases["deprecated"] = deprecated
 
     for tc_s in testcases_dict.keys():
-        testcases_dict[tc_s] = sorted(testcases_dict[tc_s], key=lambda testc: testc["keyid"])
+        testcases_dict[tc_s] = sorted(
+            testcases_dict[tc_s], key=lambda testc: testc["keyid"]
+        )
         print(tc_s, len(testcases_dict[tc_s]))
 
     return alltestcases, requirements, testcases_dict

@@ -21,16 +21,19 @@ import re
 
 
 def as_anchor(text):
-    text = re.sub('[^0-9a-zA-Z -]+', '', text)
+    text = re.sub("[^0-9a-zA-Z -]+", "", text)
     text = text.replace(" ", "-")
     text = text.lower()
     return text
 
 
 def alphanum_key(key):
-    return [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)]
+    return [int(c) if c.isdigit() else c for c in re.split("([0-9]+)", key)]
 
 
 def alphanum_map_sort(mapping):
     """Return a new map according to the alphanum sorting of it"""
-    return {i: mapping[i] for i in sorted(mapping, key=lambda item: alphanum_key(item))}
+    return {
+        i: mapping[i]
+        for i in sorted(mapping, key=lambda item: alphanum_key(item))
+    }
