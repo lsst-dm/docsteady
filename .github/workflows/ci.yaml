@@ -65,4 +65,3 @@ jobs:
           LTD_USERNAME: ${{ secrets.LTD_USERNAME }}
         run: |
           ltd upload --product docsteady --gh --dir docs/_build/html
-

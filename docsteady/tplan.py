@@ -210,7 +210,8 @@ def build_tpr_model(tplan_key):
     if "document_id" not in testplan or testplan["document_id"] == "":
         print(
             f"ERROR: Document ID missing in {tplan_key}. "
-            f"Please complete the metadata before proceeding with the extraction."
+            f"Please complete the metadata before proceeding with "
+            f"the extraction."
         )
         exit()
     attachments[tplan_key] = download_attachments(
