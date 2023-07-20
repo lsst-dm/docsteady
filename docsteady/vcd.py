@@ -159,7 +159,8 @@ def build_vcd_model(component):
 
     # get the number of issue in the componenet
     resp = rs.get(
-        "https://jira.lsstcorp.org/rest/api/latest/component/{component_id}/relatedIssueCounts",
+        "https://jira.lsstcorp.org/rest/api/latest/component/"
+        "{component_id}/relatedIssueCounts",
         auth=Config.AUTH,
     )
     cmp_count: {}
@@ -366,13 +367,17 @@ def get_tc_results(tc):
     results = dict()
     query = (
         "select rs.name as status, plan.key as tplan, run.key as tcycle, "
-        "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from AO_4D28DD_TEST_CASE tc "
+        "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from "
+        "AO_4D28DD_TEST_CASE tc "
         "join AO_4D28DD_TEST_RESULT tr on tc.`ID` = tr.`TEST_CASE_ID` "
-        "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = lnk.`TEST_RUN_ID` "
+        "join AO_4D28DD_TRACE_LINK lnk on tr.`TEST_RUN_ID` = "
+        "lnk.`TEST_RUN_ID` "
         "join AO_4D28DD_TEST_RUN run on lnk.`TEST_RUN_ID` = run.`ID` "
         "join AO_4D28DD_TEST_SET plan on lnk.`TEST_PLAN_ID` = plan.id "
-        "join AO_4D28DD_RESULT_STATUS rs on tr.`TEST_RESULT_STATUS_ID` = rs.id "
-        "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = cfv.`TEST_SET_ID` "
+        "join AO_4D28DD_RESULT_STATUS rs on tr.`TEST_RESULT_STATUS_ID`"
+        " = rs.id "
+        "join AO_4D28DD_CUSTOM_FIELD_VALUE cfv on lnk.`TEST_PLAN_ID` = "
+        "cfv.`TEST_SET_ID` "
         "where tc.key = '"
         + tc
         + "' and cfv.`CUSTOM_FIELD_ID`=66 and tr.`EXECUTION_DATE` is not NULL"
@@ -435,7 +440,8 @@ def get_ves(comp):
     verifying_ves = []
     # get all VE for the provided component
     query = (
-        "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority from jiraissue ji "
+        "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, "
+        "ji.priority from jiraissue ji "
         "inner join nodeassociation na ON ji.id = na.source_node_id "
         "inner join component c on na.`SINK_NODE_ID`=c.id "
         " where ji.project = 12800 and ji.issuetype = 10602 and c.cname='"
@@ -472,14 +478,13 @@ def get_ves(comp):
                     tsum = vby[1].split(":")
                     vbytmp.append(tsum[0])
                     verifying_ves.append(str(vby[0]))
-                tmpve[
-                    "verified_by"
-                ] = vbytmp  # was without _ no idea how it worked a year earlier
+                tmpve["verified_by"] = vbytmp
 
             # get the parent requirement
             query = (
                 "select cf.id, cf.cfname, cvf.textvalue, "
-                "(select customvalue from customfieldoption where id = cvf.stringvalue) "
+                "(select customvalue from customfieldoption where id = "
+                "cvf.stringvalue) "
                 " from customfieldvalue cvf "
                 "inner join customfield cf on cvf.customfield = cf.id "
                 "inner join jiraissue ji on cvf.issue = ji.id "
@@ -532,7 +537,8 @@ def get_ves(comp):
         # get details on VEs verifying some of the component's VEs,
         # but not part of the selected component/subcomponent
         query = (
-            "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, ji.priority, c.cname "
+            "select ji.issuenum, ji.id, ji.summary, ji.issuestatus, "
+            "ji.priority, c.cname "
             "from jiraissue ji "
             "inner join nodeassociation na ON ji.id = na.source_node_id "
             "inner join component c on na.`SINK_NODE_ID`=c.id "
@@ -794,7 +800,9 @@ def vcdsql(comp, RSP):
 
     print(
         f"  ... found {len(ves)} Verification Elements "
-        f"  related to {len(reqs)} requirements and {len(Config.CACHED_TESTCASES)} test cases."
+        f"  related to {len(reqs)} requirements and "
+        f"{len(Config.CACHED_TESTCASES)} "
+        f"test cases."
     )
 
     if os.path.isfile("acronyms.tex"):
@@ -875,8 +883,8 @@ def vcdsql(comp, RSP):
             # i = i + 1
             # print(i, req, "\n", reqs[req])
             csv = (
-                csv
-                + f"'{req}', '{reqs[req]['reqTitle']}', '{reqs[req]['priority']}'\n"
+                csv + f"'{req}', '{reqs[req]['reqTitle']}', "
+                f"'{reqs[req]['priority']}'\n"
             )
         csv_filename = req_f.lower() + ".csv"
         file = open(csv_filename, "w")

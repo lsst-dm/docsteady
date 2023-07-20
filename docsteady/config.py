@@ -50,7 +50,10 @@ class Config:
     TPLANCF_URL = f"{ATM_API}/testplan/{{tpk}}?fields=customFields"
     TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
     TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
-    TESTRESULT_PLAN_CYCLE = f"{ATMT_API}/testresult/{{result_ID}}?fields=testRun(key,testPlan(key))"
+    TESTRESULT_PLAN_CYCLE = (
+        f"{ATMT_API}/testresult/{{result_ID}}?"
+        f"fields=testRun(key,testPlan(key))"
+    )
     TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
     # providing an ordered list of statuses we can control
     # the order they are rendered in the Test Spec
@@ -60,26 +63,36 @@ class Config:
         f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
     )
     VE_SEARCH_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component%20%20%3D%20%27{{cmpnt}}"
-        f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,customfield_13511,"
-        f"customfield_13513,customfield_12002,customfield_12206,customfield_13703&"
+        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component"
+        f"%20%20%3D%20%27{{cmpnt}}"
+        f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,"
+        f"customfield_13511,"
+        f"customfield_13513,customfield_12002,"
+        f"customfield_12206,customfield_13703&"
         f"maxResults={{maxR}}"
     )
     VE_COMPONENT_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}"
-        f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY%20key%20ASC&fields=key"
+        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%"
+        f"20%22{{cmpnt}}"
+        f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY"
+        f"%20key%20ASC&fields=key"
         f"&maxResults={{maxR}}&startAt={{startAt}}"
     )
     VE_SUBCMP_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}"
-        f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and%20issuetype%20%3D%2"
-        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
+        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component"
+        f"%20%3D%20%22{{cmpnt}}"
+        f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and"
+        f"%20issuetype%20%3D%2"
+        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults="
+        f"{{maxR}}"
         f"&startAt={{startAt}}"
     )
     VE_NULLSUBCMP_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%20%22{{cmpnt}}"
+        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%"
+        f"20%3D%20%22{{cmpnt}}"
         f"%22%20%20AND%20Sub-Component%20is%20null%20and%20issuetype%20%3D%2"
-        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults={{maxR}}"
+        f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults="
+        f"{{maxR}}"
         f"&startAt={{startAt}}"
     )
     PANDOC_TYPE = None

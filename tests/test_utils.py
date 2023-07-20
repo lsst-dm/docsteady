@@ -9,8 +9,10 @@ from docsteady.utils import download_and_rewrite_images
 class TestHtmlPandocField(TestCase):
     def test_download(self):
         Config.DOWNLOAD_IMAGES = False
-        has_json_text = r"""The default catalog (SDSS Stripe 82, 2013 LSST Processing)
-        is fine for this.<br><br>Choose columns to return by:<br>1) unchecking the top
+        has_json_text = r"""The default catalog
+        (SDSS Stripe 82, 2013 LSST Processing)
+        is fine for this.<br><br>Choose columns to return by:<br>1)
+        unchecking the top
         box in the column selection box<br>2) checking columns for
         id, coord_ra, coord_dec, and parent.
         <br><br>
