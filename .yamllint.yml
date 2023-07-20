@@ -1,6 +1,6 @@
 extends: default
 
-ignore:
+ignore: |
   templates
   recipe/meta.yaml
 
@@ -13,3 +13,6 @@ rules:
   truthy:
     allowed-values: ['true', 'false']
     check-keys: true
+    # "on" as a key in workflows confuses things
+    ignore: |
+      /.github/workflows/

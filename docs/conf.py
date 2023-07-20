@@ -37,7 +37,10 @@ html_short_title = "docsteady"
 
 author = "LSST Data Management"
 
-copyright = "2017-2021 Association of Universities for Research in Astronomy (AURA), Inc."
+copyright = (
+    "2017-2021 Association of Universities "
+    "for Research in Astronomy (AURA), Inc."
+)
 
 master_doc = "index"
 
