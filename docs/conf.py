@@ -5,9 +5,9 @@
 
 import os
 from pathlib import Path
+
 import sphinx_rtd_theme
 from documenteer.sphinxconfig.utils import form_ltd_edition_name
-
 
 extensions = [
     "sphinx.ext.autodoc",
