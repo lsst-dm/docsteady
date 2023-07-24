@@ -21,9 +21,17 @@
 import os
 import re
 from collections import Counter
+from typing import Any
+
+from docsteady.spec import Issue
 
 
 class Config:
+    """Configuration for docsteady."""
+
+    # Not convinced I need DOC but its is used in the code
+    # so I will add it here to pass type checks
+    DOC: Any = None
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
     JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
@@ -95,27 +103,27 @@ class Config:
         f"{{maxR}}"
         f"&startAt={{startAt}}"
     )
-    PANDOC_TYPE = None
-    AUTH = None
+    PANDOC_TYPE: None = None
+    AUTH: Any = None
     REQID_FIELD = "customfield_12001"
     HIGH_LEVEL_REQS_FIELD = "customfield_13515"
-    OUTPUT_FORMAT = None
-    CACHED_TESTCASES = {}
-    CACHED_LIBTESTCASES = {}
-    CACHED_USERS = {}
-    CACHED_TESTRES_SUM = {}
-    CACHED_VELEMENTS = {}  # type : Dict[str, Issue]
-    CACHED_REQS_FOR_VES = {}
-    CACHED_ISSUES = {}  # type : Dict[str, Issue]
-    MODE_PREFIX = None
-    NAMESPACE = None
+    OUTPUT_FORMAT: Any = None
+    CACHED_TESTCASES: dict = {}
+    CACHED_LIBTESTCASES: dict = {}
+    CACHED_USERS: dict = {}
+    CACHED_TESTRES_SUM: dict = {}
+    CACHED_VELEMENTS: dict[str, Issue] = {}  # type : Dict[str, Issue]
+    CACHED_REQS_FOR_VES: dict = {}
+    CACHED_ISSUES: dict[str, Issue] = {}  # type : Dict[str, Issue]
+    MODE_PREFIX: Any = None
+    NAMESPACE: Any = None
     TIMEZONE = "US/Pacific"
-    REQUIREMENTS_TO_TESTCASES = {}
-    ISSUES_TO_TESTRESULTS = {}
-    TEMPLATE_LANGUAGE = "latex"
-    TEMPLATE_DIRECTORY = os.curdir
+    REQUIREMENTS_TO_TESTCASES: dict = {}
+    ISSUES_TO_TESTRESULTS: dict = {}
+    TEMPLATE_LANGUAGE: str = "latex"
+    TEMPLATE_DIRECTORY: str = os.curdir
 
-    DB_PARAMETERS = {}
+    DB_PARAMETERS: dict = {}
 
     # Regexes for LSST things
     DOC_NAMES = ["LDM", "LSE", "DMTN", "DMTR", "TSS", "LPM", "LTS"]
@@ -131,11 +139,11 @@ class Config:
     IMAGE_FOLDER = "jira_imgs/"
     ATTACHMENT_FOLDER = "attachments/"
 
-    REQ_STATUS_COUNT = Counter()
-    REQ_STATUS_PER_DOC_COUNT = Counter()
-    VE_STATUS_COUNT = Counter()
-    TEST_STATUS_COUNT = Counter()
-    REQ_PER_DOC = dict()
+    REQ_STATUS_COUNT: Counter = Counter()
+    REQ_STATUS_PER_DOC_COUNT: Counter = Counter()
+    VE_STATUS_COUNT: Counter = Counter()
+    TEST_STATUS_COUNT: Counter = Counter()
+    REQ_PER_DOC: dict = dict()
 
     exeuction_errored = False
 

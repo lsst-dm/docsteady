@@ -21,7 +21,7 @@
 import os
 import sys
 from collections import OrderedDict
-from tempfile import TemporaryFile
+from typing import IO
 
 import arrow
 import click
@@ -30,6 +30,7 @@ from jinja2 import (
     Environment,
     FileSystemLoader,
     PackageLoader,
+    Template,
     TemplateNotFound,
 )
 from pkg_resources import DistributionNotFound, get_distribution
@@ -47,6 +48,9 @@ try:
 except DistributionNotFound:
     # package is not installed
     pass
+
+# Global variables
+OUTPUT_FORMAT: str = "latex"
 
 
 @click.group()
@@ -67,7 +71,7 @@ except DistributionNotFound:
     "Defaults to the working directory",
 )
 @click.version_option(__version__)
-def cli(namespace, template_format, load_from):
+def cli(namespace: str, template_format: str, load_from: str) -> None:
     """Docsteady generates documents from Jira with the
     Test Management for Jira (TM4J) plugin.
     """
@@ -98,7 +102,9 @@ def cli(namespace, template_format, load_from):
 )
 @click.argument("folder")
 @click.argument("path", required=False, type=click.Path())
-def generate_spec(format, username, password, folder, path):
+def generate_spec(
+    format: str, username: str, password: str, folder: str, path: str
+) -> None:
     """Read in tests from TM4J plugin where FOLDER
     is the TM4J Test Case Folder. If specified, PATH is the resulting
     output.
@@ -114,7 +120,8 @@ def generate_spec(format, username, password, folder, path):
     OUTPUT_FORMAT = format
     Config.AUTH = (username, password)
     target = "spec"
-    Config.output = TemporaryFile(mode="r+")
+    # Commented this line out since it seems to never be used.
+    # Config.output = TemporaryFile(mode="r+")
 
     # Build model
     try:
@@ -143,7 +150,7 @@ def generate_spec(format, username, password, folder, path):
         ),
         lstrip_blocks=True,
         trim_blocks=True,
-        autoescape=None,
+        autoescape=False,  # Was None.
     )
 
     try:
@@ -216,7 +223,9 @@ def generate_spec(format, username, password, folder, path):
 )
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
-def generate_report(format, username, password, trace, plan, path):
+def generate_report(
+    format: str, username: str, password: str, trace: str, plan: str, path: str
+) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
     """
@@ -229,7 +238,8 @@ def generate_report(format, username, password, trace, plan, path):
         print(f"Wrong input component {Config.NAMESPACE}")
         exit()
 
-    Config.output = TemporaryFile(mode="r+")
+    # Commented this line out since it seems to never be used.
+    # Config.output = TemporaryFile(mode="r+")
 
     plan_dict = build_tpr_model(plan)
 
@@ -247,7 +257,7 @@ def generate_report(format, username, password, trace, plan, path):
         ),
         lstrip_blocks=True,
         trim_blocks=True,
-        autoescape=None,
+        autoescape=False,  # Was None.
     )
 
     template = env.get_template(f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
@@ -312,7 +322,7 @@ def generate_report(format, username, password, trace, plan, path):
         raise SystemError("Content Problem, please check.")
 
 
-def _try_appendix_template(target, env):
+def _try_appendix_template(target: str, env: Environment) -> Template | None:
     # Now appendix
     appendix_template_path = (
         f"{target}-appendix.{Config.TEMPLATE_LANGUAGE}.jinja2"
@@ -324,7 +334,7 @@ def _try_appendix_template(target, env):
         return None
 
 
-def _get_appendix_output(path):
+def _get_appendix_output(path: str) -> IO:
     appendix_path = None
     if path:
         parts = path.split(".")
@@ -334,14 +344,14 @@ def _get_appendix_output(path):
     return open(appendix_path, "w") if appendix_path else sys.stdout
 
 
-def _as_output_format(text):
+def _as_output_format(text: str) -> str:
     if Config.TEMPLATE_LANGUAGE != OUTPUT_FORMAT:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
         text = getattr(Config.DOC, OUTPUT_FORMAT).decode("utf-8")
     return text
 
 
-def _metadata():
+def _metadata() -> dict:
     return dict(
         created_on=arrow.now(), docsteady_version=__version__, project="LVV"
     )
@@ -389,17 +399,17 @@ def _metadata():
 )
 @click.argument("path", required=False, type=click.Path())
 def generate_vcd(
-    format,
-    jiradb,
-    vcduser,
-    vcdpwd,
-    username,
-    password,
-    sql,
-    spec,
-    subcomponent,
-    path,
-):
+    format: str,
+    jiradb: str,
+    vcduser: str,
+    vcdpwd: str,
+    username: str,
+    password: str,
+    sql: str,
+    spec: str,
+    subcomponent: str,
+    path: str,
+) -> None:
     """Given a specific namespace, correspoding to a Jira Component
     or Rubin Subsystem, it build the VCD. By default build the DM VCD.
     If specified, PATH is the resulting output.
@@ -519,7 +529,7 @@ def generate_vcd(
         ),
         lstrip_blocks=True,
         trim_blocks=True,
-        autoescape=None,
+        autoescape=False,
     )
 
     try:
@@ -579,7 +589,14 @@ if __name__ == "__main__":
     "for the specified subcomponent",
 )
 @click.argument("path", required=False, type=click.Path())
-def baseline_ve(format, username, password, details, subcomponent, path):
+def baseline_ve(
+    format: str,
+    username: str,
+    password: str,
+    details: str,
+    subcomponent: str,
+    path: str,
+) -> None:
     """Given a specific subsystem (component), and subcomponent,
     a document is generated including all corresponding Verification Elements
     and related Test Cases. This is not a Verification Control Document:
@@ -608,7 +625,7 @@ def baseline_ve(format, username, password, details, subcomponent, path):
         ),
         lstrip_blocks=True,
         trim_blocks=True,
-        autoescape=None,
+        autoescape=False,
     )
 
     try:

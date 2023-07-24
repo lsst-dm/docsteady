@@ -31,6 +31,9 @@ requirements:
     - setuptools_scm
     - tox
     - pre-commit
+    - mypy
+    - pydantic
+    - requests
   run:
     - arrow
     - BeautifulSoup4
