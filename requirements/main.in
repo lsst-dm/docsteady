@@ -8,11 +8,6 @@
 #     make update-deps
 
 # These dependencies are for fastapi including some optional features.
-fastapi
-starlette
-uvicorn
 
 # Other dependencies.
-safir>=3.4.0
-lsst-efd-client
 requests
