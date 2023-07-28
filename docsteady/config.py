@@ -27,6 +27,11 @@ from docsteady.spec import Issue
 
 
 class Config:
+    """Configuration for docsteady."""
+
+    # Not convinced I need DOC but its is used in the code
+    # so I will add it here to pass type checks
+    DOC: Any = None
     JIRA_INSTANCE = "https://jira.lsstcorp.org"
     JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
     ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
