@@ -10,4 +10,19 @@
 # These dependencies are for fastapi including some optional features.
 
 # Other dependencies.
+BeautifulSoup4
+click
+jinja2
+marshmallow
+pillow
+pandoc
+pymysql
+pypandoc
+python 3.11
+requests
+setuptools_scm
+tox
+pre-commit
+mypy
+pydantic
 requests
