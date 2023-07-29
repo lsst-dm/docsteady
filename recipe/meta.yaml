@@ -34,6 +34,9 @@ requirements:
     - mypy
     - pydantic
     - requests
+    - urllib3
+    - tlslite-ng
+    -
   run:
     - arrow
     - BeautifulSoup4

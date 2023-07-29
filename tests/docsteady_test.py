@@ -7,7 +7,7 @@ from docsteady.utils import download_and_rewrite_images
 
 
 class TestHtmlPandocField(TestCase):
-    def test_download(self):
+    def test_download(self) -> None:
         Config.DOWNLOAD_IMAGES = False
         has_json_text = r"""The default catalog
         (SDSS Stripe 82, 2013 LSST Processing)
