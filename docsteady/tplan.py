@@ -198,7 +198,7 @@ def build_tpr_model(tplan_key: str) -> dict:
     test_cycles_map: dict = {}
     test_results_map: dict = {}
     test_cases_map: dict = {}
-    attachments = {}
+    attachments: dict = {}
 
     # get test plan information
     tplan_url = Config.TESTPLAN_URL.format(testplan=tplan_key)
