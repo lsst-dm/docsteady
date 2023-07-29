@@ -111,7 +111,7 @@ class Config:
     CACHED_TESTCASES: dict = {}
     CACHED_LIBTESTCASES: dict = {}
     CACHED_USERS: dict = {}
-    CACHED_TESTRES_SUM: dict = {str, Any | None}
+    CACHED_TESTRES_SUM: dict = {}
     CACHED_VELEMENTS: dict[str, Issue] = {}  # type : Dict[str, Issue]
     CACHED_REQS_FOR_VES: dict = {}
     CACHED_ISSUES: dict[str, Issue] = {}  # type : Dict[str, Issue]
