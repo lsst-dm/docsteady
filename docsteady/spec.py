@@ -46,7 +46,7 @@ class Issue(Schema):
     jira_url = fields.String()
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data):
+    def extract_fields(self, data: dict) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
@@ -67,7 +67,7 @@ class TestStep(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict) -> None:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -130,13 +130,13 @@ class TestCase(Schema):
     requirements = fields.Nested(Issue, many=True)
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict) -> dict:
         # Synthesized fields
         data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data["key"])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
         custom_fields = data["customFields"]
 
-        def _set_if(target_field, custom_field):
+        def _set_if(target_field: str, custom_field: str) -> None:
             if custom_field in custom_fields:
                 data[target_field] = custom_fields[custom_field]
 
@@ -155,20 +155,19 @@ class TestCase(Schema):
         return data
 
     @post_load
-    def postprocess(self, data):
+    def postprocess(self, data: dict) -> dict:
         # Need to do this here because we need requirement_issue_keys _and_ key
         data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
         data["keyid"] = int(data["key"].strip("LVV-T"))
         return data
 
-    def process_requirements(self, data):
-        issues = []
+    def process_requirements(self, data: dict) -> list[Issue]:
+        issues: list[Issue] = []
         if "requirement_issue_keys" in data:
             # Build list of requirements
             for issue_key in data["requirement_issue_keys"]:
-                issue = Config.CACHED_VELEMENTS.get(issue_key, None)
-                if not issue:
+                if issue_key not in Config.CACHED_VELEMENTS.keys():
                     resp = requests.get(
                         Config.ISSUE_URL.format(issue=issue_key),
                         auth=Config.AUTH,
@@ -184,10 +183,11 @@ class TestCase(Schema):
                 Config.REQUIREMENTS_TO_TESTCASES.setdefault(
                     issue_key, []
                 ).append(data["key"])
-                issues.append(issue)
+                i = Config.CACHED_VELEMENTS.get(issue_key)
+                issues.append(i)  # type: ignore
         return issues
 
-    def process_steps(self, test_script):
+    def process_steps(self, test_script: dict) -> list[dict] | None:
         if "steps" not in test_script.keys():
             return None
         teststeps, errors = TestStep().load(test_script["steps"], many=True)
@@ -204,7 +204,7 @@ class TestCase(Schema):
         return teststeps_sorted
 
 
-def get_lvv_details(key):
+def get_lvv_details(key: str) -> dict:
     """Get LVV information from Jira
 
     :param key: `str` LVV jira Key
@@ -216,7 +216,7 @@ def get_lvv_details(key):
 
     """
 
-    lvv = dict()
+    lvv: dict = dict()
     lvv["high_level_req"] = []
     if key != "":
         resp = requests.get(
@@ -233,7 +233,7 @@ def get_lvv_details(key):
     return lvv
 
 
-def build_spec_model(folder):
+def build_spec_model(folder: str) -> tuple[dict, dict, dict]:
     # query = f'folder = "{folder}"'
     # FIXME: use the previous query if they fix the ATM testcases/search API
     folders = get_folders(folder)
@@ -247,13 +247,14 @@ def build_spec_model(folder):
     max_tests = 100
     startAt = 0
     testcases = []
-    testcases_dict = dict()
+    testcases_dict: dict = dict()
     deprecated = []
-    requirements = {}
+    requirements: dict = {}
+    params: dict = dict(query=query, maxResults=max_tests, startAt=startAt)
     while True:
         resp = requests.get(
             Config.TESTCASE_SEARCH_URL,
-            params=dict(query=query, maxResults=max_tests, startAt=startAt),
+            params=params,
             auth=Config.AUTH,
         )
         if resp.status_code != 200:
