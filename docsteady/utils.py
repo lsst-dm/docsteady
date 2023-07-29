@@ -33,6 +33,7 @@ import pypandoc
 import requests
 from bs4 import BeautifulSoup
 from marshmallow import fields
+from requests import Session
 
 from .config import Config
 
@@ -135,11 +136,11 @@ class MarkdownableHtmlPandocField(fields.String):
         return value
 
 
-def as_arrow(datestring):
+def as_arrow(datestring: str) -> arrow.Arrow:
     return arrow.get(datestring).to(Config.TIMEZONE)
 
 
-def owner_for_id(owner_id):
+def owner_for_id(owner_id: str) -> str:
     if not owner_id:
         return "Undefined"
     if owner_id not in Config.CACHED_USERS:
@@ -159,7 +160,7 @@ def owner_for_id(owner_id):
     return displayName
 
 
-def test_case_for_key(test_case_key):
+def test_case_for_key(test_case_key: str) -> dict[str, Any]:
     """
     This will return a cached testcases (a test case already processed)
     or fetch it if and add to cache.
@@ -192,7 +193,7 @@ def test_case_for_key(test_case_key):
     return cached_testcase_resp
 
 
-def download_and_rewrite_images(value):
+def download_and_rewrite_images(value: str) -> str:
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
@@ -200,7 +201,7 @@ def download_and_rewrite_images(value):
         try:
             img_width = re.sub("[^0-9]", "", img["style"])
         except Exception:
-            img_width = 150
+            img_width = "150"
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path).replace(".", "_")
@@ -254,7 +255,7 @@ def download_and_rewrite_images(value):
     return str(soup)
 
 
-def download_attachments(rs, link):
+def download_attachments(rs: Session, link: str) -> list[dict[str, str]]:
     """
     download the
     :param link: attachment resource location in the Jira server
@@ -290,7 +291,7 @@ def download_attachments(rs, link):
     return attachments
 
 
-def create_folders_and_files():
+def create_folders_and_files() -> None:
     """
     Create attachment and image folders if missing
     :return:
@@ -314,7 +315,7 @@ def create_folders_and_files():
             pass
 
 
-def rewrite_strong_to_subsection(content, extractable):
+def rewrite_strong_to_subsection(content: str, extractable: list) -> str:
     """
     Extract specific "strong" elements and rewrite them to headings so
     they appear as subsections in Latex
@@ -326,8 +327,8 @@ def rewrite_strong_to_subsection(content, extractable):
     preserve_order = True
     soup = BeautifulSoup(content, "html.parser")
     element_neighbor_text = ""
-    seen_name = None
-    shelved = []
+    seen_name: str | None = None
+    shelved: list[str] = []
     new_order = shelved if preserve_order else []
     found_items = OrderedDict()
     for elem in soup.children:
@@ -362,12 +363,12 @@ def rewrite_strong_to_subsection(content, extractable):
 
 
 # FIXME: This can be removed ATM API testcases/search API is fixed
-def get_folders(target_folder):
+def get_folders(target_folder: str) -> list[str]:
     """
     Get all folders that that have the target folder in their string
     """
 
-    def collect_children(children, path, folders):
+    def collect_children(children: list, path: str, folders: list) -> None:
         """Recursively collection children"""
         for child in children:
             child_path = path + f"/{child['name']}"
@@ -379,16 +380,16 @@ def get_folders(target_folder):
     resp.raise_for_status()
     foldertree_json = resp.json()
 
-    folders = []
+    folders: list = []
     collect_children(foldertree_json["children"], "", folders)
-    target_folders = []
+    target_folders: list = []
     for folder in folders:
         if folder.startswith(target_folder):
             target_folders.append(folder)
     return target_folders
 
 
-def get_tspec(folder):
+def get_tspec(folder: str) -> str:
     sf = folder.split("/")
     for d in sf:
         sd = d.split("|")
