@@ -24,8 +24,11 @@ Subroutines required to baseline the Verification Elements
 
 import re
 from base64 import b64encode
+from typing import MutableMapping
 
 import requests
+from requests import Session
+from urllib3 import Retry
 
 from .config import Config
 from .spec import TestCase
@@ -37,9 +40,9 @@ DOFEW = False
 FEWCOUNT = 3
 
 
-def get_testcase(rs, tckey):
+def get_testcase(rs: Session, tckey: str) -> dict | None:
     """
-
+    Get test case details from Jira
     :param rs:
     :param tckey:
     :return:
@@ -47,14 +50,14 @@ def get_testcase(rs, tckey):
     r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
     try:
         jtc_det = r_tc_details.json()
-    except Exception as error:
-        print(error)
+    except Exception as exception:
+        print(exception)
         return None
     tc_details, error = TestCase().load(jtc_det)
 
     # get test case results, so we can build the VCD using the same data
     if "lastTestResultStatus" in jtc_det:
-        tc_results = dict()
+        tc_results: dict = dict()
         r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
         if r_tc_results.status_code == 200:
             jtc_res = r_tc_results.json()
@@ -100,16 +103,16 @@ def get_testcase(rs, tckey):
             else:
                 tc_results["TPR"] = ""
         else:
-            tc_results = None
+            Config.CACHED_TESTRES_SUM[tckey] = None
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
         tc_details["lastR"] = tc_results
 
     return tc_details
 
 
-def get_ve_details(rs, key):
+def get_ve_details(rs: Session, key: str) -> dict:
     """
-
+    Get Verification Element details from Jira
     :param rs:
     :param key:
     :return:
@@ -173,7 +176,7 @@ def get_ve_details(rs, key):
     return ve_details
 
 
-def extract_ves(rs, cmp, subcmp):
+def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
     """
 
     :param rs:
@@ -240,7 +243,7 @@ def extract_ves(rs, cmp, subcmp):
     return ve_details
 
 
-def do_ve_model(component, subcomponent):
+def do_ve_model(component: str, subcomponent: str) -> dict:
     """
     Extract VE model informatino from Jira
     :param component:
@@ -257,7 +260,7 @@ def do_ve_model(component, subcomponent):
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
 
-    headers = {
+    headers: MutableMapping[str, str | bytes] = {
         "accept": "application/json",
         "authorization": "Basic %s" % connection_str,
         "Connection": "close",
@@ -267,7 +270,11 @@ def do_ve_model(component, subcomponent):
     rs.headers = headers
     # Setting retries, sometime the connections fails
     # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
-    rs.adapters.DEFAULT_RETRIES = 5
+    retries = Retry(
+        total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
+    )
+
+    rs.adapters["max_retries"] = retries
 
     # get all VEs details
     ves = extract_ves(rs, component, subcomponent)

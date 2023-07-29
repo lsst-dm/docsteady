@@ -23,6 +23,7 @@ Code for Test Report (Run) Model Generation
 """
 import datetime
 from base64 import b64encode
+from typing import MutableMapping
 
 import requests
 from marshmallow import Schema, fields, pre_load
@@ -90,7 +91,7 @@ class TestPlan(Schema):
     # (and don't forget preprocess_plan)
 
     @pre_load(pass_many=False)
-    def preprocess_plan(self, data):
+    def preprocess_plan(self, data: dict) -> dict:
         """
         During pre_load, we modify the input dictionary to make it look like
         extra data was in the request information. This means that we "pull up"
@@ -101,7 +102,7 @@ class TestPlan(Schema):
         schema definition appropriately.
         """
 
-        def _set_if(target_field, custom_field):
+        def _set_if(target_field: str, custom_field: str) -> None:
             if custom_field in custom_fields:
                 data[target_field] = custom_fields[custom_field]
 
@@ -146,7 +147,7 @@ class TestPlan(Schema):
         return data
 
 
-def labelResults(result):
+def labelResults(result: dict) -> None:
     # The results index is not unqique - if there are multiple parameters the
     # script repeats each step  for each set of parameters
     # (think multiple pointings)
@@ -178,7 +179,7 @@ def labelResults(result):
     pass
 
 
-def build_tpr_model(tplan_key):
+def build_tpr_model(tplan_key: str) -> dict:
     # create folders for images and attachments if not already there
     create_folders_and_files()
 
@@ -188,7 +189,7 @@ def build_tpr_model(tplan_key):
     # initialize connection to Jira REST API
     usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
-    headers = {
+    headers: MutableMapping[str, str | bytes] = {
         "accept": "application/json",
         "authorization": "Basic %s" % connection_str,
         "Connection": "close",
@@ -196,9 +197,9 @@ def build_tpr_model(tplan_key):
     rs = requests.Session()
     rs.headers = headers
 
-    test_cycles_map = {}
-    test_results_map = {}
-    test_cases_map = {}
+    test_cycles_map: dict = {}
+    test_results_map: dict = {}
+    test_cases_map: dict = {}
     attachments = {}
 
     # get test plan information

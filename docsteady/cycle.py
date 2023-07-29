@@ -21,6 +21,8 @@
 """
 Code for Test Report (Run) Model Generation
 """
+from typing import Tuple
+
 import requests
 from marshmallow import Schema, fields, post_load, pre_load
 
@@ -86,11 +88,11 @@ class TestCycle(Schema):
     configuration = HtmlPandocField()
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict) -> dict:
         if "customFields" in data.keys():
             custom_fields = data["customFields"]
 
-            def _set_if(target_field, custom_field):
+            def _set_if(target_field: str, custom_field: str) -> None:
                 if custom_field in custom_fields:
                     data[target_field] = custom_fields[custom_field]
 
@@ -118,7 +120,7 @@ class ScriptResult(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict) -> None:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -131,18 +133,17 @@ class ScriptResult(Schema):
             data[name] = string_value
 
     @post_load
-    def postprocess(self, data):
+    def postprocess(self, data: dict) -> dict:
         # Need to do this here because we need result_issue_keys _and_ key
         data["result_issues"] = self.process_result_issues(data)
         return data
 
-    def process_result_issues(self, data):
-        issues = []
+    def process_result_issues(self, data: dict) -> list[Issue]:
+        issues: list[Issue] = []
         if "result_issue_keys" in data:
             # Build list of issues
             for issue_key in data["result_issue_keys"]:
-                issue = Config.CACHED_ISSUES.get(issue_key, None)
-                if not issue:
+                if issue_key not in Config.CACHED_ISSUES:
                     resp = requests.get(
                         Config.ISSUE_URL.format(issue=issue_key),
                         auth=Config.AUTH,
@@ -155,7 +156,7 @@ class ScriptResult(Schema):
                             "Unable to Process Linked Issue: " + str(errors)
                         )
                     Config.CACHED_ISSUES[issue_key] = issue
-                issues.append(issue)
+                issues.append(Config.CACHED_ISSUES[issue_key])
         return issues
 
 
@@ -187,16 +188,16 @@ class TestResult(Schema):
     #                          required=True, load_from='executionDate')
 
     @post_load
-    def postprocess(self, data):
+    def postprocess(self, data: dict) -> dict:
         data["issues"] = self.process_issues(data)
         return data
 
-    def process_issues(self, data):
-        issues = []
+    def process_issues(self, data: dict) -> list[Issue]:
+        issues: list[Issue] = []
         if "issue_links" in data:
+            issue: Issue
             for issue_key in data["issue_links"]:
-                issue = Config.CACHED_ISSUES.get(issue_key, None)
-                if not issue:
+                if issue_key not in Config.CACHED_ISSUES:
                     resp = requests.get(
                         Config.ISSUE_URL.format(issue=issue_key),
                         auth=Config.AUTH,
@@ -209,6 +210,8 @@ class TestResult(Schema):
                             "Unable to Process Requirement: " + str(errors)
                         )
                     Config.CACHED_ISSUES[issue_key] = issue
+                else:
+                    issue = Config.CACHED_ISSUES[issue_key]
                 Config.ISSUES_TO_TESTRESULTS.setdefault(issue_key, []).append(
                     data["key"]
                 )
@@ -216,7 +219,7 @@ class TestResult(Schema):
         return issues
 
 
-def build_results_model(testcycle_id):
+def build_results_model(testcycle_id: str) -> Tuple[TestCycle, TestResult]:
     resp = requests.get(
         Config.TESTCYCLE_URL.format(testrun=testcycle_id), auth=Config.AUTH
     )
