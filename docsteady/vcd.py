@@ -24,6 +24,7 @@ Code for VCD
 
 import os
 from collections import Counter
+from typing import Any
 
 import pymysql
 import requests
@@ -31,6 +32,11 @@ from marshmallow import Schema, fields, pre_load
 
 from .config import Config
 from .utils import HtmlPandocField, get_tspec
+
+# Globals
+veduplicated: dict = {}
+jpr: dict = {}
+jst: dict = {}
 
 
 class VerificationE(Schema):
@@ -54,7 +60,7 @@ class VerificationE(Schema):
     verified_by = fields.Dict(fields.Dict(), missing=list())
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data):
+    def extract_fields(self, data: dict) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
@@ -84,7 +90,7 @@ class VerificationE(Schema):
         data["req_doc_id"] = ref
         return data
 
-    def extract_verified_by(self, data_fields):
+    def extract_verified_by(self, data_fields: dict) -> dict:
         if "issuelinks" not in data_fields.keys():
             return {}
         issuelinks = data_fields["issuelinks"]
@@ -116,11 +122,11 @@ class Coverage_Count:
     passedtcs_name = "Passed TCs"
     passedtcs_label = "sec:passedtcs"
 
-    def total_count(self):
+    def total_count(self) -> int:
         return self.notcs + self.noexectcs + self.failedtcs + self.passedtcs
 
 
-def runstatus(trs):
+def runstatus(trs: str) -> str:
     if trs == "Pass":
         status = "passed"
     elif trs == "Pass w/ Deviation":
@@ -136,7 +142,7 @@ def runstatus(trs):
     return status
 
 
-def build_vcd_model(component):
+def build_vcd_model(component: str) -> None:
     # build the vcd. Only Verification Issues are considered.
     # global tcases
 
@@ -163,7 +169,6 @@ def build_vcd_model(component):
         "{component_id}/relatedIssueCounts",
         auth=Config.AUTH,
     )
-    cmp_count: {}
     cmp_count = resp.json()
     max_res = cmp_count["issueCount"]
 
@@ -175,7 +180,7 @@ def build_vcd_model(component):
     resp.raise_for_status()
 
     velem = {}
-    reqs = {}
+    reqs: dict = {}
 
     veresp = resp.json()
     i = 0
@@ -308,12 +313,12 @@ def build_vcd_model(component):
     fsum.close()
 
 
-def db_get(dbquery) -> {}:
+def db_get(dbquery: str) -> list:
     """returns query result in a 2dim matrix"""
     p = Config.DB_PARAMETERS
     db = pymysql.connect(
         p["host"], p["user"], p["pwd"], p["schema"], read_timeout=1000
-    )
+    )  # type: ignore
     cursor = db.cursor()
     # try to reconnect in case of lost connection
     #  this seems to happen sometime when connected from far away (Europe)
@@ -340,7 +345,7 @@ def db_get(dbquery) -> {}:
     return res
 
 
-def init_jira_status():
+def init_jira_status() -> None:
     """initialize jst containing the statuses from Jira"""
     global jst
     jst = dict()
@@ -351,7 +356,7 @@ def init_jira_status():
     print("jira status - ", jst)
 
 
-def init_priority():
+def init_priority() -> None:
     """initialize jpr containing the priorities from Jira"""
     global jpr
     jpr = dict()
@@ -362,9 +367,9 @@ def init_priority():
     print("priorities - ", jpr)
 
 
-def get_tc_results(tc):
+def get_tc_results(tc: str) -> dict | None:
     """return last execution result"""
-    results = dict()
+    results: dict[str, str] = dict()
     query = (
         "select rs.name as status, plan.key as tplan, run.key as tcycle, "
         "tr.`EXECUTION_DATE`, cfv.`STRING_VALUE` as dmtr from "
@@ -390,14 +395,14 @@ def get_tc_results(tc):
         if trdet[0][3]:
             results["exdate"] = trdet[0][3].strftime("%Y-%m-%d")
         else:
-            results["exdate"] = None
+            results["exdate"] = None  # type: ignore
         results["dmtr"] = trdet[0][4]
     else:
-        results = None
+        return None
     return results
 
 
-def get_tcs(veid):
+def get_tcs(veid: str) -> dict:
     """for a given VE (id) return the related test cases
     and populate in parallel the global tcases"""
     # global tcases
@@ -428,15 +433,17 @@ def get_tcs(veid):
     return tcs
 
 
-def get_ves(comp):
+def get_ves(
+    comp: str,
+) -> tuple[dict[Any, dict[str, str]], dict[str, dict[str, str]]]:
     """gets information for all Verification Elementes for a Component
     it returns also the reqs and test cases related to them"""
     global veduplicated
     jst = Config.jst
     jpr = Config.jpr
 
-    velements = dict()
-    reqs = dict()
+    velements: dict = dict()
+    reqs: dict = dict()
     verifying_ves = []
     # get all VE for the provided component
     query = (
@@ -455,7 +462,7 @@ def get_ves(comp):
         print(f"{ve[0]}.", end="", flush=True)
         if ve[3] != "11713":  # ignore DESCOPED VEs
             v = v + 1
-            tmpve = dict()
+            tmpve: dict[str, Any] = dict()
             tmpve["jkey"] = "LVV-" + str(ve[0])
             ves = ve[2].split(":")
             tmpve["status"] = jst[ve[3]]
@@ -550,7 +557,7 @@ def get_ves(comp):
             eves = eve[2].split(":")
             if eves[0] not in velements.keys():
                 print(eve[0], eve[5])
-                etmpve = dict()
+                etmpve: dict[str, Any] = dict()
                 etmpve["jkey"] = "LVV-" + str(eve[0])
                 etmpve["status"] = jst[eve[3]]
                 if eve[4]:
@@ -565,7 +572,7 @@ def get_ves(comp):
     return velements, reqs
 
 
-def get_tspec_r(fid):
+def get_tspec_r(fid: str) -> str:
     """recursively browse the folders
     until finding the test spec of the root (NULL)"""
     if not fid:
@@ -582,7 +589,7 @@ def get_tspec_r(fid):
     return tspec
 
 
-def do_ve_coverage(tcs, results):
+def do_ve_coverage(tcs: dict, results: dict) -> str:
     """
 
     :param tcs: test cases results
@@ -592,7 +599,7 @@ def do_ve_coverage(tcs, results):
     if ntc == 0:
         coverage = "NotCovered"
     else:
-        tccount = Counter()
+        tccount: Counter = Counter()
         for tc in tcs.keys():
             # if tc in results.keys() and results[tc]['lastR']:
             if (
@@ -617,7 +624,7 @@ def do_ve_coverage(tcs, results):
     return coverage
 
 
-def do_req_coverage(ves, ve_coverage):
+def do_req_coverage(ves: list, ve_coverage: dict) -> str:
     """
     Calculate the coverage level of a requirement
     based on the downstram verification elements.
@@ -627,7 +634,7 @@ def do_req_coverage(ves, ve_coverage):
     :return:
     """
     nves = len(ves)
-    vecount = Counter()
+    vecount: Counter = Counter()
     for ve in ves:
         element = ve_coverage[ve]
         # This implies there is only one VE per requirement (true for now)
@@ -651,22 +658,23 @@ def do_req_coverage(ves, ve_coverage):
     return rcoverage
 
 
-def find_vekey(reqname, ve_keys):
+def find_vekey(reqname: str, ve_keys: list[str]) -> str | None:
     """Look through the keys until we find the one my requirment starts with"""
     for k in ve_keys:
         if k.startswith(reqname):
             return k
+    return None
 
 
-def summary(dictionary):
+def summary(dictionary: list[dict]) -> list:
     """generate and print summary information"""
     global veduplicated
     mtrs = dict()
 
     verification_elements = dictionary[0]
-    reqs = dictionary[1]
+    reqs: dict = dictionary[1]
 
-    tcases = dictionary[3]
+    tcases: dict = dictionary[3]
 
     mtrs["nr"] = len(reqs)
     mtrs["nv"] = len(verification_elements)
@@ -732,7 +740,7 @@ def summary(dictionary):
         ):
             tc_status["NotExecuted"] = tc_status["NotExecuted"] + entry[1]
         tc_status[entry[0]] = entry[1]
-    rec_count_per_doc = dict()
+    rec_count_per_doc: dict = dict()
     for entry in Config.REQ_STATUS_PER_DOC_COUNT.items():
         split0 = entry[0].split(".")
         doc = split0[0]
@@ -770,7 +778,7 @@ def summary(dictionary):
     ]
 
 
-def check_acronyms(reqs):
+def check_acronyms(reqs: dict) -> None:
     """check that the requirements acronyms have been added to acronyms.tex"""
     acronyms = []
     rtype = []
@@ -789,7 +797,7 @@ def check_acronyms(reqs):
                 print("Missing acronyms", tmptype)
 
 
-def vcdsql(comp, RSP):
+def vcdsql(comp: str, RSP: str = "") -> list:
     """get VCD using direct SQL query"""
     global veduplicated
     veduplicated = dict()
@@ -832,14 +840,15 @@ def vcdsql(comp, RSP):
             " '*' indicates that the test case the execution result "
             "is 'Passed' or 'Conditional-Passed'",
         )
-        by_priority = {"1a": {}, "1b": {}, "2": {}, "3": {}}
+        by_priority: dict = {"1a": {}, "1b": {}, "2": {}, "3": {}}
         executed = {}
         for ve in ves.values():
             if ve["Requirement Specification"] == req_f:
                 for tc in ve["tcs"]:
-                    if ve["tcs"][tc]["tspec"] == test_f or test_f == "":
+                    tb = ve["tcs"][tc]["tspec"]  # type: ignore
+                    if tb == test_f or test_f == "":
                         tc_number = int(tc[5:])  # strip off LVV-T
-                        lastR = ve["tcs"][tc]["lastR"]
+                        lastR: dict = ve["tcs"][tc]["lastR"]  # type: ignore
                         if lastR and "status" in lastR.keys():
                             if lastR["status"] not in (
                                 "passed",
