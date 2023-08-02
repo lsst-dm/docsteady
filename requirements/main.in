@@ -25,3 +25,7 @@ pre-commit
 mypy
 pydantic
 requests
+arrow
+urllib3
+tlslite-ng
+oauth2
