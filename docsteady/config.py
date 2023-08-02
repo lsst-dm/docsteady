@@ -18,12 +18,15 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
+from __future__ import annotations
+
 import os
 import re
 from collections import Counter
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from .spec import Issue
+if TYPE_CHECKING:
+    from .spec import Issue
 
 
 class Config:
