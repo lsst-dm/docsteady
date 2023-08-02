@@ -17,10 +17,8 @@ class TestHtmlPandocField(TestCase):
         id, coord_ra, coord_dec, and parent.
         <br><br>
         The result should look like the following:
-        <br>&nbsp;<img src=\"../rest/tests/1.0/attachment/image/244\"
-        style=\"width: 300px;\" class=\"fr-fic fr-fil fr-dii\"><br>"""
+        <br>&nbsp;<img src="../rest/tests/1.0/attachment/image/244"
+        style="width: 300px;" class="fr-fic fr-fil fr-dii"><br>"""
         value = download_and_rewrite_images(has_json_text)
         soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
-        self.assertEqual(
-            soup.find("img")["src"], "rest/tests/1.0/attachment/image/244"
-        )
+        self.assertEqual(soup.find("img")["src"], "jira_imgs/244")
