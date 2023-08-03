@@ -55,12 +55,12 @@ class Issue(Schema):
 
 class TestStep(Schema):
     index = fields.Integer()
-    test_case_key = fields.String(load_from="testCaseKey")
+    test_case_key = fields.String(data_key="testCaseKey")
     description = MarkdownableHtmlPandocField()
-    expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
-    test_data = MarkdownableHtmlPandocField(load_from="testData")
+    expected_result = MarkdownableHtmlPandocField(data_key="expectedResult")
+    test_data = MarkdownableHtmlPandocField(data_key="testData")
     custom_field_values = fields.List(
-        fields.Dict(), load_from="customFieldValues"
+        fields.Dict(), data_key="customFieldValues"
     )
 
     # Custom fields
@@ -87,7 +87,7 @@ class TestCase(Schema):
     owner = fields.Function(
         deserialize=lambda obj: owner_for_id(obj), default="Unassigned"
     )
-    owner_id = fields.String(load_from="owner")
+    owner_id = fields.String(data_key="owner")
     jira_url = fields.String()
     component = fields.String()
     folder = fields.String()
@@ -96,20 +96,20 @@ class TestCase(Schema):
     )
     precondition = HtmlPandocField()
     objective = HtmlPandocField()
-    version = fields.Integer(load_from="majorVersion", required=True)
+    version = fields.Integer(data_key="majorVersion", required=True)
     status = fields.String(required=True)
     priority = fields.String(required=True)
     labels = fields.List(fields.String(), missing=list())
     test_script = fields.Method(
-        deserialize="process_steps", load_from="testScript", required=True
+        deserialize="process_steps", data_key="testScript", required=True
     )
     requirement_issue_keys = fields.List(
-        fields.String(), load_from="issueLinks"
+        fields.String(), data_key="issueLinks"
     )
     lastR = fields.Dict()
 
     # Just in case it's necessary - these aren't guaranteed to be correct
-    custom_fields = fields.Dict(load_from="customFields")
+    custom_fields = fields.Dict(data_key="customFields")
 
     # custom fields go here and in pre_load
     verification_type = fields.String()
