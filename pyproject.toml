@@ -32,8 +32,6 @@ Source = "https://github.com/lsst-dm/docsteady"
 requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-
 [tool.setuptools]
 py-modules = ["docsteady"]
 
@@ -92,6 +90,9 @@ skip = ["docs/conf.py"]
 # enables magical assert processing (showing a full diff on assert failures
 # with complex data structures rather than only the assert message) in files
 # listed in python_files.
+filterwarnings = [
+    "ignore::DeprecationWarning:marshmallow*",
+    "ignore::DeprecationWarning:dataclasses_json*" ]
 python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"]
 
 [tool.mypy]
@@ -112,4 +113,6 @@ init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
+
+
 
