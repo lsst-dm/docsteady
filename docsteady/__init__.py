@@ -21,6 +21,7 @@
 import os
 import sys
 from collections import OrderedDict
+from importlib.metadata import PackageNotFoundError, version
 from typing import IO
 
 import arrow
@@ -33,7 +34,6 @@ from jinja2 import (
     Template,
     TemplateNotFound,
 )
-from pkg_resources import DistributionNotFound, get_distribution
 
 from .config import Config
 from .formatters import alphanum_key, alphanum_map_sort
@@ -43,11 +43,13 @@ from .utils import get_tspec
 from .vcd import summary, vcdsql
 from .ve_baseline import do_ve_model
 
+__version__: str
+
 try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+    __version__ = version(__name__)
+except PackageNotFoundError:
     # package is not installed
-    pass
+    __version__ = "0.0.0"
 
 # Global variables
 OUTPUT_FORMAT: str = "latex"
