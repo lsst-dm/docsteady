@@ -42,15 +42,15 @@ class TestCycleItem(Schema):
     id = fields.Integer(required=True)
     test_case_key = fields.Function(
         deserialize=lambda key: test_case_for_key(key)["key"],
-        load_from="testCaseKey",
+        data_key="testCaseKey",
         required=True,
     )
-    user_id = fields.String(load_from="userKey")
+    user_id = fields.String(data_key="userKey")
     user = fields.Function(
-        load_from="userKey", deserialize=lambda obj: owner_for_id(obj)
+        data_key="userKey", deserialize=lambda obj: owner_for_id(obj)
     )
     assignee = fields.Function(
-        load_from="assignedTo", deserialize=lambda obj: owner_for_id(obj)
+        data_key="assignedTo", deserialize=lambda obj: owner_for_id(obj)
     )
     execution_date = fields.Function(
         deserialize=lambda o: as_arrow(o["executionDate"])
@@ -63,7 +63,7 @@ class TestCycle(Schema):
     name = HtmlPandocField(required=True)
     description = HtmlPandocField()
     status = fields.String(required=True)
-    execution_time = fields.Integer(required=True, load_from="executionTime")
+    execution_time = fields.Integer(required=True, data_key="executionTime")
     created_on = fields.Function(
         deserialize=lambda o: as_arrow(o["createdOn"])
     )
@@ -74,14 +74,14 @@ class TestCycle(Schema):
         deserialize=lambda o: as_arrow(o["plannedStartDate"])
     )
     created_by = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), load_from="createdBy"
+        deserialize=lambda obj: owner_for_id(obj), data_key="createdBy"
     )
     owner = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), load_from="owner"
+        deserialize=lambda obj: owner_for_id(obj), data_key="owner"
     )
-    custom_fields = fields.Dict(load_from="customFields")
+    custom_fields = fields.Dict(data_key="customFields")
     # Renamed to prevent Jinja collision
-    test_items = fields.Nested(TestCycleItem, many=True, load_from="items")
+    test_items = fields.Nested(TestCycleItem, many=True, data_key="items")
 
     # custom fields
     software_version = HtmlPandocField()
@@ -102,18 +102,18 @@ class TestCycle(Schema):
 
 
 class ScriptResult(Schema):
-    index = fields.Integer(load_from="index")
-    expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
-    execution_date = fields.String(load_from="executionDate")
-    description = MarkdownableHtmlPandocField(load_from="description")
-    comment = MarkdownableHtmlPandocField(load_from="comment")
-    status = fields.String(load_from="status")
-    testdata = MarkdownableHtmlPandocField(load_from="testData")
+    index = fields.Integer(data_key="index")
+    expected_result = MarkdownableHtmlPandocField(data_key="expectedResult")
+    execution_date = fields.String(data_key="executionDate")
+    description = MarkdownableHtmlPandocField(data_key="description")
+    comment = MarkdownableHtmlPandocField(data_key="comment")
+    status = fields.String(data_key="status")
+    testdata = MarkdownableHtmlPandocField(data_key="testData")
     # result_issue_keys are actually jira issue keys (not HTTP links)
-    result_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    result_issue_keys = fields.List(fields.String(), data_key="issueLinks")
     result_issues = fields.Nested(Issue, many=True)
     custom_field_values = fields.List(
-        fields.Dict(), load_from="customFieldValues"
+        fields.Dict(), data_key="customFieldValues"
     )
 
     # Custom fields
@@ -166,26 +166,26 @@ class TestResult(Schema):
     comment = HtmlPandocField()
     test_case_key = fields.Function(
         deserialize=lambda key: test_case_for_key(key)["key"],
-        load_from="testCaseKey",
+        data_key="testCaseKey",
         required=True,
     )
     script_results = fields.Nested(
-        ScriptResult, many=True, load_from="scriptResults", required=True
+        ScriptResult, many=True, data_key="scriptResults", required=True
     )
-    issue_links = fields.List(fields.String(), load_from="issueLinks")
+    issue_links = fields.List(fields.String(), data_key="issueLinks")
     issues = fields.Nested(Issue, many=True)
-    user_id = fields.String(load_from="userKey")
+    user_id = fields.String(data_key="userKey")
     user = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), load_from="userKey"
+        deserialize=lambda obj: owner_for_id(obj), data_key="userKey"
     )
-    status = fields.String(load_from="status", required=True)
+    status = fields.String(data_key="status", required=True)
     # These fields are not used at the moment,
     # but maybe we need them in the future
     # automated = fields.Boolean(required=True)
     # environment = fields.String()
-    # execution_time = fields.Integer(load_from='executionTime', required=True)
+    # execution_time = fields.Integer(data_key='executionTime', required=True)
     # execution_date = fields.Function(deserialize=lambda o: as_arrow(o),
-    #                          required=True, load_from='executionDate')
+    #                          required=True, data_key='executionDate')
 
     @post_load
     def postprocess(self, data: dict) -> dict:

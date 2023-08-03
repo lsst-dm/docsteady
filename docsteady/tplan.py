@@ -55,12 +55,12 @@ class TestPlan(Schema):
     updated_on = fields.Function(
         deserialize=lambda o: as_arrow(o["updatedOn"])
     )
-    owner_id = fields.String(load_from="owner", required=True)
+    owner_id = fields.String(data_key="owner", required=True)
     owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
     created_by = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), load_from="createdBy"
+        deserialize=lambda obj: owner_for_id(obj), data_key="createdBy"
     )
-    custom_fields = fields.Dict(load_from="customFields")
+    custom_fields = fields.Dict(data_key="customFields")
 
     # See preprocess_plan function for this. It's really nested, but we
     # pull out the keys and ignore ``testRuns``
