@@ -26,7 +26,7 @@ from base64 import b64encode
 from typing import MutableMapping
 
 import requests
-from marshmallow import Schema, fields, pre_load
+from marshmallow import INCLUDE, Schema, fields, pre_load
 
 from .config import Config
 from .cycle import TestCycle, TestResult
@@ -91,7 +91,7 @@ class TestPlan(Schema):
     # (and don't forget preprocess_plan)
 
     @pre_load(pass_many=False)
-    def preprocess_plan(self, data: dict) -> dict:
+    def preprocess_plan(self, data: dict, **kwargs: []) -> dict:
         """
         During pre_load, we modify the input dictionary to make it look like
         extra data was in the request information. This means that we "pull up"
@@ -148,7 +148,7 @@ class TestPlan(Schema):
 
 
 def labelResults(result: dict) -> None:
-    # The results index is not unqique - if there are multiple parameters the
+    # The results index is not unique - if there are multiple parameters the
     # script repeats each step  for each set of parameters
     # (think multiple pointings)
     # Previously this was sorted on index which works for one run
@@ -207,7 +207,7 @@ def build_tpr_model(tplan_key: str) -> dict:
     # print("test Plan:", tplan_url)
     resp = rs.get(tplan_url)
     resp.raise_for_status()
-    testplan, errors = TestPlan().load(resp.json())
+    testplan: dict = TestPlan(unknown=INCLUDE).load(resp.json())
     if "document_id" not in testplan or testplan["document_id"] == "":
         print(
             f"ERROR: Document ID missing in {tplan_key}. "
