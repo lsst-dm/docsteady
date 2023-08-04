@@ -60,7 +60,7 @@ class VerificationE(Schema):
     verified_by = fields.Dict(fields.Dict(), missing=list())
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data: dict) -> dict:
+    def extract_fields(self, data: dict, **kwargs: []) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])

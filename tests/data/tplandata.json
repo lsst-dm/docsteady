@@ -1,0 +1,71 @@
+{
+  "owner": "womullan",
+  "updatedBy": "womullan",
+  "comments": [
+    {
+      "createdBy": "gpdf",
+      "body": "Temporarily revert to Draft status to clarify the document artifact for DM management review.",
+      "createdOn": "2022-01-26T21:54:03.000Z"
+    },
+    {
+      "createdBy": "mareuter",
+      "body": "Entry Criteria still references NCSA",
+      "createdOn": "2023-06-30T15:37:57.000Z"
+    },
+    {
+      "createdBy": "womullan",
+      "body": "got it",
+      "createdOn": "2023-07-03T14:58:24.000Z"
+    },
+    {
+      "createdBy": "womullan",
+      "body": "Agreement via slack from Michael Reuter to approve.",
+      "createdOn": "2023-07-03T15:03:11.000Z"
+    }
+  ],
+  "customFields": {
+    "System Overview": "The tests will be carried out from within an instance of the notebook aspect of the RSP running at the data facility where the EFD replication is currently happening. An appropriate weekly version of the stack will be chosen.",
+    "Verification Environment": "The environment will be within notebooks running a modern stack.",
+    "Document ID": "DMTR-331",
+    "Entry Criteria": "<ol><li>Before beginning this test, a set of viability tests shall be performed. These will show:<ol><li>The system demonstrates reliability (number of recorded messages/number of produced messages) of greater than 99.9%</li><li>The summit data is being replicated to the instance at USDF</li><li>Chronograf is set up and running at both the summit and USDF</li></ol></li><li>The summit network and Kubernetes cluster are performing nominally</li><li>A number of telemetry topics are reliably producing telemetry at both low frequency (1 Hz) and high frequency (&gt; 10 Hz).</li><li>The notebook aspect of the RSP is deployed in the summit Kubernetes cluster</li><li>The summit EFD is reliably replicated to an EFD instance running in a data facility</li><li>The notebook aspect of the RSP is deployed in the same data facility as that running the replicated EFD</li><li>The most recent version of the EFD client python modules are installed in the various deployed notebook aspects</li><li>The replication system is also successfully archiving EFD topics to parquet files on persistent disk at the data facility</li></ol>"
+  },
+  "updatedOn": "2023-07-03T15:03:23.000Z",
+  "createdOn": "2021-10-19T22:33:02.000Z",
+  "objective": "The purpose of this test plan is to describe all the necessary requirements and infrastructure for successfully testing the replication and archive of the Engineering Facility Database (EFD) as implemented with Kafka, InfluxDB and Chronograf from the summit to the USDF. This plan will describe the prerequisites for beginning a test campaign, step by step instructions for each test case and a description of the expected results and test artifacts.<br /><br />NB: The use of the term reliability in this document is intended to indicate the number of messages produced relative to the number of messages recorded in the EFD. The system shall be considered reliable if at least 99.9% of produced messages are recorded.<br /><br />At a high level, this test plan is intended to show that a nominally operating EFD at the summit is able to be replicated to the USDF and archived for future use either directly or via ingest into a secondary database management technology. We assume here that the archive technology will be parquet datasets stored on persistent/redundant disk at the USDF. There are no latency requirements in this test plan, but we will show that the replication and archiving are not falling behind relative to the summit instance in the aggregate. We choose a period of 6 days of continuous nominal operation in order to test the cases in this test plan.<br />Successful completion of the test campaign will show that:<br /><ol><li>users are able to access the same information at the USDF EFD that was originally ingested in the summit version</li><li>the reliability of the replication is better than the minimum of 99%</li><li>archive products are able to be used as a primary source of information for historical examination of EFD topics</li></ol>",
+  "projectKey": "LVV",
+  "folder": "/Data Management",
+  "createdBy": "womullan",
+  "issueLinks": [],
+  "name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+  "testRuns": [
+    {
+      "estimatedTime": 0,
+      "owner": "womullan",
+      "updatedBy": "womullan",
+      "updatedOn": "2023-07-03T15:00:44.000Z",
+      "createdOn": "2021-10-19T22:37:32.000Z",
+      "issueCount": 0,
+      "plannedEndDate": "2021-10-19T22:36:27.000Z",
+      "executionTime": 2733000,
+      "projectKey": "LVV",
+      "testCaseCount": 2,
+      "folder": "/Data Management",
+      "plannedStartDate": "2021-10-19T22:36:27.000Z",
+      "createdBy": "womullan",
+      "name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+      "key": "LVV-C181",
+      "status": "Done"
+    }
+  ],
+  "key": "LVV-P90",
+  "status": "Approved",
+  "system_overview": "The tests will be carried out from within an instance of the notebook aspect of the RSP running at the data facility where the EFD replication is currently happening. An appropriate weekly version of the stack will be chosen.",
+  "verification_environment": "The environment will be within notebooks running a modern stack.",
+  "entry_criteria": "<ol><li>Before beginning this test, a set of viability tests shall be performed. These will show:<ol><li>The system demonstrates reliability (number of recorded messages/number of produced messages) of greater than 99.9%</li><li>The summit data is being replicated to the instance at USDF</li><li>Chronograf is set up and running at both the summit and USDF</li></ol></li><li>The summit network and Kubernetes cluster are performing nominally</li><li>A number of telemetry topics are reliably producing telemetry at both low frequency (1 Hz) and high frequency (&gt; 10 Hz).</li><li>The notebook aspect of the RSP is deployed in the summit Kubernetes cluster</li><li>The summit EFD is reliably replicated to an EFD instance running in a data facility</li><li>The notebook aspect of the RSP is deployed in the same data facility as that running the replicated EFD</li><li>The most recent version of the EFD client python modules are installed in the various deployed notebook aspects</li><li>The replication system is also successfully archiving EFD topics to parquet files on persistent disk at the data facility</li></ol>",
+  "document_id": "DMTR-331",
+  "extract_date": "2023-08-03",
+  "milestone_id": "LDM-503-EFDb",
+  "milestone_name": "Replication of Summit EFD to USDF",
+  "doc_name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+  "product": "Data Management"
+}

@@ -94,6 +94,10 @@ filterwarnings = [
     "ignore::DeprecationWarning:marshmallow*",
     "ignore::DeprecationWarning:dataclasses_json*" ]
 python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"]
+# there are a lot of classes with the word Test in them in the codebase - this
+# is a way to exclude them from being considered tests
+python_classes = "TestCase"
+
 
 [tool.mypy]
 disallow_untyped_defs = true

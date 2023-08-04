@@ -1,8 +1,11 @@
+import json
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
+from marshmallow import EXCLUDE
 
 from docsteady.config import Config
+from docsteady.tplan import TestPlan
 from docsteady.utils import download_and_rewrite_images
 
 
@@ -22,3 +25,19 @@ class TestHtmlPandocField(TestCase):
         value = download_and_rewrite_images(has_json_text)
         soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
         self.assertEqual(soup.find("img")["src"], "jira_imgs/244")
+
+
+class TestTplan(TestCase):
+    def test_tplan(self) -> None:
+        fn = "tests/data/tplandata.json"
+        with open(fn) as f:
+            data = json.load(f)
+        Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
+        Config.CACHED_USERS["gpdf"] = {
+            "displayName": "Gregory Dubois-Felsmann"
+        }
+        Config.CACHED_USERS["mareuter"] = {"displayName": "Michael Reuter"}
+        testplan: dict = TestPlan(unknown=EXCLUDE).load(data)
+        self.assertEqual(
+            testplan["name"], "LDM-503-EFDb: Replication of Summit EFD to USDF"
+        )

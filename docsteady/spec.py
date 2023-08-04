@@ -25,7 +25,7 @@ import re
 import sys
 
 import requests
-from marshmallow import Schema, fields, post_load, pre_load
+from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
 
 from .config import Config
 from .formatters import alphanum_key, as_anchor
@@ -46,7 +46,7 @@ class Issue(Schema):
     jira_url = fields.String()
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data: dict) -> dict:
+    def extract_fields(self, data: dict, **kwargs: []) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
@@ -67,7 +67,7 @@ class TestStep(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict) -> None:
+    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -78,6 +78,8 @@ class TestStep(Schema):
             name = custom_field["customField"]["name"]
             name = name.lower().replace(" ", "_")
             data[name] = string_value
+
+        return data
 
 
 class TestCase(Schema):
@@ -130,7 +132,7 @@ class TestCase(Schema):
     requirements = fields.Nested(Issue, many=True)
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict) -> dict:
+    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
         # Synthesized fields
         data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data["key"])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
@@ -155,7 +157,7 @@ class TestCase(Schema):
         return data
 
     @post_load
-    def postprocess(self, data: dict) -> dict:
+    def postprocess(self, data: dict, **kwargs: []) -> dict:
         # Need to do this here because we need requirement_issue_keys _and_ key
         data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
@@ -174,7 +176,7 @@ class TestCase(Schema):
                     )
                     resp.raise_for_status()
                     issue_resp = resp.json()
-                    issue, errors = Issue().load(issue_resp)
+                    issue, errors = Issue(unknown=EXCLUDE).load(issue_resp)
                     if errors:
                         raise Exception(
                             "Unable to Process Requirement: " + str(errors)
@@ -190,9 +192,9 @@ class TestCase(Schema):
     def process_steps(self, test_script: dict) -> list[dict] | None:
         if "steps" not in test_script.keys():
             return None
-        teststeps, errors = TestStep().load(test_script["steps"], many=True)
-        if errors:
-            raise Exception("Unable to process Test Steps: " + str(errors))
+        teststeps = TestStep(unknown=INCLUDE).load(
+            test_script["steps"], many=True
+        )
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
@@ -266,7 +268,7 @@ def build_spec_model(folder: str) -> tuple[dict, dict, dict]:
         testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
         for testcase_resp in testcases_resp:
             tc_count = tc_count + 1
-            testcase, errors = TestCase().load(testcase_resp)
+            testcase, errors = TestCase(unknown=EXCLUDE).load(testcase_resp)
             if errors:
                 raise Exception("Unable to process errors: " + str(errors))
             testcase["name"] = testcase["name"].rstrip()
