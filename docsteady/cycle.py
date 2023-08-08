@@ -24,7 +24,7 @@ Code for Test Report (Run) Model Generation
 from typing import Tuple
 
 import requests
-from marshmallow import Schema, fields, post_load, pre_load
+from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
 
 from docsteady.spec import Issue
 from docsteady.utils import (
@@ -81,14 +81,16 @@ class TestCycle(Schema):
     )
     custom_fields = fields.Dict(data_key="customFields")
     # Renamed to prevent Jinja collision
-    test_items = fields.Nested(TestCycleItem, many=True, data_key="items")
+    test_items = fields.Nested(
+        TestCycleItem, many=True, unknown=INCLUDE, data_key="items"
+    )
 
     # custom fields
     software_version = HtmlPandocField()
     configuration = HtmlPandocField()
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict) -> dict:
+    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
         if "customFields" in data.keys():
             custom_fields = data["customFields"]
 
@@ -120,7 +122,7 @@ class ScriptResult(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict) -> None:
+    def extract_custom_fields(self, data: dict, **kwargs: []) -> None:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -224,10 +226,12 @@ def build_results_model(testcycle_id: str) -> Tuple[TestCycle, TestResult]:
         Config.TESTCYCLE_URL.format(testrun=testcycle_id), auth=Config.AUTH
     )
     resp.raise_for_status()
-    testcycle, errors = TestCycle().load(resp.json())
+    testcycle, errors = TestCycle(unknown=EXCLUDE).load(resp.json())
     resp = requests.get(
         Config.TESTRESULTS_URL.format(testrun=testcycle_id), auth=Config.AUTH
     )
     resp.raise_for_status()
-    testresults, errors = TestResult().load(resp.json(), many=True)
+    testresults, errors = TestResult(unknown=EXCLUDE).load(
+        resp.json(), many=True
+    )
     return testcycle, testresults

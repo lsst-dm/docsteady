@@ -2,7 +2,7 @@ import json
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
-from marshmallow import INCLUDE
+from marshmallow import EXCLUDE
 
 from docsteady.config import Config
 from docsteady.tplan import TestPlan
@@ -37,7 +37,7 @@ class TestTplan(TestCase):
             "displayName": "Gregory Dubois-Felsmann"
         }
         Config.CACHED_USERS["mareuter"] = {"displayName": "Michael Reuter"}
-        testplan: dict = TestPlan(unknown=INCLUDE).load(data)
+        testplan: dict = TestPlan(unknown=EXCLUDE).load(data)
         self.assertEqual(
             testplan["name"], "LDM-503-EFDb: Replication of Summit EFD to USDF"
         )
