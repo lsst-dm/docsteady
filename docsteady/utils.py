@@ -32,7 +32,7 @@ import arrow
 import pypandoc
 import requests
 from bs4 import BeautifulSoup
-from marshmallow import fields
+from marshmallow import EXCLUDE, fields
 from requests import Session
 
 from .config import Config
@@ -178,7 +178,7 @@ def test_case_for_key(test_case_key: str) -> dict[str, Any]:
         )
         if resp.status_code == 200:
             testcase_resp = resp.json()
-            testcase, errors = TestCase().load(testcase_resp)
+            testcase, errors = TestCase(unknown=EXCLUDE).load(testcase_resp)
             if errors:
                 raise Exception("Unable to process test cases: " + str(errors))
             Config.CACHED_TESTCASES[test_case_key] = testcase

@@ -1,5 +1,5 @@
 import json
-from unittest import TestCase
+import unittest
 
 from marshmallow import EXCLUDE, INCLUDE
 
@@ -23,7 +23,7 @@ def read(name: str) -> None:
         return json.load(f)
 
 
-class TestTcycle(TestCase):
+class TestTcycle(unittest.TestCase):
     def test_tcycle(self) -> None:
         data = read("cycledata")
 
@@ -62,11 +62,21 @@ class TestTcycle(TestCase):
     def test_TestCase(self) -> None:
         data = read("TestCase")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
+
         issue_key = "LVV-71"
         issue: Issue = Issue()
         issue.key = issue_key
+        issue.summary = "Test Case for LVV-71"
         Config.CACHED_VELEMENTS[issue_key] = issue
+        Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(
+            data["key"]
+        )
+
         testcase: dict = spec.TestCase(unknown=EXCLUDE).load(
             data, partial=True
         )
         self.assertEqual(testcase["key"], "LVV-T2338")
+
+        issues: [Issue] = testcase["requirements"]
+        self.assertEqual(1, len(issues))
+        self.assertEqual("LVV-71", issues[0].key)
