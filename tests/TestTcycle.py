@@ -6,7 +6,7 @@ from marshmallow import EXCLUDE, INCLUDE
 from docsteady import spec
 from docsteady.config import Config
 from docsteady.cycle import TestCycle
-from docsteady.spec import TestStep
+from docsteady.spec import Issue, TestStep
 
 ROOT = "tests/data"
 
@@ -62,6 +62,10 @@ class TestTcycle(TestCase):
     def test_TestCase(self) -> None:
         data = read("TestCase")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
+        issue_key = "LVV-71"
+        issue: Issue = Issue()
+        issue.key = issue_key
+        Config.CACHED_VELEMENTS[issue_key] = issue
         testcase: dict = spec.TestCase(unknown=EXCLUDE).load(
             data, partial=True
         )
