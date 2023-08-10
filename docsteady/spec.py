@@ -157,7 +157,7 @@ class TestCase(Schema):
         return data
 
     @post_load
-    def postprocess(self, data: dict) -> dict:
+    def postprocess(self, data: dict, **kwargs: []) -> dict:
         # Need to do this here because we need requirement_issue_keys _and_ key
         data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
@@ -192,11 +192,9 @@ class TestCase(Schema):
     def process_steps(self, test_script: dict) -> list[dict] | None:
         if "steps" not in test_script.keys():
             return None
-        teststeps, errors = TestStep(unknown=INCLUDE).load(
+        teststeps = TestStep(unknown=INCLUDE).load(
             test_script["steps"], many=True
         )
-        if errors:
-            raise Exception("Unable to process Test Steps: " + str(errors))
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
