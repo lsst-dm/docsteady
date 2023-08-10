@@ -26,7 +26,7 @@ from base64 import b64encode
 from typing import MutableMapping
 
 import requests
-from marshmallow import EXCLUDE, INCLUDE, Schema, fields, pre_load
+from marshmallow import EXCLUDE, Schema, fields, pre_load
 
 from .config import Config
 from .cycle import TestCycle, TestResult
@@ -222,9 +222,9 @@ def build_tpr_model(tplan_key: str) -> dict:
     attachments["cycles"] = dict()
     attachments["results"] = dict()
     for cycle_key in testplan["cycles"]:
-        # print("Test Cycle:", Config.TESTCYCLE_URL.format(testrun=cycle_key))
+        print("Test Cycle:", Config.TESTCYCLE_URL.format(testrun=cycle_key))
         resp = rs.get(Config.TESTCYCLE_URL.format(testrun=cycle_key))
-        test_cycle = TestCycle(unknown=INCLUDE).load(resp.json())
+        test_cycle = TestCycle(unknown=EXCLUDE).load(resp.json(), partial=True)
         test_cycles_map[cycle_key] = test_cycle
         attachments["cycles"][cycle_key] = download_attachments(
             rs, Config.TESTCYCLE_ATTACHMENTS.format(tcycle_KEY=cycle_key)
@@ -234,7 +234,7 @@ def build_tpr_model(tplan_key: str) -> dict:
         resp = rs.get(Config.TESTRESULTS_URL.format(testrun=cycle_key))
         resp.raise_for_status()
         testresults, errors = TestResult(unknown=EXCLUDE).load(
-            resp.json(), many=True
+            resp.json(), many=True, partial=True
         )
         test_results_map[cycle_key] = {}
         for result in testresults:
@@ -268,7 +268,7 @@ def build_tpr_model(tplan_key: str) -> dict:
                 )
                 if resp.status_code == 200:
                     testcase, errors = TestCase(unknown=EXCLUDE).load(
-                        resp.json()
+                        resp.json(), partial=True
                     )
                 else:
                     testcase = {
