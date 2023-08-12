@@ -133,9 +133,10 @@ class ScriptResult(Schema):
             name = custom_field["customField"]["name"]
             name = name.lower().replace(" ", "_")
             data[name] = string_value
+        return data
 
     @post_load
-    def postprocess(self, data: dict) -> dict:
+    def postprocess(self, data: dict, **kwargs: []) -> dict:
         # Need to do this here because we need result_issue_keys _and_ key
         data["result_issues"] = self.process_result_issues(data)
         return data
@@ -152,11 +153,9 @@ class ScriptResult(Schema):
                     )
                     resp.raise_for_status()
                     issue_resp = resp.json()
-                    issue, errors = Issue().load(issue_resp)
-                    if errors:
-                        raise Exception(
-                            "Unable to Process Linked Issue: " + str(errors)
-                        )
+                    issue = Issue(unknown=EXCLUDE).load(
+                        issue_resp, partial=True
+                    )
                     Config.CACHED_ISSUES[issue_key] = issue
                 issues.append(Config.CACHED_ISSUES[issue_key])
         return issues
@@ -172,7 +171,11 @@ class TestResult(Schema):
         required=True,
     )
     script_results = fields.Nested(
-        ScriptResult, many=True, data_key="scriptResults", required=True
+        ScriptResult,
+        unknown=EXCLUDE,
+        many=True,
+        data_key="scriptResults",
+        required=True,
     )
     issue_links = fields.List(fields.String(), data_key="issueLinks")
     issues = fields.Nested(Issue, many=True)
@@ -190,7 +193,7 @@ class TestResult(Schema):
     #                          required=True, data_key='executionDate')
 
     @post_load
-    def postprocess(self, data: dict) -> dict:
+    def postprocess(self, data: dict, **kwargs: []) -> dict:
         data["issues"] = self.process_issues(data)
         return data
 
@@ -206,11 +209,9 @@ class TestResult(Schema):
                     )
                     resp.raise_for_status()
                     issue_resp = resp.json()
-                    issue, errors = Issue().load(issue_resp)
-                    if errors:
-                        raise Exception(
-                            "Unable to Process Requirement: " + str(errors)
-                        )
+                    issue = Issue(unknown=EXCLUDE).load(
+                        issue_resp, partial=True
+                    )
                     Config.CACHED_ISSUES[issue_key] = issue
                 else:
                     issue = Config.CACHED_ISSUES[issue_key]
@@ -226,12 +227,12 @@ def build_results_model(testcycle_id: str) -> Tuple[TestCycle, TestResult]:
         Config.TESTCYCLE_URL.format(testrun=testcycle_id), auth=Config.AUTH
     )
     resp.raise_for_status()
-    testcycle, errors = TestCycle(unknown=EXCLUDE).load(resp.json())
+    testcycle = TestCycle(unknown=EXCLUDE).load(resp.json(), partial=True)
     resp = requests.get(
         Config.TESTRESULTS_URL.format(testrun=testcycle_id), auth=Config.AUTH
     )
     resp.raise_for_status()
-    testresults, errors = TestResult(unknown=EXCLUDE).load(
-        resp.json(), many=True
+    testresults = TestResult(unknown=EXCLUDE).load(
+        resp.json(), many=True, partial=True
     )
     return testcycle, testresults
