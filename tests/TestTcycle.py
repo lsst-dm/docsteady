@@ -1,26 +1,11 @@
-import json
 import unittest
 
+from DocsteadyTestUtils import read
 from marshmallow import EXCLUDE, INCLUDE
 
-from docsteady import spec
 from docsteady.config import Config
 from docsteady.cycle import TestCycle
-from docsteady.spec import Issue, TestStep
-
-ROOT = "tests/data"
-
-
-def write(data: dict, name: str) -> None:
-    fn = f"{ROOT}/{name}.json"
-    with open(fn, "w") as f:
-        json.dump(data, f)
-
-
-def read(name: str) -> None:
-    fn = f"{ROOT}/{name}.json"
-    with open(fn) as f:
-        return json.load(f)
+from docsteady.spec import Issue, TestCase, TestStep
 
 
 class TestTcycle(unittest.TestCase):
@@ -72,9 +57,7 @@ class TestTcycle(unittest.TestCase):
             data["key"]
         )
 
-        testcase: dict = spec.TestCase(unknown=EXCLUDE).load(
-            data, partial=True
-        )
+        testcase: dict = TestCase(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(testcase["key"], "LVV-T2338")
 
         issues: [Issue] = testcase["requirements"]

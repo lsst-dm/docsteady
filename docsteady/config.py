@@ -23,7 +23,7 @@ from __future__ import annotations
 import os
 import re
 from collections import Counter
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .spec import Issue

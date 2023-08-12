@@ -176,11 +176,7 @@ class TestCase(Schema):
                     )
                     resp.raise_for_status()
                     issue_resp = resp.json()
-                    issue, errors = Issue(unknown=EXCLUDE).load(issue_resp)
-                    if errors:
-                        raise Exception(
-                            "Unable to Process Requirement: " + str(errors)
-                        )
+                    issue = Issue(unknown=EXCLUDE).load(issue_resp)
                     Config.CACHED_VELEMENTS[issue_key] = issue
                 Config.REQUIREMENTS_TO_TESTCASES.setdefault(
                     issue_key, []
@@ -268,9 +264,7 @@ def build_spec_model(folder: str) -> tuple[dict, dict, dict]:
         testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
         for testcase_resp in testcases_resp:
             tc_count = tc_count + 1
-            testcase, errors = TestCase(unknown=EXCLUDE).load(testcase_resp)
-            if errors:
-                raise Exception("Unable to process errors: " + str(errors))
+            testcase = TestCase(unknown=EXCLUDE).load(testcase_resp)
             testcase["name"] = testcase["name"].rstrip()
             if testcase["key"] not in Config.CACHED_TESTCASES:
                 Config.CACHED_TESTCASES["key"] = testcase

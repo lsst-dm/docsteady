@@ -178,9 +178,7 @@ def test_case_for_key(test_case_key: str) -> dict[str, Any]:
         )
         if resp.status_code == 200:
             testcase_resp = resp.json()
-            testcase, errors = TestCase(unknown=EXCLUDE).load(testcase_resp)
-            if errors:
-                raise Exception("Unable to process test cases: " + str(errors))
+            testcase = TestCase(unknown=EXCLUDE).load(testcase_resp)
             Config.CACHED_TESTCASES[test_case_key] = testcase
         else:
             testcase = {
