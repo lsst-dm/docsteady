@@ -122,7 +122,7 @@ def get_ve_details(rs: Session, key: str) -> dict:
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
-    ve_details, errors = VerificationE().load(jve_res)
+    ve_details = VerificationE().load(jve_res)
     ve_details["summary"] = ve_details["summary"].strip()
     # @post_load is not working
     # populate test_cases from raw_test_cases
