@@ -39,6 +39,8 @@ py-modules = ["docsteady"]
 parallel = true
 branch = true
 source = ["docsteady"]
+python_classes = "TestCase"
+
 
 [tool.coverage.paths]
 source = ["docsteady", ".tox/*/site-packages"]
