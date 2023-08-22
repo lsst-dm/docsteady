@@ -53,7 +53,7 @@ class VerificationE(Schema):
     req_priority = fields.String()
     req_doc_id = fields.String()
     req_params = HtmlPandocField()
-    raw_upper_req = HtmlPandocField()
+    raw_upper_req = HtmlPandocField(allow_none=True)
     upper_reqs = fields.List(fields.String(), missing=list())
     raw_test_cases = HtmlPandocField()
     test_cases = fields.List(fields.String(), missing=list())

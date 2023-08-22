@@ -63,3 +63,6 @@ class TestTcycle(unittest.TestCase):
         issues: [Issue] = testcase["requirements"]
         self.assertEqual(1, len(issues))
         self.assertEqual("LVV-71", issues[0].key)
+
+
+python_classes = "TestCase"
