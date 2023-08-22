@@ -27,6 +27,7 @@ from base64 import b64encode
 from typing import MutableMapping
 
 import requests
+from marshmallow import EXCLUDE
 from requests import Session
 from urllib3 import Retry
 
@@ -53,7 +54,7 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
     except Exception as exception:
         print(exception)
         return None
-    tc_details, error = TestCase().load(jtc_det)
+    tc_details = TestCase(unknown=EXCLUDE).load(jtc_det)
 
     # get test case results, so we can build the VCD using the same data
     if "lastTestResultStatus" in jtc_det:
@@ -110,6 +111,28 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
     return tc_details
 
 
+def process_raw_test_cases(rs: Session, ve_details: dict) -> dict:
+    # populate test_cases from raw_test_cases
+    if (
+        "raw_test_cases" in ve_details.keys()
+        and ve_details["raw_test_cases"] != ""
+    ):
+        # regex to get content between {}
+        regex = r"\{([^}]+)\}"
+        matches = re.findall(regex, ve_details["raw_test_cases"])
+        ve_details["test_cases"] = []
+        for matchNum, match in enumerate(matches):
+            if matchNum % 2 == 1:
+                tc_split = match.split(":")
+                tc_split[1] = tc_split[1].strip().replace("\n", " ")
+                ve_details["test_cases"].append(tc_split)
+                if tc_split[0] not in Config.CACHED_TESTCASES:
+                    Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(
+                        rs, tc_split[0]
+                    )
+    return ve_details
+
+
 def get_ve_details(rs: Session, key: str) -> dict:
     """
     Get Verification Element details from Jira
@@ -122,27 +145,15 @@ def get_ve_details(rs: Session, key: str) -> dict:
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
 
-    ve_details = VerificationE().load(jve_res)
+    ve_details = VerificationE(unknown=EXCLUDE).load(jve_res, partial=True)
     ve_details["summary"] = ve_details["summary"].strip()
     # @post_load is not working
     # populate test_cases from raw_test_cases
-    if "raw_test_cases" in ve_details.keys():
-        if ve_details["raw_test_cases"] != "":
-            # regex to get content between {}
-            regex = r"\{([^}]+)\}"
-            matches = re.findall(regex, ve_details["raw_test_cases"])
-            for matchNum, match in enumerate(matches):
-                if matchNum % 2 == 1:
-                    tc_split = match.split(":")
-                    tc_split[1] = tc_split[1].strip().replace("\n", " ")
-                    ve_details["test_cases"].append(tc_split)
-                    if tc_split[0] not in Config.CACHED_TESTCASES:
-                        Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(
-                            rs, tc_split[0]
-                        )
+    process_raw_test_cases(rs, ve_details)
     # populate upper level reqs from raw_upper_reqs
+    ve_details["upper_reqs"] = []
     if "raw_upper_req" in ve_details.keys():
-        if ve_details["raw_upper_req"] != "":
+        if ve_details["raw_upper_req"] and ve_details["raw_upper_req"] != "":
             ureqs = ve_details["raw_upper_req"].split(",\n")
             for ur in ureqs:
                 urs = ur.split("textbar")
