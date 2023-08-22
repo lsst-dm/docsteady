@@ -1,4 +1,5 @@
 import json
+import os
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
@@ -29,7 +30,9 @@ class TestHtmlPandocField(TestCase):
 
 class TestTplan(TestCase):
     def test_tplan(self) -> None:
-        fn = "tests/data/tplandata.json"
+        cwd = os.getcwd()
+        print(cwd)
+        fn = "./data/tplandata.json"
         with open(fn) as f:
             data = json.load(f)
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}

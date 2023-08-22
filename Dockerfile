@@ -1,16 +1,27 @@
-FROM python:3.7-stretch as build
+FROM python:3.11-bookworm as build
 
-ADD . /src
-WORKDIR /src
-RUN python setup.py sdist
-RUN cp dist/$(python setup.py --fullname).tar.gz dist/docsteady.tar.gz
+WORKDIR /app
+COPY . .
 
+# Upgrade and install pandoc
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    pandoc &&  \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-FROM python:3.7-stretch
+# Upgrade pip
+RUN pip install --root-user-action=ignore --upgrade pip
 
-COPY --from=build /src/dist/docsteady.tar.gz /
+# Install docsteady python requirements
+RUN pip install --root-user-action=ignore -r docsteady/requirements/main.in
 
-ADD https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb /
-RUN dpkg -i pandoc-2.2.1-1-amd64.deb
-RUN pip install docsteady.tar.gz
-WORKDIR /workspace
+# Install local docsteady
+RUN pip install --root-user-action=ignore .
+
+# Set the pythonpath
+ENV PYTHONPATH "${PYTHONPATH}:/app/docsteady"
+
+# Run a bash login shell as default
+# CMD ["/bin/bash", "-l"]
+CMD python -c "print('Docker for docsteady is in place')"
