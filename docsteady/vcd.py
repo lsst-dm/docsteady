@@ -57,7 +57,10 @@ class VerificationE(Schema):
     upper_reqs = fields.List(fields.String(), missing=list())
     raw_test_cases = HtmlPandocField()
     test_cases = fields.List(fields.String(), missing=list())
-    verified_by = fields.Dict(fields.Dict(), missing=list())
+    verified_by = fields.Dict(
+        keys=fields.String(),
+        values=(fields.Dict(keys=fields.String(), values=fields.String())),
+    )
 
     @pre_load(pass_many=False)
     def extract_fields(self, data: dict, **kwargs: []) -> dict:
