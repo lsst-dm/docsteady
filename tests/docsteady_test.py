@@ -1,7 +1,7 @@
-import json
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
+from DocsteadyTestUtils import read_test_data
 from marshmallow import EXCLUDE
 
 from docsteady.config import Config
@@ -29,9 +29,7 @@ class TestHtmlPandocField(TestCase):
 
 class TestTplan(TestCase):
     def test_tplan(self) -> None:
-        fn = "tests/data/tplandata.json"
-        with open(fn) as f:
-            data = json.load(f)
+        data = read_test_data("tplandata")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         Config.CACHED_USERS["gpdf"] = {
             "displayName": "Gregory Dubois-Felsmann"
