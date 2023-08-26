@@ -22,7 +22,7 @@ class TestVCD(unittest.TestCase):
         test_cases = ve_details["test_cases"]
         self.assertEqual(len(test_cases), 2)
 
-    def test_veL_VV_27(self) -> None:
+    def test_ve_LVV_27(self) -> None:
         data = read("LVV-27-data")
         ve_details = VerificationE(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(ve_details["key"], "LVV-27")

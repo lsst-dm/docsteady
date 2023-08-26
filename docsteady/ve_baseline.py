@@ -93,7 +93,10 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
                 )
                 if r_tp_dets.status_code == 200:
                     jtp_dets = r_tp_dets.json()
-                    if "Document ID" in jtp_dets["customFields"].keys():
+                    if (
+                        "customFields" in jtp_dets
+                        and "Document ID" in jtp_dets["customFields"].keys()
+                    ):
                         tc_results["TPR"] = jtp_dets["customFields"][
                             "Document ID"
                         ]
