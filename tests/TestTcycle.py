@@ -1,6 +1,6 @@
 import unittest
 
-from DocsteadyTestUtils import read
+from DocsteadyTestUtils import read_test_data
 from marshmallow import EXCLUDE, INCLUDE
 
 from docsteady.config import Config
@@ -10,14 +10,14 @@ from docsteady.spec import Issue, TestCase, TestStep
 
 class TestTcycle(unittest.TestCase):
     def test_tcycle(self) -> None:
-        data = read("cycledata")
+        data = read_test_data("cycledata")
 
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         testcycle: dict = TestCycle(unknown=EXCLUDE).load(data)
         self.assertEqual(testcycle["key"], "LVV-C181")
 
     def test_TestStep(self) -> None:
-        data = read("TestStep")
+        data = read_test_data("TestStep")
 
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         teststeps = TestStep(unknown=INCLUDE).load(
@@ -28,13 +28,13 @@ class TestTcycle(unittest.TestCase):
         self.assertEqual(20455, teststep["id"])
 
     def test_TestCycle(self) -> None:
-        data = read("TestCycle")
+        data = read_test_data("TestCycle")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         testcycle: dict = TestCycle(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(testcycle["key"], "LVV-T2338")
 
     def test_TestCycleLVVC181(self) -> None:
-        data = read("TestCycle-LVV-C181")
+        data = read_test_data("TestCycle-LVV-C181")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         Config.CACHED_USERS["gpdf"] = {
             "displayName": "Gregory Dubois-Felsmann"
@@ -45,7 +45,7 @@ class TestTcycle(unittest.TestCase):
         self.assertEqual(testcycle["key"], "LVV-C181")
 
     def test_TestCase(self) -> None:
-        data = read("TestCase")
+        data = read_test_data("TestCase")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
 
         issue_key = "LVV-71"
