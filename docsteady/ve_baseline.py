@@ -114,7 +114,7 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
     return tc_details
 
 
-def process_raw_test_cases(rs: Session | None, ve_details: dict) -> dict:
+def process_raw_test_cases(rs: Session, ve_details: dict) -> dict:
     # populate test_cases from raw_test_cases
     if (
         "raw_test_cases" in ve_details.keys()

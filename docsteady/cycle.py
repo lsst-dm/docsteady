@@ -32,7 +32,7 @@ from docsteady.utils import (
     MarkdownableHtmlPandocField,
     as_arrow,
     owner_for_id,
-    test_case_for_key,
+    t_case_for_key,
 )
 
 from .config import Config
@@ -41,7 +41,7 @@ from .config import Config
 class TestCycleItem(Schema):
     id = fields.Integer(required=True)
     test_case_key = fields.Function(
-        deserialize=lambda key: test_case_for_key(key)["key"],
+        deserialize=lambda key: t_case_for_key(key)["key"],
         data_key="testCaseKey",
         required=True,
     )
@@ -166,7 +166,7 @@ class TestResult(Schema):
     key = fields.String(required=True)
     comment = HtmlPandocField()
     test_case_key = fields.Function(
-        deserialize=lambda key: test_case_for_key(key)["key"],
+        deserialize=lambda key: t_case_for_key(key)["key"],
         data_key="testCaseKey",
         required=True,
     )
