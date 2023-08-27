@@ -23,7 +23,7 @@ Code for Test Report (Run) Model Generation
 """
 import datetime
 from base64 import b64encode
-from typing import MutableMapping
+from typing import List, MutableMapping
 
 import requests
 from marshmallow import EXCLUDE, Schema, fields, pre_load
@@ -91,7 +91,7 @@ class TestPlan(Schema):
     # (and don't forget preprocess_plan)
 
     @pre_load(pass_many=False)
-    def preprocess_plan(self, data: dict, **kwargs: []) -> dict:
+    def preprocess_plan(self, data: dict, **kwargs: List[str]) -> dict:
         """
         During pre_load, we modify the input dictionary to make it look like
         extra data was in the request information. This means that we "pull up"

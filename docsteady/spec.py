@@ -23,6 +23,7 @@ Code for Test Specification Model Generation
 """
 import re
 import sys
+from typing import List
 
 import requests
 from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
@@ -46,7 +47,7 @@ class Issue(Schema):
     jira_url = fields.String()
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data: dict, **kwargs: []) -> dict:
+    def extract_fields(self, data: dict, **kwargs: List[str]) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
@@ -67,7 +68,7 @@ class TestStep(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -132,7 +133,7 @@ class TestCase(Schema):
     requirements = fields.Nested(Issue, many=True)
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Synthesized fields
         data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data["key"])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
@@ -157,7 +158,7 @@ class TestCase(Schema):
         return data
 
     @post_load
-    def postprocess(self, data: dict, **kwargs: []) -> dict:
+    def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         # Need to do this here because we need requirement_issue_keys _and_ key
         data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case

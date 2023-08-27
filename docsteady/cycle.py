@@ -21,7 +21,7 @@
 """
 Code for Test Report (Run) Model Generation
 """
-from typing import Tuple
+from typing import List, Tuple
 
 import requests
 from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
@@ -90,7 +90,7 @@ class TestCycle(Schema):
     configuration = HtmlPandocField()
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict, **kwargs: []) -> dict:
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         if "customFields" in data.keys():
             custom_fields = data["customFields"]
 
@@ -122,7 +122,7 @@ class ScriptResult(Schema):
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict, **kwargs: []) -> None:
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -136,7 +136,7 @@ class ScriptResult(Schema):
         return data
 
     @post_load
-    def postprocess(self, data: dict, **kwargs: []) -> dict:
+    def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         # Need to do this here because we need result_issue_keys _and_ key
         data["result_issues"] = self.process_result_issues(data)
         return data
@@ -193,7 +193,7 @@ class TestResult(Schema):
     #                          required=True, data_key='executionDate')
 
     @post_load
-    def postprocess(self, data: dict, **kwargs: []) -> dict:
+    def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         data["issues"] = self.process_issues(data)
         return data
 
