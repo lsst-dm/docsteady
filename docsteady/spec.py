@@ -37,7 +37,7 @@ from .utils import (
     create_folders_and_files,
     get_folders,
     owner_for_id,
-    test_case_for_key,
+    t_case_for_key,
 )
 
 
@@ -195,7 +195,7 @@ class TestCase(Schema):
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
-                step_testcase = test_case_for_key(teststep["test_case_key"])
+                step_testcase = t_case_for_key(teststep["test_case_key"])
                 Config.CACHED_LIBTESTCASES[
                     step_testcase["key"]
                 ] = step_testcase
