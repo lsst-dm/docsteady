@@ -7,8 +7,6 @@
 # After editing, update requirements/main.txt by running:
 #     make update-deps
 
-# These dependencies are for fastapi including some optional features.
-
 # Other dependencies.
 BeautifulSoup4
 click
@@ -29,3 +27,5 @@ arrow
 urllib3
 tlslite-ng
 oauth2
+types-requests
+types-PyMySQL

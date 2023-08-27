@@ -24,7 +24,7 @@ Code for VCD
 
 import os
 from collections import Counter
-from typing import Any
+from typing import Any, List
 
 import pymysql
 import requests
@@ -63,7 +63,7 @@ class VerificationE(Schema):
     )
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data: dict, **kwargs: []) -> dict:
+    def extract_fields(self, data: dict, **kwargs: List[str]) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
