@@ -1,4 +1,5 @@
 import unittest
+from typing import List
 
 from DocsteadyTestUtils import read_test_data
 from marshmallow import EXCLUDE, INCLUDE
@@ -50,8 +51,8 @@ class TestTcycle(unittest.TestCase):
 
         issue_key = "LVV-71"
         issue: Issue = Issue()
-        issue.key = issue_key
-        issue.summary = "Test Case for LVV-71"
+        issue.key = issue_key  # type: ignore
+        issue.summary = "Test Case for LVV-71"  # type: ignore
         Config.CACHED_VELEMENTS[issue_key] = issue
         Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(
             data["key"]
@@ -60,7 +61,7 @@ class TestTcycle(unittest.TestCase):
         testcase: dict = TestCase(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(testcase["key"], "LVV-T2338")
 
-        issues: [Issue] = testcase["requirements"]
+        issues: List[Issue] = testcase["requirements"]
         self.assertEqual(1, len(issues))
         self.assertEqual("LVV-71", issues[0].key)
 

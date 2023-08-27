@@ -158,10 +158,12 @@ def owner_for_id(owner_id: str) -> str:
     return displayName
 
 
-def test_case_for_key(test_case_key: str) -> dict[str, Any]:
+def t_case_for_key(test_case_key: str) -> dict[str, Any]:
     """
     This will return a cached testcases (a test case already processed)
     or fetch it if and add to cache.
+    Named t_case to not clash with test in pytest.
+    Not sure why tox causes a problem with this (not pytest).
     :param test_case_key: Key of test case to fetch
     :return: Cached or fetched test case.
     """
