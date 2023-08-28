@@ -52,7 +52,7 @@ class HtmlPandocField(fields.String):
             value = download_and_rewrite_images(value)
             value = pypandoc.convert_text(
                 value, Config.TEMPLATE_LANGUAGE, format="html"
-            )
+            ).replace("height=\\textheight", "")
             if Config.TEMPLATE_LANGUAGE == "latex":
                 value = cite_docushare_handles(value)
         return value.strip()
@@ -130,7 +130,7 @@ class MarkdownableHtmlPandocField(fields.String):
             else:
                 value = pypandoc.convert_text(
                     value, Config.TEMPLATE_LANGUAGE, format="html"
-                )
+                ).replace("height=\\textheight", " ")
         return value
 
 
@@ -163,7 +163,7 @@ def t_case_for_key(test_case_key: str) -> dict[str, Any]:
     This will return a cached testcases (a test case already processed)
     or fetch it if and add to cache.
     Named t_case to not clash with test in pytest.
-    Not sure why tox causes a problem with this (not pytest).
+    Not sure why tox causes a problem with this (not pytest).:
     :param test_case_key: Key of test case to fetch
     :return: Cached or fetched test case.
     """
@@ -249,7 +249,6 @@ def download_and_rewrite_images(value: str) -> str:
         # fixing the aspect ratio of images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
-        img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
 
