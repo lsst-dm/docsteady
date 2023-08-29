@@ -40,7 +40,7 @@ from .formatters import alphanum_key, alphanum_map_sort
 from .spec import build_spec_model
 from .tplan import build_tpr_model
 from .utils import get_tspec
-from .vcd import summary, vcdsql
+from .vcd import summary
 from .ve_baseline import do_ve_model
 
 __version__: str
@@ -429,93 +429,80 @@ def generate_vcd(
         "schema": "jira",
     }
 
-    if spec:
-        RSP = spec
-    else:
-        RSP = ""
-
-    if sql:
-        print("Building model using direct SQL access")
-        vcd_dict = vcdsql(component, RSP)
-        # vcd_dict: list
-        #  [ves, reqs, veduplicated, tcases]
-    else:
-        print("Building VCD using Rest API access (VE extraction).")
-        Config.AUTH = (username, password)
-        if not subcomponent:
-            subcomponent = ""
-        ve_model = do_ve_model(component, subcomponent)
-        req_dict = dict()
-        ve_dict = dict()
-        for req in Config.CACHED_REQS_FOR_VES.keys():
-            tmp_req = {}
-            tmp_req["VEs"] = Config.CACHED_REQS_FOR_VES[req]
-            tmp_req["reqDoc"] = ""
-            tmp_req["priority"] = ""
-            # tmp_req['reqTitle'] = ""  # not needed for the VCD
-            # tmp_req['reqText'] = ""  # not needed for the VCD
-            req_dict[req] = tmp_req
-        for ve in ve_model.keys():
-            ve_long_name = ve_model[ve]["summary"].split(":")
-            tmp_ve = dict()
-            tmp_ve["jkey"] = ve
-            tmp_ve["status"] = ve_model[ve]["ve_status"]
-            if "ve_priority" in ve_model[ve].keys():
-                tmp_ve["priority"] = ve_model[ve]["ve_priority"]
-            else:
-                tmp_ve["priority"] = "Not Set"
-            if tmp_ve["priority"] == "":
-                tmp_ve["priority"] = "Not Set"
-            tmp_ve["Requirement ID"] = ve_model[ve]["req_id"]
-            tmp_ve["verified_by"] = []
-            if "verified_by" in ve_model[ve].keys():
-                for vby in ve_model[ve]["verified_by"]:
-                    tmp_ve["verified_by"].append(vby)
-            tmp_ve["tcs"] = {}
-            if "test_cases" in ve_model[ve].keys():
-                for tc in ve_model[ve]["test_cases"]:
-                    tmp_tc = {
-                        "status": Config.CACHED_TESTCASES[tc[0]]["status"]
-                    }
-                    if tc[0] in Config.CACHED_TESTRES_SUM.keys():
-                        tmp_tc["lastR"] = Config.CACHED_TESTRES_SUM[tc[0]]
-                    else:
-                        tmp_tc["lastR"] = None
-                    if "folder" in Config.CACHED_TESTCASES[tc[0]].keys():
-                        tmp_tc["tspec"] = get_tspec(
-                            Config.CACHED_TESTCASES[tc[0]]["folder"]
-                        )
-                    else:
-                        tmp_tc["tspec"] = ""
-                    tmp_ve["tcs"][tc[0]] = tmp_tc
-            # adding missing fields in reqs
-            if "req_priority" in ve_model[ve].keys():
-                req_dict[ve_model[ve]["req_id"]]["priority"] = ve_model[ve][
-                    "req_priority"
-                ]
-            else:
-                req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
-            if req_dict[ve_model[ve]["req_id"]]["priority"] == "":
-                req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
-            if "req_doc_id" in ve_model[ve].keys():
-                req_dict[ve_model[ve]["req_id"]]["reqDoc"] = ve_model[ve][
-                    "req_doc_id"
-                ]
-            ve_dict[ve_long_name[0]] = tmp_ve
-        # Not sure why the ve_dict is keyed on Requirement with a version -
-        # everything wants verificaiton element so remaking it (wom)
-        # vee_dict will be all VEs keyed on verification element
-        # ve_dict remains keyed on versioned requirement.
-        vee_dict = {}
-        for vreq, elem in ve_dict.items():
-            lvv = elem["jkey"]
-            vee_dict[lvv] = elem
-        # now keyed on verification element it should work in jinga
-        vcd_dict = [vee_dict, req_dict, [], Config.CACHED_TESTCASES]
-        # creating the lookup Specs to Reqs
-        for req, values in req_dict.items():
-            if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
-                Config.REQ_PER_DOC[values["reqDoc"]] = []
+    print("Building VCD using Rest API access (VE extraction).")
+    Config.AUTH = (username, password)
+    if not subcomponent:
+        subcomponent = ""
+    ve_model = do_ve_model(component, subcomponent)
+    req_dict = dict()
+    ve_dict = dict()
+    for req in Config.CACHED_REQS_FOR_VES.keys():
+        tmp_req = {}
+        tmp_req["VEs"] = Config.CACHED_REQS_FOR_VES[req]
+        tmp_req["reqDoc"] = ""
+        tmp_req["priority"] = ""
+        # tmp_req['reqTitle'] = ""  # not needed for the VCD
+        # tmp_req['reqText'] = ""  # not needed for the VCD
+        req_dict[req] = tmp_req
+    for ve in ve_model.keys():
+        ve_long_name = ve_model[ve]["summary"].split(":")
+        tmp_ve = dict()
+        tmp_ve["jkey"] = ve
+        tmp_ve["status"] = ve_model[ve]["ve_status"]
+        if "ve_priority" in ve_model[ve].keys():
+            tmp_ve["priority"] = ve_model[ve]["ve_priority"]
+        else:
+            tmp_ve["priority"] = "Not Set"
+        if tmp_ve["priority"] == "":
+            tmp_ve["priority"] = "Not Set"
+        tmp_ve["Requirement ID"] = ve_model[ve]["req_id"]
+        tmp_ve["verified_by"] = []
+        if "verified_by" in ve_model[ve].keys():
+            for vby in ve_model[ve]["verified_by"]:
+                tmp_ve["verified_by"].append(vby)
+        tmp_ve["tcs"] = {}
+        if "test_cases" in ve_model[ve].keys():
+            for tc in ve_model[ve]["test_cases"]:
+                tmp_tc = {"status": Config.CACHED_TESTCASES[tc[0]]["status"]}
+                if tc[0] in Config.CACHED_TESTRES_SUM.keys():
+                    tmp_tc["lastR"] = Config.CACHED_TESTRES_SUM[tc[0]]
+                else:
+                    tmp_tc["lastR"] = None
+                if "folder" in Config.CACHED_TESTCASES[tc[0]].keys():
+                    tmp_tc["tspec"] = get_tspec(
+                        Config.CACHED_TESTCASES[tc[0]]["folder"]
+                    )
+                else:
+                    tmp_tc["tspec"] = ""
+                tmp_ve["tcs"][tc[0]] = tmp_tc
+        # adding missing fields in reqs
+        if "req_priority" in ve_model[ve].keys():
+            req_dict[ve_model[ve]["req_id"]]["priority"] = ve_model[ve][
+                "req_priority"
+            ]
+        else:
+            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
+        if req_dict[ve_model[ve]["req_id"]]["priority"] == "":
+            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
+        if "req_doc_id" in ve_model[ve].keys():
+            req_dict[ve_model[ve]["req_id"]]["reqDoc"] = ve_model[ve][
+                "req_doc_id"
+            ]
+        ve_dict[ve_long_name[0]] = tmp_ve
+    # Not sure why the ve_dict is keyed on Requirement with a version -
+    # everything wants verificaiton element so remaking it (wom)
+    # vee_dict will be all VEs keyed on verification element
+    # ve_dict remains keyed on versioned requirement.
+    vee_dict = {}
+    for vreq, elem in ve_dict.items():
+        lvv = elem["jkey"]
+        vee_dict[lvv] = elem
+    # now keyed on verification element it should work in jinga
+    vcd_dict = [vee_dict, req_dict, [], Config.CACHED_TESTCASES]
+    # creating the lookup Specs to Reqs
+    for req, values in req_dict.items():
+        if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
+            Config.REQ_PER_DOC[values["reqDoc"]] = []
             Config.REQ_PER_DOC[values["reqDoc"]].append(req)
 
     sum_dict = summary(vcd_dict)
