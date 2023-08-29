@@ -52,7 +52,7 @@ class HtmlPandocField(fields.String):
             value = download_and_rewrite_images(value)
             value = pypandoc.convert_text(
                 value, Config.TEMPLATE_LANGUAGE, format="html"
-            )
+            ).replace("height=\\textheight", "")
             if Config.TEMPLATE_LANGUAGE == "latex":
                 value = cite_docushare_handles(value)
         return value.strip()
@@ -249,7 +249,6 @@ def download_and_rewrite_images(value: str) -> str:
         # fixing the aspect ratio of images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
-        img["height"] = "auto"
         img["src"] = fs_path
     return str(soup)
 
