@@ -220,7 +220,7 @@ def find_vekey(reqname: str, ve_keys: list[str]) -> str | None:
     return None
 
 
-def summary(dictionary: list[dict]) -> list:
+def summary(dictionary: list) -> list:
     """generate and print summary information"""
     global veduplicated
     mtrs = dict()
