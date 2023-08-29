@@ -193,16 +193,17 @@ def do_req_coverage(ves: list, ve_coverage: dict) -> str:
         # This implies there is only one VE per requirement (true for now)
         cover = element["coverage"]
         vecount.update([cover])
+    # @Leanne I dont think we need these failures anymore
     if vecount["WithFailures"] and vecount["WithFailures"] > 0:
         rcoverage = "WithFailures"
     else:
-        if "FullyVerified" in vecount.keys():
-            if vecount["FullyVerified"] == nves:
-                rcoverage = "FullyVerified"
+        if "Verified" in vecount.keys():
+            if vecount["Verified"] == nves:
+                rcoverage = "Verified"
             else:
-                rcoverage = "PartiallyVerified"
-        elif "PartiallyVerified" in vecount.keys():
-            rcoverage = "PartiallyVerified"
+                rcoverage = "InVerification"
+        elif "In Verification" in vecount.keys():
+            rcoverage = "InVerification"
         else:
             if vecount["NotCovered"] == nves:
                 rcoverage = "NotCovered"
@@ -219,7 +220,7 @@ def find_vekey(reqname: str, ve_keys: list[str]) -> str | None:
     return None
 
 
-def summary(dictionary: list[dict]) -> list:
+def summary(dictionary: list) -> list:
     """generate and print summary information"""
     global veduplicated
     mtrs = dict()
@@ -241,23 +242,7 @@ def summary(dictionary: list[dict]) -> list:
         # Each VE now has a status so we may be ablet to simplify this
         #  Leanne to help
         for ve in req["VEs"]:
-            keys = verification_elements[ve].keys()
-
-            verified_by = "verified_by" in keys
-            if verified_by and verification_elements[ve]["verified_by"]:
-                # I calculate the coverage looking at the test cases
-                # associated with the verifying VEs
-                vbytcs = dict()
-                for vby in verification_elements[ve]["verified_by"]:
-                    if verification_elements[ve]["tcs"]:
-                        vbytcs.update(verification_elements[ve]["tcs"])
-                    else:
-                        print(f"Tests not found for {vby} verifying {ve}.")
-                vcoverage = do_ve_coverage(vbytcs, dictionary[3])
-            else:
-                vcoverage = do_ve_coverage(
-                    verification_elements[ve]["tcs"], tcases
-                )
+            vcoverage = verification_elements[ve]["status"]
             Config.VE_STATUS_COUNT.update([vcoverage])
             verification_elements[ve]["coverage"] = vcoverage
         # Calculating the requirement coverage based on the VE coverage

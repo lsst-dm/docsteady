@@ -24,7 +24,6 @@ requirements:
     - marshmallow
     - pillow
     - pandoc
-    - pymysql
     - pypandoc
     - python 3.11
     - requests
@@ -45,7 +44,6 @@ requirements:
     - marshmallow
     - pillow
     - pandoc
-    - pymysql
     - pypandoc
     - python 3.11
     - requests
