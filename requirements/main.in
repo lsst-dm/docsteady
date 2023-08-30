@@ -14,7 +14,6 @@ jinja2
 marshmallow
 pillow
 pandoc
-pymysql
 pypandoc
 requests
 setuptools_scm
@@ -28,4 +27,3 @@ urllib3
 tlslite-ng
 oauth2
 types-requests
-types-PyMySQL
