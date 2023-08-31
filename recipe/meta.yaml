@@ -1,53 +1,50 @@
+{% set name = "docsteady" %}
 {% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER, GIT_DESCRIBE_HASH]|join('_') %}
 
 package:
-  name: docsteady
-  noarch: python
+  name: {{ name|lower }}
   version: {{ version }}
 
 source:
   git_url: ../
 
 build:
-  noarch: python
-  number: 0
-  script: $PYTHON setup.py install --single-version-externally-managed --record=record.txt
   entry_points:
     - docsteady = docsteady:cli
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
 
 requirements:
   host:
-    - arrow
-    - BeautifulSoup4
-    - click
-    - jinja2
-    - marshmallow
-    - pillow
-    - pandoc
-    - pypandoc
-    - python 3.11
-    - requests
-    - setuptools_scm
-    - tox
-    - pre-commit
-    - mypy
-    - pydantic
-    - requests
-    - urllib3
-    - tlslite-ng
-    -
+    - python >=3.11
+    - setuptools-scm
+    - pip
   run:
-    - arrow
-    - BeautifulSoup4
-    - click
-    - jinja2
-    - marshmallow
-    - pillow
-    - pandoc
-    - pypandoc
-    - python 3.11
+    - python >=3.11
     - requests
+    - pypandoc
+    - arrow
+    - jinja2
+    - click
+    - beautifulsoup4
+    - marshmallow <3
+    - setuptools-scm
+    - pymysql
+    - pillow
+
+test:
+  imports:
+    - docsteady
+  commands:
+    - pip check
+    - docsteady --help
+  requires:
+    - pip
 
 about:
   home: https://github.com/lsst-dm/docsteady
-  license: GPL
+  summary: Docsteady Test Document Generator
+  license: GPL-2.0-or-later
+  license_file: LICENSE
+
