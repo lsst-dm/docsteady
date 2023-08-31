@@ -34,13 +34,12 @@ requirements:
     - pillow
 
 test:
-  imports:
-    - docsteady
+  rootdir: ../
   commands:
-    - pip check
+    - pytest
     - docsteady --help
   requires:
-    - pip
+    - pytest
 
 about:
   home: https://github.com/lsst-dm/docsteady
