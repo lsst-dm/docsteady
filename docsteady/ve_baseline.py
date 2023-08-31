@@ -37,7 +37,7 @@ from .utils import create_folders_and_files
 from .vcd import VerificationE
 
 # for dubuging we do not need the hundreads of verificaiton elements
-DOFEW = True
+DOFEW = False
 FEWCOUNT = 3
 
 
