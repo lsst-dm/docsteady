@@ -50,6 +50,12 @@ To test changes done locally in the source code, use the following procedure:
 - once the changes are OK, commit them in the repository and open a PR for merging the branch to master
 
 
+New Recipie
+-----------
+With pypproject.toml the best way to get a new conda recipe seems tob e grayskull.
+You can pip install grayskull then:
+
+``grayskull pypi --strict-conda-forge docsteady``
 
 .. _docproc:
 
