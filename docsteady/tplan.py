@@ -158,24 +158,24 @@ def labelResults(result: dict) -> None:
     do_level = False
     step0 = 0
     # first see if we have multiple step 0s
-    for r in result['script_results']:
-        if 'index' in r and r['index'] == 0:
+    for r in result["script_results"]:
+        if "index" in r and r["index"] == 0:
             step0 = step0 + 1
         if step0 > 1:
             do_level = True
             break
 
     level = 0
-    for i, r in enumerate(result['script_results']):
-        if 'index' in r and r['index'] == 0:
+    for i, r in enumerate(result["script_results"]):
+        if "index" in r and r["index"] == 0:
             level = level + 1
         if do_level:
-            r['label'] = level + (r['index'] + 1) / 10.0
+            r["label"] = level + (r["index"] + 1) / 10.0
         else:
-            if 'index' in r:
-                r['label'] = r['index'] + 1
+            if "index" in r:
+                r["label"] = r["index"] + 1
             else:
-                r['label'] = i + 1
+                r["label"] = i + 1
     pass
 
 
