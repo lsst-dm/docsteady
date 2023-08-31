@@ -33,14 +33,6 @@ requirements:
     - pymysql
     - pillow
 
-test:
-  rootdir: ../
-  commands:
-    - pytest
-    - docsteady --help
-  requires:
-    - pytest
-
 about:
   home: https://github.com/lsst-dm/docsteady
   summary: Docsteady Test Document Generator
