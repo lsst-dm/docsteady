@@ -33,9 +33,20 @@ requirements:
     - pymysql
     - pillow
 
+test:
+  imports:
+    - docsteady
+  commands:
+    - pytest
+  requires:
+    - pytest
+
 about:
   home: https://github.com/lsst-dm/docsteady
   summary: Docsteady Test Document Generator
   license: GPL-2.0-or-later
   license_file: LICENSE
 
+extra:
+  recipe-maintainers:
+    - womullan
