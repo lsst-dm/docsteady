@@ -22,7 +22,7 @@ dependencies = []
 dynamic = ["version"]
 
 [project.scripts]
-docsteady = "docsteady.cli:main"
+docsteady = "docsteady:cli"
 
 [project.urls]
 Homepage = "https://docsteady.lsst.io"
@@ -33,16 +33,21 @@ requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 py-modules = ["docsteady"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["docsteady"]
 
 [tool.coverage.run]
 parallel = true
 branch = true
-source = ["docsteady"]
+source = ["src","docsteady"]
 
 
 [tool.coverage.paths]
-source = ["docsteady", ".tox/*/site-packages"]
+source = ["src","docsteady", ".tox/*/site-packages"]
 
 [tool.coverage.report]
 show_missing = true
@@ -79,7 +84,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 79
-known_first_party = ["docsteady", "tests"]
+known_first_party = ["src", "docsteady", "tests"]
 skip = ["docs/conf.py"]
 
 [tool.pytest.ini_options]

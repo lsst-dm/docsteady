@@ -1,21 +1,27 @@
 {% set name = "docsteady" %}
-{% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER, GIT_DESCRIBE_HASH]|join('_') %}
+{% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER]|join('_') %}
+# Took out GIT-DESCRIBE_HASH it make shte version odd looking.
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  git_url: ../
+  path: ../
 
 build:
   entry_points:
     - docsteady = docsteady:cli
   noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
-  number: 0
+  always_include_files:
+    - pyproject.toml
+    - tests
+    - docsteady
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed . -vv
 
 requirements:
+  build:
+    - python >=3.11
   host:
     - python >=3.11
     - setuptools-scm
@@ -30,14 +36,15 @@ requirements:
     - beautifulsoup4
     - marshmallow <3
     - setuptools-scm
-    - pymysql
     - pillow
+  test:
+    pytest
 
 test:
-  imports:
-    - docsteady
   commands:
     - pytest
+  source_files:
+    - pyproject.toml
   requires:
     - pytest
 

@@ -25,3 +25,6 @@ update: update-deps init
 .PHONY: run
 run:
 	tox run -e run
+
+clean:
+	rm -rf build
