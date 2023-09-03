@@ -34,7 +34,7 @@ requirements:
     - jinja2
     - click
     - beautifulsoup4
-    - marshmallow <3
+    - marshmallow >3
     - setuptools-scm
     - pillow
   test:

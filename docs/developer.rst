@@ -45,17 +45,23 @@ To test changes done locally in the source code, use the following procedure:
 - activate the environment: ``conda activate docsteady-env``
 - clone docsteady repository and checkout a ticket branch
 - do your changes
-- install the updates in the docsteady-env environment: ``python setup.py install``
+- install the updates in the docsteady-env environment: ``conda install .``
 - activate the same docsteady-env environment in a different terminal to test the new changes
 - once the changes are OK, commit them in the repository and open a PR for merging the branch to master
 
 
-New Recipie
+New Recipe
 -----------
-With pypproject.toml the best way to get a new conda recipe seems tob e grayskull.
+With pypproject.toml the best way to get a new conda recipe seems to e grayskull.
 You can pip install grayskull then:
 
 ``grayskull pypi --strict-conda-forge docsteady``
+
+However this does not provide a full working recipe.
+The source needs to be  `path: ../`.
+I also found the entry point was incorrect and needed to be changed to `docsteady=docsteady:cli`.
+
+In the last release 2.5 the docsteady source had to be moved under ''src'' for conda build to pick it up.
 
 .. _docproc:
 
@@ -149,7 +155,7 @@ Latex.
 
 MarkdownableHtmlPandocField
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Fields that are designated as `MarkdownableHtmlPandocField` will be intepreted primarily
+Fields that are designated as `MarkdownableHtmlPandocField` will be interpreted primarily
 as an `HtmlPandocField` _unless_ a special tag is found in the first line of the
 field::
 
