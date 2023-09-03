@@ -45,6 +45,7 @@ test:
     - pytest
   source_files:
     - pyproject.toml
+    - tests
   requires:
     - pytest
 
