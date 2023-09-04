@@ -14,7 +14,7 @@ Alternatively you may specify them on the command line using the ``--username`` 
 
 If neither of these are done the username and password will be prompted interactively.
 
-Personal Jira credentials may be used. 
+Personal Jira credentials may be used.
 For CI purposes, a general set of credentials are available, as specified in section :ref:`auth`.
 
 In order to execute any of the docsteady commands described in the following subsections, a conda environment providing docsteady must be activated, as described in :ref:`install`.
@@ -32,7 +32,7 @@ Quick guide
 - ``baseline-ve``: to generate Verification Elements baseline documents.
 
 More details on the procedures and logic applied in the document generation
-is available in this SPIE Paper :dmtn:`140`.  
+is available in this SPIE Paper :dmtn:`140`.
 
 
 
@@ -92,8 +92,8 @@ The generated file can be built directly into the corresponding pdf, however add
 - history\_and\_info.tex
 
 When creating the Git repository using ``sqrbot-jr``, all the required files should already be present.
-For more info on documents, change control and ``sqrbot-jr`` see 
-`The dev guide<https://developer.lsst.io/project-docs/change-controlled-docs.html#ccd-create>`__.
+For more info on documents, change control and ``sqrbot-jr`` see
+`The dev guide <https://developer.lsst.io/project-docs/change-controlled-docs.html#ccd-create>`_.
 
 In case you want to generate a Test Plan and Report for a different subsystem, not DM, you can use the namespace global option::
 
@@ -180,7 +180,7 @@ In case credential options are omitted and no environment variables are defined,
 Note also that the Jira database IP address may change. Updated information are maintained in the vault specified in section :ref:`auth`.
 
 The following command extracts all VCD information regarding ``DM`` and generates the file ``jira_docugen.tex``::
- 
+
   docsteady [--namespace <COM>] generate-vcd --sql True jira_docugen.tex
 
 When no ``--namespace if provided``, the DM component is selected by default.

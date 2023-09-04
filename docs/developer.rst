@@ -3,7 +3,7 @@
 Developing docsteady
 ====================
 
-See also the :doc:`API docs <api/docsteady>` 
+See also the :doc:`API docs <api/docsteady>`
 
 .. _release_new_version:
 
@@ -45,11 +45,23 @@ To test changes done locally in the source code, use the following procedure:
 - activate the environment: ``conda activate docsteady-env``
 - clone docsteady repository and checkout a ticket branch
 - do your changes
-- install the updates in the docsteady-env environment: ``python setup.py install``
+- install the updates in the docsteady-env environment: ``conda install .``
 - activate the same docsteady-env environment in a different terminal to test the new changes
 - once the changes are OK, commit them in the repository and open a PR for merging the branch to master
 
 
+New Recipe
+-----------
+With pypproject.toml the best way to get a new conda recipe seems to e grayskull.
+You can pip install grayskull then:
+
+``grayskull pypi --strict-conda-forge docsteady``
+
+However this does not provide a full working recipe.
+The source needs to be  `path: ../`.
+I also found the entry point was incorrect and needed to be changed to `docsteady=docsteady:cli`.
+
+In the last release 2.5 the docsteady source had to be moved under ''src'' for conda build to pick it up.
 
 .. _docproc:
 
@@ -60,7 +72,7 @@ This is the general approach for docsteady generated documents:
 
 - Create a document handle in DocuShare
 - Use the document handle to create a repository in GitHub using sqrbot-jr, which will also create the corresponding landing page in lsst.io
-- Configure a :ref:`github action<githubaction>` 
+- Configure a :ref:`github action<githubaction>`
 - Render the document to a ticket branch, or to the \textbf{jira-sync} special branch. Never auto-generate the document directly to master
 - Ensure that the document is correctly published in the corresponding LSST The Docs landing page and that everybody who is interested can access it.
 - Create a GitHub Pull Request to let contributors and stakeholders comment on the changes.
@@ -92,7 +104,7 @@ We use pandoc for converting things between different formats.
 
 In general, you can write a a template using jinja in any language supported
 by pandoc, including latex, html, markdown, and restructured text. Our
-default language is latex. 
+default language is latex.
 
 
 Resolving templates
@@ -106,11 +118,11 @@ defined in this package under  `docsteady/templates`**.
 - In the case of the `generate-spec` goal, it will by default look for a `spec` template.
 - In the case of `generate-cycle` goal, it will look for a `cycle` template.
 - When no options are presented to docsteady, the defaults are:
-  - `dm-spec.latex.jinja2` for `generate-spec` 
-  - `dm-cycle.latex.jinja2` for `generate-cycle`    
+  - `dm-spec.latex.jinja2` for `generate-spec`
+  - `dm-cycle.latex.jinja2` for `generate-cycle`
   - The generate format is `{namespace}-{goal}.{template_format}.jinja2`
 - An appendix can be processed separately. Accordingly, the defaults are:
-  - `dm-spec-appendix.latex.jinja2` for `generate-spec` 
+  - `dm-spec-appendix.latex.jinja2` for `generate-spec`
   - `dm-cycle-appendix.latex.jinja2` for `generate-cycle`
   - The general format is `{namespace}-{goal}-appendix.{template_format}.jinja2`
 
@@ -143,7 +155,7 @@ Latex.
 
 MarkdownableHtmlPandocField
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Fields that are designated as `MarkdownableHtmlPandocField` will be intepreted primarily
+Fields that are designated as `MarkdownableHtmlPandocField` will be interpreted primarily
 as an `HtmlPandocField` _unless_ a special tag is found in the first line of the
 field::
 
@@ -206,7 +218,7 @@ template development.
             jira_url = fields.String()
             component = fields.String()
             #: Nominal type is an arrow Timestamp
-            created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn'])) 
+            created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
             precondition = HtmlPandocField()
             objective = HtmlPandocField()
             version = fields.Integer(load_from='majorVersion', required=True)
@@ -282,7 +294,7 @@ Or actually ask for it in markdown::
 Or HTML::
   `docsteady --namespace example --template markdown generate-spec --format html "/Data Management/Prompt"`
 
-Cycle model and `generate-cycle` 
+Cycle model and `generate-cycle`
 --------------------------------
 
 `generate-cycle` template objects
@@ -295,7 +307,7 @@ Cycle model
 ^^^^^^^^^^^
 
 .. code-block:: py
-   
+
         class TestCycle(Schema):
             key = fields.String(required=True)
             name = fields.String(required=True)

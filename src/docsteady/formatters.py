@@ -18,19 +18,30 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 import re
+from typing import Any
 
 
-def as_anchor(text):
-    text = re.sub('[^0-9a-zA-Z -]+', '', text)
+def as_anchor(text: str) -> str:
+    """Convert text to an anchor tag.
+    :type text: `str` Text to convert to an anchor
+    :return: `str` Anchor tag
+    """
+    text = re.sub("[^0-9a-zA-Z -]+", "", text)
     text = text.replace(" ", "-")
     text = text.lower()
     return text
 
 
-def alphanum_key(key):
-    return [int(c) if c.isdigit() else c for c in re.split('([0-9]+)', key)]
+def alphanum_key(key: str) -> list[str | int]:
+    """Turn a string into a list of string and number chunks.
+    :type key: str
+    """
+    return [int(c) if c.isdigit() else c for c in re.split("([0-9]+)", key)]
 
 
-def alphanum_map_sort(mapping):
+def alphanum_map_sort(mapping: dict[str, Any]) -> dict[str, Any]:
     """Return a new map according to the alphanum sorting of it"""
-    return {i: mapping[i] for i in sorted(mapping, key=lambda item: alphanum_key(item))}
+    return {
+        i: mapping[i]
+        for i in sorted(mapping, key=lambda item: alphanum_key(item))
+    }

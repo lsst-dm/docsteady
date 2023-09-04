@@ -1,47 +1,60 @@
-{% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER, GIT_DESCRIBE_HASH]|join('_') %}
+{% set name = "docsteady" %}
+{% set version =  [GIT_DESCRIBE_TAG, GIT_DESCRIBE_NUMBER]|join('_') %}
+# Took out GIT-DESCRIBE_HASH it make shte version odd looking.
 
 package:
-  name: docsteady
-  noarch: python
+  name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  git_url: ../
+  path: ../
 
 build:
-  noarch: python
-  number: 0
-  script: $PYTHON setup.py install --single-version-externally-managed --record=record.txt
   entry_points:
     - docsteady = docsteady:cli
+  noarch: python
+  always_include_files:
+    - pyproject.toml
+    - tests
+    - docsteady
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed . -vv
 
 requirements:
+  build:
+    - python >=3.11
   host:
-    - arrow
-    - BeautifulSoup4
-    - click
-    - jinja2
-    - marshmallow 2.20.5
-    - pillow
-    - pandoc 1.19.2
-    - pymysql
-    - pypandoc
-    - python 3.7
-    - requests
-    - setuptools_scm
+    - python >=3.11
+    - setuptools-scm
+    - pip
   run:
-    - arrow
-    - BeautifulSoup4
-    - click
-    - jinja2
-    - marshmallow 2.20.5
-    - pillow
-    - pandoc 1.19.2
-    - pymysql
-    - pypandoc
-    - python 3.7
+    - python >=3.11
     - requests
+    - pypandoc
+    - arrow
+    - jinja2
+    - click
+    - beautifulsoup4
+    - marshmallow >3
+    - setuptools-scm
+    - pillow
+  test:
+    pytest
+
+test:
+  commands:
+    - pytest
+  source_files:
+    - pyproject.toml
+    - tests
+  requires:
+    - pytest
 
 about:
   home: https://github.com/lsst-dm/docsteady
-  license: GPL
+  summary: Docsteady Test Document Generator
+  license: GPL-2.0-or-later
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - womullan

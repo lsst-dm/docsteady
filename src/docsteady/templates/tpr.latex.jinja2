@@ -35,13 +35,15 @@
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}{{ '}' }}p{{ '{' }}#1}{{ '}' }}
 
-\input meta.tex
+\input{meta.tex}
 
 \newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/blob/\gitref/attachments}
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 \setcounter{tocdepth}{4}
+
+\providecommand{\ul}[1]{\textbf{{ '{' }}#1}{{ '}' }}
 
 \begin{document}
 

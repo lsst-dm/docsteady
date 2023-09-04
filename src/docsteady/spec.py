@@ -22,15 +22,23 @@
 Code for Test Specification Model Generation
 """
 import re
-import requests
 import sys
+from typing import List
 
-from marshmallow import Schema, fields, post_load, pre_load
+import requests
+from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
 
 from .config import Config
-from .formatters import as_anchor, alphanum_key
-from .utils import owner_for_id, as_arrow, HtmlPandocField, \
-    MarkdownableHtmlPandocField, test_case_for_key, get_folders, create_folders_and_files
+from .formatters import alphanum_key, as_anchor
+from .utils import (
+    HtmlPandocField,
+    MarkdownableHtmlPandocField,
+    as_arrow,
+    create_folders_and_files,
+    get_folders,
+    owner_for_id,
+    t_case_for_key,
+)
 
 
 class Issue(Schema):
@@ -39,7 +47,7 @@ class Issue(Schema):
     jira_url = fields.String()
 
     @pre_load(pass_many=False)
-    def extract_fields(self, data):
+    def extract_fields(self, data: dict, **kwargs: List[str]) -> dict:
         data_fields = data["fields"]
         data["summary"] = data_fields["summary"]
         data["jira_url"] = Config.ISSUE_UI_URL.format(issue=data["key"])
@@ -48,17 +56,19 @@ class Issue(Schema):
 
 class TestStep(Schema):
     index = fields.Integer()
-    test_case_key = fields.String(load_from="testCaseKey")
+    test_case_key = fields.String(data_key="testCaseKey")
     description = MarkdownableHtmlPandocField()
-    expected_result = MarkdownableHtmlPandocField(load_from="expectedResult")
-    test_data = MarkdownableHtmlPandocField(load_from="testData")
-    custom_field_values = fields.List(fields.Dict(), load_from="customFieldValues")
+    expected_result = MarkdownableHtmlPandocField(data_key="expectedResult")
+    test_data = MarkdownableHtmlPandocField(data_key="testData")
+    custom_field_values = fields.List(
+        fields.Dict(), data_key="customFieldValues"
+    )
 
     # Custom fields
     example_code = MarkdownableHtmlPandocField()  # name: "Example Code"
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Custom fields
         custom_field_values = data.get("customFieldValues", list())
         for custom_field in custom_field_values:
@@ -70,29 +80,39 @@ class TestStep(Schema):
             name = name.lower().replace(" ", "_")
             data[name] = string_value
 
+        return data
+
 
 class TestCase(Schema):
     key = fields.String(required=True)
     keyid = fields.Integer()
     name = HtmlPandocField(required=True)
-    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj), default="Unassigned")
-    owner_id = fields.String(load_from="owner")
+    owner = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), default="Unassigned"
+    )
+    owner_id = fields.String(data_key="owner")
     jira_url = fields.String()
     component = fields.String()
     folder = fields.String()
-    created_on = fields.Function(deserialize=lambda o: as_arrow(o['createdOn']))
+    created_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["createdOn"])
+    )
     precondition = HtmlPandocField()
     objective = HtmlPandocField()
-    version = fields.Integer(load_from='majorVersion', required=True)
+    version = fields.Integer(data_key="majorVersion", required=True)
     status = fields.String(required=True)
     priority = fields.String(required=True)
     labels = fields.List(fields.String(), missing=list())
-    test_script = fields.Method(deserialize="process_steps", load_from="testScript", required=True)
-    requirement_issue_keys = fields.List(fields.String(), load_from="issueLinks")
+    test_script = fields.Method(
+        deserialize="process_steps", data_key="testScript", required=True
+    )
+    requirement_issue_keys = fields.List(
+        fields.String(), data_key="issueLinks"
+    )
     lastR = fields.Dict()
 
     # Just in case it's necessary - these aren't guaranteed to be correct
-    custom_fields = fields.Dict(load_from="customFields")
+    custom_fields = fields.Dict(data_key="customFields")
 
     # custom fields go here and in pre_load
     verification_type = fields.String()
@@ -113,13 +133,13 @@ class TestCase(Schema):
     requirements = fields.Nested(Issue, many=True)
 
     @pre_load(pass_many=False)
-    def extract_custom_fields(self, data):
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Synthesized fields
-        data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data['key'])
+        data["jira_url"] = Config.TESTCASE_UI_URL.format(testcase=data["key"])
         data["doc_href"] = as_anchor(f"{data['key']} - {data['name']}")
         custom_fields = data["customFields"]
 
-        def _set_if(target_field, custom_field):
+        def _set_if(target_field: str, custom_field: str) -> None:
             if custom_field in custom_fields:
                 data[target_field] = custom_fields[custom_field]
 
@@ -138,48 +158,53 @@ class TestCase(Schema):
         return data
 
     @post_load
-    def postprocess(self, data):
+    def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         # Need to do this here because we need requirement_issue_keys _and_ key
-        data['requirements'] = self.process_requirements(data)
+        data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
-        data['keyid'] = int(data["key"].strip("LVV-T"))
+        data["keyid"] = int(data["key"].strip("LVV-T"))
         return data
 
-    def process_requirements(self, data):
-        issues = []
+    def process_requirements(self, data: dict) -> list[Issue]:
+        issues: list[Issue] = []
         if "requirement_issue_keys" in data:
             # Build list of requirements
             for issue_key in data["requirement_issue_keys"]:
-                issue = Config.CACHED_VELEMENTS.get(issue_key, None)
-                if not issue:
-                    resp = requests.get(Config.ISSUE_URL.format(issue=issue_key), auth=Config.AUTH)
+                if issue_key not in Config.CACHED_VELEMENTS.keys():
+                    resp = requests.get(
+                        Config.ISSUE_URL.format(issue=issue_key),
+                        auth=Config.AUTH,
+                    )
                     resp.raise_for_status()
                     issue_resp = resp.json()
-                    issue, errors = Issue().load(issue_resp)
-                    if errors:
-                        raise Exception("Unable to Process Requirement: " + str(errors))
+                    issue = Issue(unknown=EXCLUDE).load(issue_resp)
                     Config.CACHED_VELEMENTS[issue_key] = issue
-                Config.REQUIREMENTS_TO_TESTCASES.setdefault(issue_key, []).append(data['key'])
-                issues.append(issue)
+                Config.REQUIREMENTS_TO_TESTCASES.setdefault(
+                    issue_key, []
+                ).append(data["key"])
+                i = Config.CACHED_VELEMENTS.get(issue_key)
+                issues.append(i)  # type: ignore
         return issues
 
-    def process_steps(self, test_script):
-        if 'steps' not in test_script.keys():
+    def process_steps(self, test_script: dict) -> list[dict] | None:
+        if "steps" not in test_script.keys():
             return None
-        teststeps, errors = TestStep().load(test_script['steps'], many=True)
-        if errors:
-            raise Exception("Unable to process Test Steps: " + str(errors))
+        teststeps = TestStep(unknown=INCLUDE).load(
+            test_script["steps"], many=True
+        )
         # Prefetch any testcases we might need
         for teststep in teststeps:
             if teststep.get("test_case_key"):
-                step_testcase = test_case_for_key(teststep["test_case_key"])
-                Config.CACHED_LIBTESTCASES[step_testcase['key']] = step_testcase
+                step_testcase = t_case_for_key(teststep["test_case_key"])
+                Config.CACHED_LIBTESTCASES[
+                    step_testcase["key"]
+                ] = step_testcase
         teststeps_sorted = sorted(teststeps, key=lambda step: step["index"])
         return teststeps_sorted
 
 
-def get_lvv_details(key):
-    """ Get LVV information from Jira
+def get_lvv_details(key: str) -> dict:
+    """Get LVV information from Jira
 
     :param key: `str` LVV jira Key
 
@@ -190,23 +215,24 @@ def get_lvv_details(key):
 
     """
 
-    lvv = dict()
-    lvv['high_level_req'] = []
+    lvv: dict = dict()
+    lvv["high_level_req"] = []
     if key != "":
         resp = requests.get(
-            Config.ISSUE_URL.format(issue=key),
-            auth=Config.AUTH
+            Config.ISSUE_URL.format(issue=key), auth=Config.AUTH
         )
         if resp.status_code != 200:
             print(f"Unable to download: {resp.text}")
             sys.exit(1)
         lvv_resp = resp.json()
-        if lvv_resp['fields'][Config.HIGH_LEVEL_REQS_FIELD]:
-            lvv['high_level_req'] = re.findall(r'\[([^[]+?)\|', lvv_resp['fields']['customfield_13515'])
+        if lvv_resp["fields"][Config.HIGH_LEVEL_REQS_FIELD]:
+            lvv["high_level_req"] = re.findall(
+                r"\[([^[]+?)\|", lvv_resp["fields"]["customfield_13515"]
+            )
     return lvv
 
 
-def build_spec_model(folder):
+def build_spec_model(folder: str) -> tuple[dict, dict, dict]:
     # query = f'folder = "{folder}"'
     # FIXME: use the previous query if they fix the ATM testcases/search API
     folders = get_folders(folder)
@@ -220,14 +246,15 @@ def build_spec_model(folder):
     max_tests = 100
     startAt = 0
     testcases = []
-    testcases_dict = dict()
+    testcases_dict: dict = dict()
     deprecated = []
-    requirements = {}
+    requirements: dict = {}
+    params: dict = dict(query=query, maxResults=max_tests, startAt=startAt)
     while True:
         resp = requests.get(
             Config.TESTCASE_SEARCH_URL,
-            params=dict(query=query, maxResults=max_tests, startAt=startAt),
-            auth=Config.AUTH
+            params=params,
+            auth=Config.AUTH,
         )
         if resp.status_code != 200:
             print("Unable to download")
@@ -238,25 +265,23 @@ def build_spec_model(folder):
         testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
         for testcase_resp in testcases_resp:
             tc_count = tc_count + 1
-            testcase, errors = TestCase().load(testcase_resp)
-            if errors:
-                raise Exception("Unable to process errors: " + str(errors))
+            testcase = TestCase(unknown=EXCLUDE).load(testcase_resp)
             testcase["name"] = testcase["name"].rstrip()
             if testcase["key"] not in Config.CACHED_TESTCASES:
                 Config.CACHED_TESTCASES["key"] = testcase
-                if testcase['status'] == 'Deprecated':
+                if testcase["status"] == "Deprecated":
                     deprecated.append(testcase)
                 else:
-                    if testcase['status'] not in testcases_dict.keys():
-                        testcases_dict[testcase['status']] = []
-                    testcases_dict[testcase['status']].append(testcase)
+                    if testcase["status"] not in testcases_dict.keys():
+                        testcases_dict[testcase["status"]] = []
+                    testcases_dict[testcase["status"]].append(testcase)
                     testcases.append(testcase)
-                for req in testcase['requirements']:
-                    if req['key'] not in requirements.keys():
+                for req in testcase["requirements"]:
+                    if req["key"] not in requirements.keys():
                         # get the req information
-                        lvv = get_lvv_details(req['key'])
-                        req['high_level_req'] = lvv['high_level_req']
-                        requirements[req['key']] = req
+                        lvv = get_lvv_details(req["key"])
+                        req["high_level_req"] = lvv["high_level_req"]
+                        requirements[req["key"]] = req
         if tc_count < max_tests:
             break
         else:
@@ -264,10 +289,12 @@ def build_spec_model(folder):
 
     alltestcases = {}
     alltestcases["active"] = testcases
-    alltestcases['deprecated'] = deprecated
+    alltestcases["deprecated"] = deprecated
 
     for tc_s in testcases_dict.keys():
-        testcases_dict[tc_s] = sorted(testcases_dict[tc_s], key=lambda testc: testc["keyid"])
+        testcases_dict[tc_s] = sorted(
+            testcases_dict[tc_s], key=lambda testc: testc["keyid"]
+        )
         print(tc_s, len(testcases_dict[tc_s]))
 
     return alltestcases, requirements, testcases_dict

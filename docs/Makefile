@@ -56,5 +56,5 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
-api: 
-	(cd ..;export PYTHONPATH="."; sphinx-apidoc   -a -o docs/api docsteady) 
+api:
+	(cd ../src;export PYTHONPATH="."; sphinx-apidoc   -a -o ../docs/api docsteady)

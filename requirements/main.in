@@ -1,0 +1,29 @@
+# -*- conf -*-
+#
+# Editable runtime dependencies (equivalent to install_requires)
+# Add direct runtime dependencies here, as well as implicit dependencies
+# with constrained versions.
+#
+# After editing, update requirements/main.txt by running:
+#     make update-deps
+
+# Other dependencies.
+BeautifulSoup4
+click
+jinja2
+marshmallow
+pillow
+pandoc
+pypandoc
+requests
+setuptools_scm
+tox
+pre-commit
+mypy
+pydantic
+requests
+arrow
+urllib3
+tlslite-ng
+oauth2
+types-requests
