@@ -23,10 +23,8 @@ from typing import Any
 
 def as_anchor(text: str) -> str:
     """Convert text to an anchor tag.
-    :type text: str
-        Text to convert to an anchor
-    :return: str
-        Anchor tag
+    :type text: `str` Text to convert to an anchor
+    :return: `str` Anchor tag
     """
     text = re.sub("[^0-9a-zA-Z -]+", "", text)
     text = text.replace(" ", "-")

@@ -4,10 +4,14 @@
 # see metadata.yaml in this repo for to update document-specific metadata
 
 import os
-from pathlib import Path
-
 import sphinx_rtd_theme
+import sys
+from pathlib import Path
 from documenteer.sphinxconfig.utils import form_ltd_edition_name
+
+sys.path.insert(0, os.path.abspath("../src"))
+sys.path.insert(0, os.path.abspath("../src/docsteady"))
+
 
 extensions = [
     "sphinx.ext.autodoc",
