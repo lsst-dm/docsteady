@@ -22,18 +22,22 @@
 Code for Test Report (Run) Model Generation
 """
 import datetime
+import sys
 from base64 import b64encode
 from typing import List, MutableMapping
 
 import requests
+from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 from marshmallow import EXCLUDE, Schema, fields, pre_load
 
 from .config import Config
 from .cycle import TestCycle, TestResult
+from .formatters import alphanum_map_sort
 from .spec import TestCase
 from .utils import (
     HtmlPandocField,
     SubsectionableHtmlPandocField,
+    _as_output_format,
     as_arrow,
     create_folders_and_files,
     download_attachments,
@@ -176,6 +180,7 @@ def labelResults(result: dict) -> None:
                 r["label"] = r["index"] + 1
             else:
                 r["label"] = i + 1
+        r["label"] = f"{result['key']}-{r['label']}"
     pass
 
 
@@ -246,12 +251,15 @@ def build_tpr_model(tplan_key: str) -> dict:
                 and result["test_case_key"] in test_results_map[cycle_key]
             ):
                 continue
-            # print(result['key'], result['id'])
             labelResults(result)
             result["sorted"] = sorted(
-                result["script_results"], key=lambda step: step["label"]
+                result["script_results"], key=lambda step: step["index"]
             )
-            test_results_map[cycle_key][result["test_case_key"]] = result
+            all_runs = []
+            if result["test_case_key"] in test_results_map[cycle_key]:
+                all_runs = test_results_map[cycle_key][result["test_case_key"]]
+            all_runs.append(result)
+            test_results_map[cycle_key][result["test_case_key"]] = all_runs
             attachments["results"][result["id"]] = download_attachments(
                 rs,
                 Config.TESTRESULT_ATTACHMENTS.format(result_ID=result["id"]),
@@ -292,3 +300,46 @@ def build_tpr_model(tplan_key: str) -> dict:
     }
 
     return tpr
+
+
+def render_report(
+    metadata, target, plan_dict, format, path=None
+) -> Environment:
+    # Sort maps by keys
+    testcycles_map = alphanum_map_sort(plan_dict["test_cycles_map"])
+    testresults_map = alphanum_map_sort(plan_dict["test_results_map"])
+    testcases_map = alphanum_map_sort(plan_dict["test_cases_map"])
+
+    env = Environment(
+        loader=ChoiceLoader(
+            [
+                FileSystemLoader(Config.TEMPLATE_DIRECTORY),
+                PackageLoader("docsteady", "templates"),
+            ]
+        ),
+        lstrip_blocks=True,
+        trim_blocks=True,
+        autoescape=False,  # Was None.
+    )
+
+    template = env.get_template(f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
+    metadata["template"] = template.filename
+
+    text = template.render(
+        metadata=metadata,
+        testplan=plan_dict["tplan"],
+        testcycles=list(testcycles_map.values()),  # For convenience (sorted)
+        testcycles_map=testcycles_map,
+        testresults=list(testresults_map.values()),  # For convenience (sorted)
+        testresults_map=testresults_map,
+        attachments=plan_dict["attachments"],
+        testcases_map=testcases_map,
+    )
+
+    file = open(path, "w") if path else sys.stdout
+    print(_as_output_format(text, format), file=file or sys.stdout)
+
+    if file != sys.stdout:
+        file.close()
+
+    return env

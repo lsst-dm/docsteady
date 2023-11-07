@@ -36,9 +36,9 @@ from jinja2 import (
 )
 
 from .config import Config
-from .formatters import alphanum_key, alphanum_map_sort
+from .formatters import alphanum_key
 from .spec import build_spec_model
-from .tplan import build_tpr_model
+from .tplan import build_tpr_model, render_report
 from .utils import get_tspec
 from .vcd import summary
 from .ve_baseline import do_ve_model
@@ -245,68 +245,17 @@ def generate_report(
 
     plan_dict = build_tpr_model(plan)
 
-    # Sort maps by keys
-    testcycles_map = alphanum_map_sort(plan_dict["test_cycles_map"])
-    testresults_map = alphanum_map_sort(plan_dict["test_results_map"])
-    testcases_map = alphanum_map_sort(plan_dict["test_cases_map"])
-
-    env = Environment(
-        loader=ChoiceLoader(
-            [
-                FileSystemLoader(Config.TEMPLATE_DIRECTORY),
-                PackageLoader("docsteady", "templates"),
-            ]
-        ),
-        lstrip_blocks=True,
-        trim_blocks=True,
-        autoescape=False,  # Was None.
-    )
-
-    template = env.get_template(f"{target}.{Config.TEMPLATE_LANGUAGE}.jinja2")
-
     metadata = _metadata()
-    metadata["template"] = template.filename
     metadata["namespace"] = Config.NAMESPACE
     metadata["component_long_name"] = Config.COMPONENTS[
         Config.NAMESPACE.upper()
     ]
+    env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
 
-    text = template.render(
-        metadata=metadata,
-        testplan=plan_dict["tplan"],
-        testcycles=list(testcycles_map.values()),  # For convenience (sorted)
-        testcycles_map=testcycles_map,
-        testresults=list(testresults_map.values()),  # For convenience (sorted)
-        testresults_map=testresults_map,
-        attachments=plan_dict["attachments"],
-        testcases_map=testcases_map,
-    )
-
-    file = open(path, "w") if path else sys.stdout
-    print(_as_output_format(text), file=file or sys.stdout)
-    if file != sys.stdout:
-        file.close()
     # output the plan - TR without results
-    template = env.get_template(
-        f"tpnoresult.{Config.TEMPLATE_LANGUAGE}.jinja2"
-    )
-    metadata["template"] = template.filename
-    text = template.render(
-        metadata=metadata,
-        testplan=plan_dict["tplan"],
-        testcycles=list(testcycles_map.values()),  # For convenience (sorted)
-        testcycles_map=testcycles_map,
-        testresults=list(testresults_map.values()),  # steps are in the results
-        testresults_map=testresults_map,
-        attachments=plan_dict["attachments"],
-        testcases_map=testcases_map,
-    )
-
+    target = "tpnoresult"
     path = path.replace(".tex", "-plan.tex")
-    file = open(path, "w") if path else sys.stdout
-    print(_as_output_format(text), file=file or sys.stdout)
-    if file != sys.stdout:
-        file.close()
+    env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
     if trace:
         # Will exit if it can't find a template
         appendix_template = _try_appendix_template(target, env)
@@ -316,7 +265,7 @@ def generate_report(
         metadata["template"] = appendix_template.filename
         appendix_file = _get_appendix_output(path)
         appendix_text = appendix_template.render(
-            metadata=metadata, testcases_map=testcases_map
+            metadata=metadata, testcases_map=plan_dict["testcases_map"]
         )
         print(_as_output_format(appendix_text), file=appendix_file)
 

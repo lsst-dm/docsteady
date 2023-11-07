@@ -394,3 +394,10 @@ def get_tspec(folder: str) -> str:
         if len(sd) == 2:
             return sd[1]
     return ""
+
+
+def _as_output_format(text: str, format: str) -> str:
+    if Config.TEMPLATE_LANGUAGE != format:
+        setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
+        text = getattr(Config.DOC, format).decode("utf-8")
+    return text

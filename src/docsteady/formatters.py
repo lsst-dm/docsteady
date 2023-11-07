@@ -45,3 +45,15 @@ def alphanum_map_sort(mapping: dict[str, Any]) -> dict[str, Any]:
         i: mapping[i]
         for i in sorted(mapping, key=lambda item: alphanum_key(item))
     }
+
+
+def alphanum_map_array_sort(mapping: dict[str, Any]) -> dict[str, Any]:
+    """Updated the sorted result arrays in the map map map map list"""
+    for k, r in mapping.items():
+        for tk, tr in mapping.items():
+            for ttk, ttrr in tr.items():
+                for ttr in ttrr:
+                    ttr["sorted"] = sorted(
+                        ttr["script_results"], key=lambda d: d["index"]
+                    )
+    return mapping

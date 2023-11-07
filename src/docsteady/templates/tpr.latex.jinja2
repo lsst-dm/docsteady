@@ -367,10 +367,11 @@ Issues found during the execution of {{ test_item['test_case_key'] }} test case:
 \end{itemize}
     {% endif %}
 
-Detailed steps results:
-
-    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
-\begin{tabular}{p{2cm}p{14cm}}
+%{{ cycle.key }}-{{ test_item['test_case_key'] }}
+    {% for tresult in testresults_map[cycle.key][ test_item['test_case_key'] ] %}
+Detailed steps results {{ tresult['key'] }}-{{ tresult['id'] }}:\\
+    {% for script_result in tresult['sorted'] %}
+\begin{tabular}{p{4cm}p{12cm}}
 \toprule
 Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
 \end{tabular}
@@ -420,6 +421,7 @@ Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_re
 \end{itemize}
 }
       {% endif %}
+    {% endfor %}
     {% endfor %}
 
   {% endfor %}

@@ -105,6 +105,7 @@ class TestCycle(Schema):
 
 class ScriptResult(Schema):
     index = fields.Integer(data_key="index")
+    id = fields.Integer(data_key="key")
     expected_result = MarkdownableHtmlPandocField(data_key="expectedResult")
     execution_date = fields.String(data_key="executionDate")
     description = MarkdownableHtmlPandocField(data_key="description")
