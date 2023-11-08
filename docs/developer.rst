@@ -55,6 +55,7 @@ Enable pre-commit in github this will run black and flake8 on your code before y
 
 The project is now set up with tox - run tox before your commit to do type checking run tests etc.
 
+Before tagging a release make sure the the pushed version passes github actions.
 
 New Recipe
 -----------

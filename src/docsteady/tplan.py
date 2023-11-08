@@ -302,7 +302,7 @@ def build_tpr_model(tplan_key: str) -> dict:
     return tpr
 
 
-def filter_notexecuted_nocomment(testresults_map):
+def filter_notexecuted_nocomment(testresults_map: dict) -> None:
     for cycle_key, test_results in testresults_map.items():
         for test_case_key, results in test_results.items():
             for result in results:
@@ -319,7 +319,11 @@ def filter_notexecuted_nocomment(testresults_map):
 
 
 def render_report(
-    metadata, target, plan_dict, format, path=None
+    metadata: dict,
+    target: str,
+    plan_dict: dict,
+    format: str,
+    path: str | None = None,
 ) -> Environment:
     # Sort maps by keys
     testcycles_map = alphanum_map_sort(plan_dict["test_cycles_map"])
