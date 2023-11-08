@@ -367,9 +367,10 @@ Issues found during the execution of {{ test_item['test_case_key'] }} test case:
 \end{itemize}
     {% endif %}
 
-%{{ cycle.key }}-{{ test_item['test_case_key'] }}
+
     {% for tresult in testresults_map[cycle.key][ test_item['test_case_key'] ] %}
-Detailed steps results {{ tresult['key'] }}-{{ tresult['id'] }}:\\
+Detailed steps results {{ cycle.key }}-{{ test_item['test_case_key'] }} {{ tresult['key'] }}-{{ tresult['id'] }}:\\
+{\bf Note:} Steps "Not Executed" and with No Result are not shown in this report.\\
     {% for script_result in tresult['sorted'] %}
 \begin{tabular}{p{4cm}p{12cm}}
 \toprule

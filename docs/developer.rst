@@ -49,6 +49,13 @@ To test changes done locally in the source code, use the following procedure:
 - activate the same docsteady-env environment in a different terminal to test the new changes
 - once the changes are OK, commit them in the repository and open a PR for merging the branch to master
 
+Before Committing
+=================
+Enable pre-commit in github this will run black and flake8 on your code before you commit.
+
+The project is now set up with tox - run tox before your commit to do type checking run tests etc.
+
+Before tagging a release make sure the the pushed version passes github actions.
 
 New Recipe
 -----------

@@ -302,14 +302,35 @@ def build_tpr_model(tplan_key: str) -> dict:
     return tpr
 
 
+def filter_notexecuted_nocomment(testresults_map: dict) -> None:
+    for cycle_key, test_results in testresults_map.items():
+        for test_case_key, results in test_results.items():
+            for result in results:
+                newsteps = []
+                for step in result["sorted"]:
+                    if step["status"] == "Not Executed" and (
+                        "comment" not in step or step["comment"] == ""
+                    ):
+                        continue
+                    else:
+                        newsteps.append(step)
+                result["sorted"] = newsteps
+    pass
+
+
 def render_report(
-    metadata, target, plan_dict, format, path=None
+    metadata: dict,
+    target: str,
+    plan_dict: dict,
+    format: str,
+    path: str | None = None,
 ) -> Environment:
     # Sort maps by keys
     testcycles_map = alphanum_map_sort(plan_dict["test_cycles_map"])
     testresults_map = alphanum_map_sort(plan_dict["test_results_map"])
     testcases_map = alphanum_map_sort(plan_dict["test_cases_map"])
 
+    filter_notexecuted_nocomment(testresults_map)
     env = Environment(
         loader=ChoiceLoader(
             [
