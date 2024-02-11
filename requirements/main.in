@@ -8,6 +8,7 @@
 #     make update-deps
 
 # Other dependencies.
+certifi>2024.2.0
 BeautifulSoup4
 click
 jinja2

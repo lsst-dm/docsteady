@@ -1,0 +1,11 @@
+#for documenteer
+[project]
+title = "docsteady"
+copyright = "2015-2024 Association of Universities for Research in Astronomy, Inc. (AURA)"
+
+
+[project.python]
+package = "docsteady"
+documentation_url_key = "Homepage"
+github_url_key = "Source"
+
