@@ -442,6 +442,9 @@ mypy-extensions==1.0.0 \
     # via
     #   -c requirements/main.txt
     #   mypy
+myst==0.0.1 \
+    --hash=sha256:8978f904f1f5f6cd601a183bcd56391387a93da50ed3232ba95a97cf656dc567
+    # via -r requirements/dev.in
 myst-parser==2.0.0 \
     --hash=sha256:7c36344ae39c8e740dad7fdabf5aa6fc4897a813083c6cc9990044eb93656b14 \
     --hash=sha256:ea929a67a6a0b1683cdbe19b8d2e724cd7643f8aa3e7bb18dd65beac3483bead

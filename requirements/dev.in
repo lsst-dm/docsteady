@@ -21,5 +21,6 @@ pytest-cov
 ltd-conveyor
 pytest-cov
 documenteer[guide]
+myst
 sphinx-rtd-theme
 sphinx-prompt

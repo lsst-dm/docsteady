@@ -2,6 +2,7 @@
 [project]
 title = "docsteady"
 copyright = "2015-2024 Association of Universities for Research in Astronomy, Inc. (AURA)"
+github_url = "https://github.com/lsst-dm/docsteady"
 
 
 [project.python]
