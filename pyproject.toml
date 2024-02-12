@@ -16,7 +16,7 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: POSIX",
 ]
-requires-python = ">=3.11"
+requires-python = ">3.11"
 # Use requirements/main.in for runtime dependencies instead.
 dependencies = []
 dynamic = ["version"]
