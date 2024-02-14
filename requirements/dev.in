@@ -18,12 +18,10 @@ pydantic
 pytest
 pytest-asyncio
 pytest-cov
-ltd-conveyor
-pytest-cov
 documenteer>1.0.0
 documenteer[guide]
 myst
 sphinx-rtd-theme
 sphinx-prompt
 ltd-conveyor
-Mapping
+mapping
