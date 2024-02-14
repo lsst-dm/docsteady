@@ -14,7 +14,7 @@ update-deps-no-hashes:
 .PHONY: init
 init:
 	pip install --editable .
-	pip install --upgrade -r requirements/main.txt -r requirements/dev.txt
+	pip install --upgrade --allow-unsafe  -r requirements/main.txt -r requirements/dev.txt
 	rm -rf .tox
 	pip install --upgrade pre-commit tox
 	pre-commit install

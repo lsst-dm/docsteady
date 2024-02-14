@@ -8,6 +8,7 @@
 #     make update-deps
 
 # Other dependencies.
+setuptools>69.0
 certifi>2024.2.0
 BeautifulSoup4
 click
