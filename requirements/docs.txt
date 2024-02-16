@@ -1,0 +1,7 @@
+documenteer>1.0.0
+documenteer[guide]
+sphinx-rtd-theme
+sphinx-prompt
+ltd-conveyor
+
+
