@@ -18,6 +18,7 @@ jobs:
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.0
 
+
   test:
 
     runs-on: ubuntu-latest
@@ -28,15 +29,11 @@ jobs:
           - "3.11"
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Python dependencies
+      - name: Install pandoc
         run: |
           sudo apt-get -y install pandoc
-          python -m pip install --upgrade pip
-          python -m pip install -r docs/requirements.txt
-          python -m pip install -r requirements/main.txt
 
+      - uses: actions/checkout@v3
 
       - name: Run tox
         uses: lsst-sqre/run-tox@v1
@@ -44,25 +41,26 @@ jobs:
           python-version: ${{ matrix.python }}
           tox-envs: "py,coverage-report,typing"
 
-  build:
+  docs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r docs/requirements.txt
+          python -m pip install -r requirements/docs.txt
+          python -m pip install .
+
 
       - name: Compile documentation
         run: |
-          export PYTHONPATH=.
           cd docs
           make html
 

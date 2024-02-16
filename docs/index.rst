@@ -1,5 +1,5 @@
-docsteady
-=========
+docsteady: Test report extraction from Jira
+===========================================
 
 docsteady is a python package that talks to
 Jira and the Adaptavist Test Management system to output Test folders and

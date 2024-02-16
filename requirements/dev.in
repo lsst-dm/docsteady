@@ -9,6 +9,7 @@
 
 -c main.txt
 
+GitPython>=3.1.41
 asgi-lifespan
 coverage
 httpx
@@ -18,8 +19,4 @@ pydantic
 pytest
 pytest-asyncio
 pytest-cov
-documenteer>=0.6
-sphinx-rtd-theme
-sphinx-prompt
-ltd-conveyor
-pytest-cov
+myst

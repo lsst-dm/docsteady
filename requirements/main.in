@@ -8,11 +8,14 @@
 #     make update-deps
 
 # Other dependencies.
+setuptools>69.0
+certifi>2024.2.0
+pillow>=10.2.0
+ecdsa>=0.18
 BeautifulSoup4
 click
 jinja2
 marshmallow
-pillow
 pandoc
 pypandoc
 requests

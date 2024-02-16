@@ -1,5 +1,7 @@
-documenteer>=0.6
+documenteer>1.0.0
+documenteer[guide]
 sphinx-rtd-theme
 sphinx-prompt
-docsteady
 ltd-conveyor
+
+
