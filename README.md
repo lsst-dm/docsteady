@@ -15,7 +15,7 @@ Create a conda environment based on the `docsteady` conda package::
 Credentials are needed by `docsteady` to log into JIRA. The easiest way to do this is
 by setting up the following environment variables::
 
-  export JIRA_USER=<jira-username>
+  export ZEPHYR_TOKEN=<jira-token>
   export JIRA_PASSWORD=<password>
 
 

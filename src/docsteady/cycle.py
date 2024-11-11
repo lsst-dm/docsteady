@@ -21,99 +21,41 @@
 """
 Code for Test Report (Run) Model Generation
 """
-from typing import List, Tuple
+from typing import List
 
 import requests
-from marshmallow import EXCLUDE, INCLUDE, Schema, fields, post_load, pre_load
+from marshmallow import EXCLUDE, Schema, fields, post_load, pre_load
 
 from docsteady.spec import Issue
 from docsteady.utils import (
     HtmlPandocField,
     MarkdownableHtmlPandocField,
     as_arrow,
+    get_key,
+    get_value,
     owner_for_id,
-    t_case_for_key,
+    process_links,
 )
 
 from .config import Config
-
-
-class TestCycleItem(Schema):
-    id = fields.Integer(required=True)
-    test_case_key = fields.Function(
-        deserialize=lambda key: t_case_for_key(key)["key"],
-        data_key="testCaseKey",
-        required=True,
-    )
-    user_id = fields.String(data_key="userKey")
-    user = fields.Function(
-        data_key="userKey", deserialize=lambda obj: owner_for_id(obj)
-    )
-    assignee = fields.Function(
-        data_key="assignedTo", deserialize=lambda obj: owner_for_id(obj)
-    )
-    execution_date = fields.Function(
-        deserialize=lambda o: as_arrow(o["executionDate"])
-    )
-    status = fields.String(required=True)
-
-
-class TestCycle(Schema):
-    key = fields.String(required=True)
-    name = HtmlPandocField(required=True)
-    description = HtmlPandocField()
-    status = fields.String(required=True)
-    execution_time = fields.Integer(required=True, data_key="executionTime")
-    created_on = fields.Function(
-        deserialize=lambda o: as_arrow(o["createdOn"])
-    )
-    updated_on = fields.Function(
-        deserialize=lambda o: as_arrow(o["updatedOn"])
-    )
-    planned_start_date = fields.Function(
-        deserialize=lambda o: as_arrow(o["plannedStartDate"])
-    )
-    created_by = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), data_key="createdBy"
-    )
-    owner = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), data_key="owner"
-    )
-    custom_fields = fields.Dict(data_key="customFields")
-    # Renamed to prevent Jinja collision
-    test_items = fields.Nested(
-        TestCycleItem, many=True, unknown=INCLUDE, data_key="items"
-    )
-
-    # custom fields
-    software_version = HtmlPandocField()
-    configuration = HtmlPandocField()
-
-    @pre_load(pass_many=False)
-    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
-        if "customFields" in data.keys():
-            custom_fields = data["customFields"]
-
-            def _set_if(target_field: str, custom_field: str) -> None:
-                if custom_field in custom_fields:
-                    data[target_field] = custom_fields[custom_field]
-
-            _set_if("software_version", "Software Version / Baseline")
-            _set_if("configuration", "Configuration")
-        return data
 
 
 class ScriptResult(Schema):
     index = fields.Integer(data_key="index")
     id = fields.Integer(data_key="key")
     expected_result = MarkdownableHtmlPandocField(data_key="expectedResult")
+    actual_result = MarkdownableHtmlPandocField(data_key="actualResult")
     execution_date = fields.String(data_key="executionDate")
     description = MarkdownableHtmlPandocField(data_key="description")
     comment = MarkdownableHtmlPandocField(data_key="comment")
-    status = fields.String(data_key="status")
+    status = fields.Function(
+        deserialize=lambda obj: get_value(obj), data_key="testExecutionStatus"
+    )
     testdata = MarkdownableHtmlPandocField(data_key="testData")
     # result_issue_keys are actually jira issue keys (not HTTP links)
-    result_issue_keys = fields.List(fields.String(), data_key="issueLinks")
+    result_issue_links = fields.Method(
+        deserialize="process_result_issues", data_key="links", required=False
+    )
     result_issues = fields.Nested(Issue, many=True)
     custom_field_values = fields.List(
         fields.Dict(), data_key="customFieldValues"
@@ -125,15 +67,16 @@ class ScriptResult(Schema):
     @pre_load(pass_many=False)
     def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
         # Custom fields
-        custom_field_values = data.get("customFieldValues", list())
-        for custom_field in custom_field_values:
-            if "booleanValue" in custom_field:
-                string_value = custom_field["booleanValue"]
-            else:
-                string_value = custom_field["stringValue"]
-            name = custom_field["customField"]["name"]
-            name = name.lower().replace(" ", "_")
-            data[name] = string_value
+        if "customFieldValues" in data:
+            custom_field_values = data.get("customFieldValues", list())
+            for custom_field in custom_field_values:
+                if "booleanValue" in custom_field:
+                    string_value = custom_field["booleanValue"]
+                else:
+                    string_value = custom_field["stringValue"]
+                name = custom_field["customField"]["name"]
+                name = name.lower().replace(" ", "_")
+                data[name] = string_value
         return data
 
     @post_load
@@ -167,9 +110,7 @@ class TestResult(Schema):
     key = fields.String(required=True)
     comment = HtmlPandocField()
     test_case_key = fields.Function(
-        deserialize=lambda key: t_case_for_key(key)["key"],
-        data_key="testCaseKey",
-        required=True,
+        deserialize=lambda obj: get_key(obj), data_key="testCase"
     )
     script_results = fields.Nested(
         ScriptResult,
@@ -178,25 +119,54 @@ class TestResult(Schema):
         data_key="scriptResults",
         required=True,
     )
-    issue_links = fields.List(fields.String(), data_key="issueLinks")
-    issues = fields.Nested(Issue, many=True)
-    user_id = fields.String(data_key="userKey")
-    user = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), data_key="userKey"
+    issue_links = fields.Method(
+        deserialize="process_issue_links", data_key="links", required=False
     )
-    status = fields.String(data_key="status", required=True)
-    # These fields are not used at the moment,
-    # but maybe we need them in the future
-    # automated = fields.Boolean(required=True)
-    # environment = fields.String()
-    # execution_time = fields.Integer(data_key='executionTime', required=True)
-    # execution_date = fields.Function(deserialize=lambda o: as_arrow(o),
-    #                          required=True, data_key='executionDate')
+
+    issues = fields.Nested(Issue, many=True)
+    user_id = fields.String(data_key="executedById")
+    user = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), data_key="executedById"
+    )
+    testExecutionStatus = fields.Function(
+        deserialize=lambda obj: get_value(obj)
+    )
+    assignee = fields.Function(
+        data_key="assignedToId", deserialize=lambda obj: owner_for_id(obj)
+    )
+    executedby = fields.Function(
+        data_key="executedById", deserialize=lambda obj: owner_for_id(obj)
+    )
+    execution_date = fields.Function(
+        deserialize=lambda o: as_arrow(o["executionDate"])
+    )
+    custom_fields = fields.Dict(data_key="customFields")
+    # custom field
+    include = fields.Boolean()  # include in report
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
+        if "customFields" in data.keys():
+            custom_fields = data["customFields"]
+
+            def _set_if(target_field: str, custom_field: str) -> None:
+                if custom_field in custom_fields:
+                    data[target_field] = custom_fields[custom_field]
+
+            _set_if("include", "Include Execution in Test Report")
+        return data
 
     @post_load
     def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         data["issues"] = self.process_issues(data)
         return data
+
+    def process_issue_links(self, links: dict) -> list | None:
+        plinks = process_links(links, "issues")
+        keys = []
+        for link in plinks:
+            keys.append(link["target"])
+        return keys
 
     def process_issues(self, data: dict) -> list[Issue]:
         issues: list[Issue] = []
@@ -223,17 +193,47 @@ class TestResult(Schema):
         return issues
 
 
-def build_results_model(testcycle_id: str) -> Tuple[TestCycle, TestResult]:
-    resp = requests.get(
-        Config.TESTCYCLE_URL.format(testrun=testcycle_id), auth=Config.AUTH
+class TestCycle(Schema):
+    id = fields.Integer(required=True)
+    key = fields.String(required=True)
+    name = HtmlPandocField(required=True)
+    description = HtmlPandocField()
+    status = fields.Function(deserialize=lambda obj: get_value(obj))
+    execution_time = fields.Integer(required=False, data_key="executionTime")
+    created_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["createdOn"])
     )
-    resp.raise_for_status()
-    testcycle = TestCycle(unknown=EXCLUDE).load(resp.json(), partial=True)
-    resp = requests.get(
-        Config.TESTRESULTS_URL.format(testrun=testcycle_id), auth=Config.AUTH
+    updated_on = fields.Function(
+        deserialize=lambda o: as_arrow(o["updatedOn"])
     )
-    resp.raise_for_status()
-    testresults = TestResult(unknown=EXCLUDE).load(
-        resp.json(), many=True, partial=True
+    planned_start_date = fields.Function(
+        deserialize=lambda o: as_arrow(o["plannedStartDate"])
     )
-    return testcycle, testresults
+    created_by = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), data_key="createdBy"
+    )
+    owner = fields.Function(
+        deserialize=lambda obj: owner_for_id(obj), data_key="owner"
+    )
+    custom_fields = fields.Dict(data_key="customFields")
+
+    test_items: List[
+        TestResult
+    ] = []  # items are not in cyle anymorre test case list near as I can tell
+
+    # custom fields
+    software_version = HtmlPandocField()
+    configuration = HtmlPandocField()
+
+    @pre_load(pass_many=False)
+    def extract_custom_fields(self, data: dict, **kwargs: List[str]) -> dict:
+        if "customFields" in data.keys():
+            custom_fields = data["customFields"]
+
+            def _set_if(target_field: str, custom_field: str) -> None:
+                if custom_field in custom_fields:
+                    data[target_field] = custom_fields[custom_field]
+
+            _set_if("software_version", "Software Version / Baseline")
+            _set_if("configuration", "Configuration")
+        return data

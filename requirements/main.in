@@ -30,3 +30,4 @@ urllib3
 tlslite-ng
 oauth2
 types-requests
+zephyr-python-api

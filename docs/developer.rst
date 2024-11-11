@@ -92,12 +92,15 @@ This is the general approach for docsteady generated documents:
 Authentication
 --------------
 
-Two generic set of credentials to access the Jira REST API and the Jira database have been defined.
+A set of generic credentials to access the Jira REST API have been defined.
+Since the move to Jira cloud access to the Zephy Test API requires another additonal API token.
 These credentials are available at ``1password.com``, in the LSST-IT architecture vault, but not yet integrated into docsteady.
-In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted, as specified in this technical note.
-
-For the VCD, there is the option of running directly against the Jira database.
-In the 1password vault, the credentials and database IP address are under `Jira DataBase RO Credentials`.
+Specifically all tokens are in the Summit vault under "Gmail JIRA Cloud API Access"
+In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted.
+The simples is to define 3 environemt variable docsteady will look for:
+ JIRA_USER
+ JIRA_PASSWORD
+ ZEPHYR_TOKEN
 
 For the GitHub Action, the REST API credentials have been added as secrets in the GitHub organization for PSE and DM reports.
 

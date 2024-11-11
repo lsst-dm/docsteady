@@ -1,0 +1,644 @@
+{
+  "27531072": [
+    {
+      "id": 1243140569,
+      "key": "LVV-E1457",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2338/versions/1",
+        "id": 190699409
+      },
+      "environment": {
+        "id": 7920160,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920160"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920143,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920143"
+      },
+      "actualEndDate": "2024-02-08T19:28:06Z",
+      "estimatedTime": "None",
+      "executionTime": 52000,
+      "executedById": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "assignedToId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531072",
+        "id": 27531072
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140569/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140627,
+      "key": "LVV-E1552",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2339/versions/2",
+        "id": 190699411
+      },
+      "environment": {
+        "id": 7920160,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920160"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920141,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+      },
+      "actualEndDate": "2023-06-20T16:25:58Z",
+      "estimatedTime": "None",
+      "executionTime": 2733000,
+      "executedById": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "assignedToId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531072",
+        "id": 27531072
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140627/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243141982,
+      "key": "LVV-E3446",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2338/versions/1",
+        "id": 190699409
+      },
+      "environment": {
+        "id": 7920161,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920161"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920141,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+      },
+      "actualEndDate": "2024-02-08T22:24:45Z",
+      "estimatedTime": "None",
+      "executionTime": 704000,
+      "executedById": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "assignedToId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531072",
+        "id": 27531072
+      },
+      "customFields": {
+        "Include Execution in Test Report": true,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243141982/links",
+        "issues": []
+      }
+    }
+  ],
+  "27531013": [
+    {
+      "id": 1243140047,
+      "key": "LVV-E751",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1598/versions/1",
+        "id": 190697886
+      },
+      "environment": "None",
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920142,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920142"
+      },
+      "actualEndDate": "2020-01-23T16:38:45Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "557058:d698540d-fb69-49e5-b462-aab7a3186ad9",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140047/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140048,
+      "key": "LVV-E752",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1599/versions/1",
+        "id": 190697887
+      },
+      "environment": "None",
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920156,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920156"
+      },
+      "actualEndDate": "2019-12-18T18:23:34Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "557058:d698540d-fb69-49e5-b462-aab7a3186ad9",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140048/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140049,
+      "key": "LVV-E753",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1600/versions/1",
+        "id": 190699372
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920142,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920142"
+      },
+      "actualEndDate": "2020-01-15T14:12:31Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "557058:d698540d-fb69-49e5-b462-aab7a3186ad9",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140049/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140354,
+      "key": "LVV-E1226",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1600/versions/1",
+        "id": 190699372
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920142,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920142"
+      },
+      "actualEndDate": "2021-03-29T21:38:46Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140354/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140355,
+      "key": "LVV-E1227",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1598/versions/1",
+        "id": 190697886
+      },
+      "environment": "None",
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920142,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920142"
+      },
+      "actualEndDate": "2021-04-13T14:05:32Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140355/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140356,
+      "key": "LVV-E1228",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1599/versions/1",
+        "id": 190697887
+      },
+      "environment": {
+        "id": 7920161,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920161"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920142,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920142"
+      },
+      "actualEndDate": "2021-04-14T18:56:36Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140356/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140389,
+      "key": "LVV-E1267",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1600/versions/1",
+        "id": 190699372
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920156,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920156"
+      },
+      "actualEndDate": "2022-11-28T18:44:03Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140389/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140406,
+      "key": "LVV-E1286",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1598/versions/1",
+        "id": 190697886
+      },
+      "environment": {
+        "id": 7920161,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920161"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920156,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920156"
+      },
+      "actualEndDate": "2022-01-27T20:49:09Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "During the execution, the hexapod presents various random faults. The problem was solved by exchanging the cabling for all actuators. See<a href=\"https://jira.lsstcorp.org/browse/FRACAS-64\" rel=\"noopener noreferrer\" target=\"_blank\">&nbsp;FRACAS-64</a> and <a href=\"https://jira.lsstcorp.org/browse/FRACAS-56\" rel=\"noopener noreferrer\" target=\"_blank\">FRACAS-56</a>.<br>Please find the details of these tests in the attached report. This is the summary of the report:<br><img class=\"fr-fic fr-fil fr-dib\" src=\"https://cloudfront.tm4j.smartbear.com/tenant/eda8235d-f9b3-3651-8805-cde8801fc677/project/10277/54255218-3899-4697-8eb4-375690ef2f64-1640966597572.png\" style=\"width: 334px;\"><br>In summary:<br>\"Basically, the fundamental requirements for Image Quality and Image Quality correction, as well as operational requirement specifications, all seem to be met satisfactorily without load. It is not expected to change appreciably with the camera mounted on the Hexapod and Rotator, but some more testing, for completion, will probably be done with the load.\"",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140406/links",
+        "issues": [
+          {
+            "self": "https://api.zephyrscale.smartbear.com/v2/links/103120250",
+            "issueId": 273754,
+            "id": 103120250,
+            "target": "https://rubinobs.atlassian.net/rest/api/2/issue/273754",
+            "type": "BLOCKS"
+          },
+          {
+            "self": "https://api.zephyrscale.smartbear.com/v2/links/103120251",
+            "issueId": 273745,
+            "id": 103120251,
+            "target": "https://rubinobs.atlassian.net/rest/api/2/issue/273745",
+            "type": "BLOCKS"
+          }
+        ]
+      }
+    },
+    {
+      "id": 1243140407,
+      "key": "LVV-E1287",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1599/versions/1",
+        "id": 190697887
+      },
+      "environment": {
+        "id": 7920161,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920161"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920141,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+      },
+      "actualEndDate": "2022-09-02T15:04:45Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "This execution only tests the fixed applied since the last test case execution. With the pass in Step 45, all test steps have passed or passed with a slight deviation as noted in each step.<br>Therefore this execution is marked as pass. ",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531013",
+        "id": 27531013
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140407/links",
+        "issues": []
+      }
+    }
+  ],
+  "27531080": [
+    {
+      "id": 1243140632,
+      "key": "LVV-E1557",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1598/versions/1",
+        "id": 190697886
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920141,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+      },
+      "actualEndDate": "2022-09-01T22:46:44Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531080",
+        "id": 27531080
+      },
+      "customFields": {
+        "Include Execution in Test Report": true,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140632/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140633,
+      "key": "LVV-E1558",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1599/versions/1",
+        "id": 190697887
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920141,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+      },
+      "actualEndDate": "2022-11-28T18:20:36Z",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "The &nbsp;CamHex is now on the TMA with ComCam installed.<br>For this execution only Step 26 <strong>Test Sequence #6 \u2013 RawPositionSet Commands</strong> is new and needs execution.",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531080",
+        "id": 27531080
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140633/links",
+        "issues": []
+      }
+    },
+    {
+      "id": 1243140634,
+      "key": "LVV-E1559",
+      "project": {
+        "id": 437559,
+        "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+      },
+      "testCase": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T1600/versions/1",
+        "id": 190699372
+      },
+      "environment": {
+        "id": 7920162,
+        "self": "https://api.zephyrscale.smartbear.com/v2/environments/7920162"
+      },
+      "jiraProjectVersion": "None",
+      "testExecutionStatus": {
+        "id": 7920139,
+        "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920139"
+      },
+      "actualEndDate": "None",
+      "estimatedTime": "None",
+      "executionTime": "None",
+      "executedById": "None",
+      "assignedToId": "712020:5d59efa3-8ee8-4efc-87a6-4028ec7e5254",
+      "comment": "None",
+      "automated": false,
+      "testCycle": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531080",
+        "id": 27531080
+      },
+      "customFields": {
+        "Include Execution in Test Report": false,
+        "Test Equipment Documentation": "",
+        "DocuShare Verification Documentation Link": "",
+        "Software Versions Used": ""
+      },
+      "links": {
+        "self": "https://api.zephyrscale.smartbear.com/v2/testexecutions/1243140634/links",
+        "issues": []
+      }
+    }
+  ]
+}

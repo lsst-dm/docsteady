@@ -18,6 +18,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
+import logging
 import os
 import sys
 from collections import OrderedDict
@@ -53,6 +54,12 @@ except PackageNotFoundError:
 
 # Global variables
 OUTPUT_FORMAT: str = "latex"
+
+if "ZEPHYR_TOKEN" in os.environ:
+    Config.ZEPHYR_TOKEN = os.environ["ZEPHYR_TOKEN"]
+
+if "JIRA_PASSWORD" in os.environ:
+    Config.AUTH = (os.environ["JIRA_USER"], os.environ["JIRA_PASSWORD"])
 
 
 @click.group()
@@ -90,17 +97,11 @@ def cli(namespace: str, template_format: str, load_from: str) -> None:
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
+    "--token",
+    prompt="Jira Zephyr Token",
     hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphry API Token",
 )
 @click.argument("folder")
 @click.argument("path", required=False, type=click.Path())
@@ -201,22 +202,22 @@ def generate_spec(
 
 @cli.command("generate-tpr")
 @click.option(
+    "--includeall",
+    default=False,
+    help="Ignore the include in report field for executions and include all"
+    'Defaults to "False".',
+)
+@click.option(
     "--format",
     default="latex",
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
+    "--token",
+    prompt="Jira Zephyr Token",
     hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphry API Token",
 )
 @click.option(
     "--trace",
@@ -226,14 +227,15 @@ def generate_spec(
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
 def generate_report(
-    format: str, username: str, password: str, trace: str, plan: str, path: str
+    format: str, token: str, trace: str, plan: str, path: str, includeall: bool
 ) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.AUTH = (username, password)
+    Config.ZEPHYR_TOKEN = token
+    Config.INCLUDE_ALL_EXECS = includeall
     target = "tpr"
 
     if Config.NAMESPACE.upper() not in Config.COMPONENTS.keys():
@@ -250,11 +252,13 @@ def generate_report(
     metadata["component_long_name"] = Config.COMPONENTS[
         Config.NAMESPACE.upper()
     ]
+    logging.log(logging.INFO, f"Rendering  {path}")
     env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
 
     # output the plan - TR without results
     target = "tpnoresult"
     path = path.replace(".tex", "-plan.tex")
+    logging.log(logging.INFO, f"Rendering  {path}")
     env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
     if trace:
         # Will exit if it can't find a template
@@ -314,27 +318,12 @@ def _metadata() -> dict:
     default="latex",
     help="Pandoc output format (see pandoc for options)",
 )
-@click.option("--jiradb", envvar="JIRA_DB", help="Jira database server")
-@click.option("--vcduser", envvar="JIRA_VCD_USER", help="Jira username")
-@click.option("--vcdpwd", envvar="JIRA_VCD_PASSWORD", help="Jira Password")
 @click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
+    "--token",
+    prompt="Jira Zephyr Token",
     hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
-)
-@click.option(
-    "--sql",
-    required=False,
-    default=False,
-    help="True if direct access to the database shall be used",
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphry API Token",
 )
 @click.option(
     "--spec",
@@ -503,17 +492,11 @@ if __name__ == "__main__":
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
+    "--token",
+    prompt="Jira Zephyr Token",
     hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphyr API Token",
 )
 @click.option(
     "--details",

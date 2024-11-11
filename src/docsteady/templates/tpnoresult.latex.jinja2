@@ -7,7 +7,7 @@
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro tplan_href(tplan) -%}
-\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
+\href{{ "{" }}{{ "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#!/v2/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro tcycle_href(tcycle) -%}
@@ -201,16 +201,18 @@ The personnel involved in the test campaign is shown in the following table.
 }
 } \\\hline
 \textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+  {% if "test_items"  in cycle %}
   {% for test_item in cycle.test_items %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#!/v2/testCase/{{ test_item.key }}{{ '}' }}{{ '{' }}{{ test_item.key }}{{ '}' }}
 & {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
 \begin{minipage}[]{6cm}
 \smallskip
-{\small {{ testcases_map[test_item.test_case_key].test_personnel }} }
+{\small {{ testcases_map[test_item["test_case_key"]]["test_personnel"] }} }
 \medskip
 \end{minipage}
 \\ \hline
   {% endfor %}
+  {% endif %}
 {% endfor %}
 \end{longtable}
 }
@@ -232,11 +234,13 @@ The personnel involved in the test campaign is shown in the following table.
 \multicolumn{2}{r}{ T. Cycle {{ tcycle_href(cycle.key) }}:} &
 \multicolumn{2}{p{10.9cm}}{\textbf{ {{ cycle.name }} }} & {{ cycle.status }} \\\hline
 \textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+  {% if "test_items"  in testcycles_map[cycle.key] %}
   {% for test_item in testcycles_map[cycle.key].test_items %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#!/v2/testCase/{{ test_item.key }}{{ '}' }}{{ '{' }}{{ test_item.key }}{{ '}' }}
 &  {{ testcases_map[test_item.test_case_key].version }}
 \\
   {% endfor %}
+  {% endif %}
 \\\hline
 {% endfor %}
 \caption{Test Campaign Summary}
@@ -263,7 +267,7 @@ Not yet available.
 {% for cycle in testcycles %}
 \subsection{Test Cycle {{ cycle.key }} }
 
-Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
+Open test cycle {\it \href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#!/testPlayer/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
 
 Test Cycle name: {{ cycle.name }}\\
 Status: {{ cycle.status }}
@@ -286,11 +290,12 @@ Not provided.
 
 \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
+  {% if "test_items"  in testcycles_map[cycle.key] %}
   {% for test_item in testcycles_map[cycle.key].test_items %}
-\paragraph{ {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
+\paragraph{ {{ test_item['key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
 
 Version \textbf{{ "{" }}{{ testcases_map[ test_item['test_case_key'] ]['version'] }}{{ "}" }}.
-Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
+Open  \href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#!/v2/testCase/{{ test_item['key'] }}}{\textit{ {{ test_item['key'] }} } }
 test case in Jira.
 
 {{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
@@ -298,12 +303,12 @@ test case in Jira.
 \textbf{ Preconditions}:\\
 {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+Final comment:\\{{ testresults_map[cycle.key][ test_item['key'] ]['comment'] }}
 
 
 Detailed steps :
 
-    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['sorted'] %}
+    {% for script_result in testresults_map[cycle.key][ test_item['key'] ]['sorted'] %}
 \begin{tabular}{p{2cm}}
 \toprule
 Step {{ loop.index }}  \\ \hline
@@ -341,6 +346,7 @@ Step {{ loop.index }}  \\ \hline
 
   {% endfor %}
   {% endfor %}
+  {% endif %}
 {% endfor %}
 
 

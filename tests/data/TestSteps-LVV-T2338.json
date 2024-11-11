@@ -1,0 +1,79 @@
+[
+  {
+    "description": "<a href=\"https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2114\">&nbsp;LVV-T2114 (2.0)&nbsp;</a> Prepare to analyze EFD at USDF<br><br>Using tunnelblick or your equivalent VPN with summit access log on to https://summit-lsp.lsst.codes/nb<br><br>Create a new notebook and connect to the efd at the summit and USDF.",
+    "testData": "None",
+    "expectedResult": "RSP on summit open with Conneciton to USDF_efd and summit_efd",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": "from lsst_efd_client import EfdClient, resample<br><br>client = EfdClient('summit_efd')<br>client.output = 'dataframe'<br>cl=client.influx_client<br><br><br>usdf_client = EfdClient('usdf_efd')<br>usdf_client.output = 'dataframe'<br>usdf_cl=usdf_client.influx_client"
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "Choose 5 topics to query and select a 6 day window of data. The window is arbitrary, but must be explicit (not relative to now()) so that it can be reproduced. The topics should be chosen to sample the various topic contexts. I.e. the topics should be chosen to sample both diagnostic topics like heartbeat monitors as well as both high and low cadence telemetry topics to get a broad view on how the system behaves with different kinds of topics.",
+    "testData": "None",
+    "expectedResult": "A list of 5 valid SAL topics to be queried and a time window defined as astropy.Time objects.",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "Issue selections at both the summit and the data facility. These selections should select all fields for the chosen topics.",
+    "testData": "None",
+    "expectedResult": "A total of 10 pandas.DataFrame objects, 5 each for the summit and replicated EFDs. &nbsp;Each topic requires a separate query, so each will get its own DataFrame. &nbsp;All fields in each topic should be selected.",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "First compare the index for each topic between the summit and replicated EFD. &nbsp;There should be:<br><ol><li>The same number of samples in each topic for each location</li><li>Given 1) each time stamp should represent the same time</li></ol>Reliability of the replication must be at better than 99%.  If there are samples missing from the replicated datasets, confirm that the length of the replicated DataFrame divided by the length of the summit DataFrame is greater than 0.99 for all topics.",
+    "testData": "None",
+    "expectedResult": "A cell in the notebook showing the DataFrames are the same length per topic between the summit and the replicated EFD. &nbsp;A cell showing the times in the index are the same for each topic. &nbsp;This could be done by converting to seconds and showing the difference is zero for every sample.<br><br>If there are missing samples, the replication should be better than 99%. &nbsp;If it is not, the deviation must be traced to an intervening event or system other than the replication system itself to explain the discrepancy.",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "Compare the fields for each topic between the summit and the replicated EFDs. &nbsp;They should be equivalent to double precision. &nbsp;This can be done by looping over the topics and fields and showing numpy.all (or similar) evaluates to True.",
+    "testData": "None",
+    "expectedResult": "A cell or cells showing that all fields for all topics evaluate as equivalent given appropriate precision.",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "Examine the summit messages to confirm that the reliability is better than 99.9% for all topics. &nbsp;Keep in mind that the private_seqNum is intended to be a sequentially increasing index of the messages, but that it gets reset after every CSC reboot. &nbsp;This must be accounted for by applying an offset when a reset is observed.<br>Show the reliability is better than 99.9% by showing that the private_seqNum is sequential better than 99.9% of the time (when correcte for resets).",
+    "testData": "None",
+    "expectedResult": "A histogram or similar showing that the difference private_seqNum[1:] - private_seqnum[:-1] is 1 more than 99.9% of the time.",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  },
+  {
+    "description": "Document the procedure including topics chosen, time window, replication reliability and EFD reliability",
+    "testData": "None",
+    "expectedResult": "<ul><li>A document describing the process including topics and time window.</li><li>The document shall be in the form of a notebook with saved outputs, or similar</li></ul>",
+    "customFields": {
+      "Conditional Step?": false,
+      "Requirement(s) Verified": "",
+      "Example Code": ""
+    },
+    "reflectRef": "None"
+  }
+]

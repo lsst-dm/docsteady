@@ -1,0 +1,67 @@
+{
+  "id": 190699143,
+  "key": "LVV-T2339",
+  "name": "Archival EFD products can be used for historical analysis",
+  "project": {
+    "id": 437559,
+    "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+  },
+  "createdOn": "2023-06-19T17:29:41Z",
+  "objective": "Show that the archival replicated EFD products (nominally Parquet files) can be used to query for topics post facto and that analysis in the Notebook Aspect of the RSP is not only possible but straightforward.<br><br>This test case provides partial coverage of the requirement DMS-NB-REQ-0023, Access to All Data Products: \"An authorized user of the Notebook Aspect shall be able to access the Transformed Engineering and Facilities Database (EFD) and and all other LSST released data products.\", as adapted to the current design for EFD replication and access (see <a href=\"https://dmtn-082.lsst.io\">DMTN-082</a>). &nbsp;Note that it is still also anticipated that TAP access to the EFD will be provided in the RSP as an alternative to the Python-API access covered by this test case. &nbsp;Note in particular that this test case does not cover the feature of the \"Transformed\" EFD from the original design in which EFD data is pre-processed with associations to exposure/visit IDs.",
+  "precondition": null,
+  "estimatedTime": null,
+  "labels": [],
+  "component": {
+    "id": 12029,
+    "self": "https://rubinobs.atlassian.net/rest/api/2/component/12029"
+  },
+  "priority": {
+    "id": 7920158,
+    "self": "https://api.zephyrscale.smartbear.com/v2/priorities/7920158"
+  },
+  "status": {
+    "id": 7920146,
+    "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920146"
+  },
+  "folder": {
+    "id": 18157395,
+    "self": "https://api.zephyrscale.smartbear.com/v2/folders/18157395"
+  },
+  "owner": {
+    "self": "https://rubinobs.atlassian.net/rest/api/2/user?accountId=557058%3A20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+    "accountId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae"
+  },
+  "testScript": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2339/teststeps"
+  },
+  "customFields": {
+    "Vendor": false,
+    "Reuse for Maintenance": false,
+    "Verification Configuration": "",
+    "Verification Type": "Demonstration",
+    "Test Equipment": "",
+    "Safety Hazards": "",
+    "Critical Event": "false",
+    "Test Personnel": "William O'Mullane<br><br>",
+    "Unit Under Test": "",
+    "Required Software": "",
+    "Predecessors": "",
+    "Required PPE": "",
+    "Associated Risks": "",
+    "Postcondition": "",
+    "Jupyter Notebook Link": "https://github.com/lsst-dm/DMTR-331/blob/tickets/DM-33378/LVV-T2339.ipynb"
+  },
+  "links": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2339/links",
+    "issues": [
+      {
+        "self": "https://api.zephyrscale.smartbear.com/v2/links/103118572",
+        "issueId": 299910,
+        "id": 103118572,
+        "target": "https://rubinobs.atlassian.net/rest/api/2/issue/299910",
+        "type": "COVERAGE"
+      }
+    ],
+    "webLinks": []
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "id": 190699142,
+  "key": "LVV-T2338",
+  "name": "Replicated telemetry data agrees with telemetry produced at the summit",
+  "project": {
+    "id": 437559,
+    "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+  },
+  "createdOn": "2023-06-16T20:51:59Z",
+  "objective": "Show that telemetry data can be accessed from the replicated EFD. &nbsp;Further, show that the values in the replicated database agree with the values in the summit EFD over a specified time range and set of topics.<br><br>This test case provides partial coverage of the requirement DMS-REQ-0168, Summit Facility Data Communications: \"The DMS shall provide data communications infrastructure to accept science data and associated metadata read-outs, and <strong>the collection of ancillary and engineering data</strong>, for transfer to the base facility.\", as adapted to the current design for EFD replication (see <a href=\"https://dmtn-082.lsst.io\">DMTN-082</a>).",
+  "precondition": "See prerequisites in the Test Plan LVV-P90",
+  "estimatedTime": 3600000,
+  "labels": [],
+  "component": {
+    "id": 12029,
+    "self": "https://rubinobs.atlassian.net/rest/api/2/component/12029"
+  },
+  "priority": {
+    "id": 7920158,
+    "self": "https://api.zephyrscale.smartbear.com/v2/priorities/7920158"
+  },
+  "status": {
+    "id": 7920146,
+    "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920146"
+  },
+  "folder": {
+    "id": 18157395,
+    "self": "https://api.zephyrscale.smartbear.com/v2/folders/18157395"
+  },
+  "owner": {
+    "self": "https://rubinobs.atlassian.net/rest/api/2/user?accountId=557058%3A20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+    "accountId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae"
+  },
+  "testScript": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2338/teststeps"
+  },
+  "customFields": {
+    "Vendor": false,
+    "Reuse for Maintenance": false,
+    "Verification Configuration": "",
+    "Verification Type": "Test",
+    "Test Equipment": "",
+    "Safety Hazards": "",
+    "Critical Event": "false",
+    "Test Personnel": "William O Mullane",
+    "Unit Under Test": "",
+    "Required Software": "",
+    "Predecessors": "",
+    "Required PPE": "",
+    "Associated Risks": "",
+    "Postcondition": "",
+    "Jupyter Notebook Link": "https://github.com/lsst-dm/DMTR-331/blob/tickets/DM-33378/LVV-T2338.ipynb"
+  },
+  "links": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T2338/links",
+    "issues": [
+      {
+        "self": "https://api.zephyrscale.smartbear.com/v2/links/103118571",
+        "issueId": 291968,
+        "id": 103118571,
+        "target": "https://rubinobs.atlassian.net/rest/api/2/issue/291968",
+        "type": "COVERAGE"
+      }
+    ],
+    "webLinks": []
+  }
+}

@@ -25,6 +25,9 @@ import re
 from collections import Counter
 from typing import TYPE_CHECKING, Any
 
+from requests import Session
+from zephyr import ZephyrScale
+
 if TYPE_CHECKING:
     from .spec import Issue
 
@@ -35,44 +38,32 @@ class Config:
     # Not convinced I need DOC but its is used in the code
     # so I will add it here to pass type checks
     DOC: Any = None
-    JIRA_INSTANCE = "https://jira.lsstcorp.org"
-    JIRA_API = f"{JIRA_INSTANCE}/rest/api/latest"
-    ATM_API = f"{JIRA_INSTANCE}/rest/atm/1.0"
-    ATMT_API = f"{JIRA_INSTANCE}/rest/tests/1.0"
+    PROJECT: str = "LVV"
+    INCLUDE_ALL_EXECS: bool = False
+    THE_SESSION: Session | None = None
+    THE_ZEPHYR: ZephyrScale = None
+    ZEPHYR_TOKEN = "set in env or with --token"
+    JIRA_INSTANCE = "https://rubinobs.atlassian.net"
+    JIRA_API = f"{JIRA_INSTANCE}/rest/api/3/"
+    ATM_API = f"https://api.zephyrscale.smartbear.com/v2/"
     ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
+    ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
+    USER_URL = f"{JIRA_API}/people/{{accountId}}"
+    TESTCASE_UI_URL = f"{JIRA_INSTANCE}/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/{{testcase}}"
+    TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
+    # providing an ordered list of statuses we can control for user args
+    # the order they are rendered in the Test Spec
+    TESTCASE_STATUS_LIST = ["Defined", "Approved", "Draft"]
+
+    # chech thees later
     GET_ISSUE_COMPONENT = (
         f"{JIRA_API}/issue/{{issue}}?fields=components,customfield_15001"
     )
-    ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
-    USER_URL = f"{JIRA_API}/user?username={{username}}"
-    TESTCASE_URL = f"{ATM_API}/testcase/{{testcase}}"
-    TESTCASE_UI_URL = (
-        f"{JIRA_INSTANCE}/secure/Tests.jspa#/testCase/{{testcase}}"
-    )
-    TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
-    TESTCYCLE_URL = f"{ATM_API}/testrun/{{testrun}}"
-    TESTPLAN_URL = f"{ATM_API}/testplan/{{testplan}}"
-    TESTRESULTS_URL = f"{ATM_API}/testrun/{{testrun}}/testresults"
-    ISSUETCASES_URL = f"{ATM_API}/issuelink/{{issuekey}}/testcases"
-    TESTCASERESULT_URL = f"{ATM_API}/testcase/{{tcid}}/testresult/latest"
-    TESTPLANCYCLE_URL = (
-        f"{ATMT_API}/testresult/{{trk}}?fields=testRun(key,testPlan(key))"
-    )
-    TPLANCF_URL = f"{ATM_API}/testplan/{{tpk}}?fields=customFields"
-    TESTPLAN_ATTACHMENTS = f"{ATM_API}/testplan/{{tplan_KEY}}/attachments"
-    TESTCYCLE_ATTACHMENTS = f"{ATM_API}/testrun/{{tcycle_KEY}}/attachments"
     TESTRESULT_PLAN_CYCLE = (
-        f"{ATMT_API}/testresult/{{result_ID}}?"
+        f"{ATM_API}/testresult/{{result_ID}}?"
         f"fields=testRun(key,testPlan(key))"
     )
-    TESTRESULT_ATTACHMENTS = f"{ATM_API}/testresult/{{result_ID}}/attachments"
-    # providing an ordered list of statuses we can control
-    # the order they are rendered in the Test Spec
-    TESTCASE_STATUS_LIST = ["Defined", "Approved", "Draft"]
-    # FIXME: Using undocumented API
-    FOLDERTREE_API = (
-        f"{JIRA_INSTANCE}/rest/tests/1.0/project/12800/foldertree/testcase"
-    )
+
     VE_SEARCH_URL = (
         f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component"
         f"%20%20%3D%20%27{{cmpnt}}"
@@ -107,17 +98,21 @@ class Config:
         f"&startAt={{startAt}}"
     )
     PANDOC_TYPE: None = None
-    AUTH: Any = None
+    AUTH: Any = None  # for Jira - cna not access all via zephyr
     REQID_FIELD = "customfield_12001"
     HIGH_LEVEL_REQS_FIELD = "customfield_13515"
     OUTPUT_FORMAT: Any = None
     CACHED_TESTCASES: dict = {}
     CACHED_LIBTESTCASES: dict = {}
-    CACHED_USERS: dict = {}
+    CACHED_USERS: dict[str, dict] = {}
     CACHED_TESTRES_SUM: dict = {}
     CACHED_VELEMENTS: dict[str, Issue] = {}  # type : Dict[str, Issue]
     CACHED_REQS_FOR_VES: dict = {}
     CACHED_ISSUES: dict[str, Issue] = {}  # type : Dict[str, Issue]
+    CACHED_POINTERS: dict = {}  # URL and value
+    CACHED_TEST_EXECUTIONS: dict = (
+        {}
+    )  # all the execution probalby since i cna not get one from a cycle ..
     MODE_PREFIX: Any = None
     NAMESPACE: Any = None
     TIMEZONE = "US/Pacific"

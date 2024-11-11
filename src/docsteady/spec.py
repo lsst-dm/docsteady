@@ -36,7 +36,9 @@ from .utils import (
     as_arrow,
     create_folders_and_files,
     get_folders,
+    get_value,
     owner_for_id,
+    process_links,
     t_case_for_key,
 )
 
@@ -45,6 +47,7 @@ class Issue(Schema):
     key = fields.String(required=True)
     summary = MarkdownableHtmlPandocField()
     jira_url = fields.String()
+    type = fields.String()
 
     @pre_load(pass_many=False)
     def extract_fields(self, data: dict, **kwargs: List[str]) -> dict:
@@ -87,27 +90,29 @@ class TestCase(Schema):
     key = fields.String(required=True)
     keyid = fields.Integer()
     name = HtmlPandocField(required=True)
-    owner = fields.Function(
-        deserialize=lambda obj: owner_for_id(obj), default="Unassigned"
+    owner = fields.Function(deserialize=lambda obj: owner_for_id(obj))
+    owner_id = fields.Function(
+        deserialize=lambda obj: get_value(obj, "accountId")
     )
-    owner_id = fields.String(data_key="owner")
     jira_url = fields.String()
-    component = fields.String()
-    folder = fields.String()
+    component = fields.Function(deserialize=lambda obj: get_value(obj))
+    folder = fields.Function(deserialize=lambda obj: get_value(obj))
     created_on = fields.Function(
         deserialize=lambda o: as_arrow(o["createdOn"])
     )
     precondition = HtmlPandocField()
     objective = HtmlPandocField()
-    version = fields.Integer(data_key="majorVersion", required=True)
-    status = fields.String(required=True)
-    priority = fields.String(required=True)
+    version = fields.String(
+        load_default="1.0(d)"
+    )  # Zephyr seems to no longer return TestCase version ..
+    status = fields.Function(deserialize=lambda obj: get_value(obj))
+    priority = fields.Function(deserialize=lambda obj: get_value(obj))
     labels = fields.List(fields.String(), missing=list())
     test_script = fields.Method(
         deserialize="process_steps", data_key="testScript", required=True
     )
-    requirement_issue_keys = fields.List(
-        fields.String(), data_key="issueLinks"
+    requirement_issue_keys = fields.Method(
+        deserialize="process_req_links", data_key="links", required=False
     )
     lastR = fields.Dict()
 
@@ -163,6 +168,10 @@ class TestCase(Schema):
         data["requirements"] = self.process_requirements(data)
         # need the numeric key of the test case
         data["keyid"] = int(data["key"].strip("LVV-T"))
+        # version seems to be missing in Zephyr
+        if "version" not in data:
+            data["version"] = "1.0(d)"
+
         return data
 
     def process_requirements(self, data: dict) -> list[Issue]:
@@ -185,6 +194,13 @@ class TestCase(Schema):
                 i = Config.CACHED_VELEMENTS.get(issue_key)
                 issues.append(i)  # type: ignore
         return issues
+
+    def process_req_links(self, links: dict) -> list | None:
+        plinks = process_links(links, "issues")
+        keys = []
+        for link in plinks:
+            keys.append(link["target"])
+        return keys
 
     def process_steps(self, test_script: dict) -> list[dict] | None:
         if "steps" not in test_script.keys():

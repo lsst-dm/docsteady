@@ -1,0 +1,93 @@
+[
+  {
+    "description": "Log in to the USDF notebook aspect: https://usdf-rsp-dev.slac.stanford.edu/<br>Make sure to choose a recent weekly release and a large instance; record the chosen release and whether or not it is the current \"recommended\" release.",
+    "testData": "None",
+    "expectedResult": "The JupyterLab interface is displayed in the browser",
+    "actualResult": "logged in have RSP at USDF ",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 1
+  },
+  {
+    "description": "Open a notebook:<ol><li>Navigate to the File-&gt;New-&gt;Notebook</li><li>When prompted, select the LSST kernel</li></ol>",
+    "testData": "None",
+    "expectedResult": "An empty notebook running in the LSST kernel",
+    "actualResult": "Copied LVV-T2338.ipynb to LVV-TT339.ipynb",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 2
+  },
+  {
+    "description": "Connect to the USDF EFD.<br>Use the EFD identifier name from the test case parameter, <var>usdf_efd</var>\u2060 \u2060 , unless it is necessary to change at the time the test is executed. &nbsp;Record the value used if different.",
+    "testData": "None",
+    "expectedResult": "A notebook with an instance of the `EfdClient` configured to talk to the USDF EFD",
+    "actualResult": "Last executed at 2023-06-16 19:50:41 in 3.71s",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 3
+  },
+  {
+    "description": "Choose 3 topics to query and select a 6 day window of data. The window is arbitrary, but must be explicit (not relative to now()) so that it can be reproduced. The topics are also arbitrary but will sample multiple subsystems.",
+    "testData": "None",
+    "expectedResult": "A cell in a notebook specifying topic names and start and end times for a 6 day window as astropy.Time objects.",
+    "actualResult": "<div><pre>lsst.sal.ATPneumatics.logevent_heartbeat had 529266 messages between 2023-06-13 and 2023-06-20 \nlsst.sal.MTAirCompressor.logevent_summaryState had 22 messages between 2023-06-13 and 2023-06-20 \nlsst.sal.MTM1M3.logevent_raisingLoweringInfo had 6582 messages between 2023-06-13 and 2023-06-20 \nRandom selction of 3 'usdf' topics ['lsst.sal.ATPneumatics.logevent_heartbeat', 'lsst.sal.MTAirCompressor.logevent_summaryState', 'lsst.sal.MTM1M3.logevent_raisingLoweringInfo'] with messages between 2023-06-13 and 2023-06-20</pre></div>",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920139,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920139"
+    },
+    "index": 4
+  },
+  {
+    "description": "Use the defined topics and the time window to read in fields from the chosen topics. These are expected to be pandas.DataFrames.",
+    "testData": "None",
+    "expectedResult": "A cell in a notebook with 1 DataFrame per topic. This shall be explicit about all the necessary steps and any hand tuning necessary to make it possible to make selections from the archival data.",
+    "actualResult": "<div data-mime-type=\"application/vnd.jupyter.stdout\"><pre>lsst.sal.ATPneumatics.logevent_heartbeat has fields:Index(['heartbeat', 'private_efdStamp', 'private_identity',\n       'private_kafkaStamp', 'private_origin', 'private_rcvStamp',\n       'private_revCode', 'private_seqNum', 'private_sndStamp'],\n      dtype='object')\nlsst.sal.MTAirCompressor.logevent_summaryState has fields:Index(['private_efdStamp', 'private_identity', 'private_kafkaStamp',\n       'private_origin', 'private_rcvStamp', 'private_revCode',\n       'private_seqNum', 'private_sndStamp', 'salIndex', 'summaryState'],\n      dtype='object')\nlsst.sal.MTM1M3.logevent_raisingLoweringInfo has fields:Index(['private_efdStamp', 'private_identity', 'private_kafkaStamp',\n       'private_origin', 'private_rcvStamp', 'private_revCode',\n       'private_seqNum', 'private_sndStamp', 'waitAirPressure',\n       'waitHardpoint0',\n       ...\n       'waitZForceActuator91', 'waitZForceActuator92', 'waitZForceActuator93',\n       'waitZForceActuator94', 'waitZForceActuator95', 'waitZForceActuator96',\n       'waitZForceActuator97', 'waitZForceActuator98', 'waitZForceActuator99',\n       'weightSupportedPercent'],\n      dtype='object', length=284)</pre></div>",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 5
+  },
+  {
+    "description": "Execute various analysis tasks, e.g. plotting various quantities, to show that it is practical to do so.",
+    "testData": "None",
+    "expectedResult": "Plots of quantities including filtering and other common activities. &nbsp;This shall specifically identify cases where there is an obvious difference between how the interaction would be done with the running EFD vs the archival version.",
+    "actualResult": "not so interesting plots like this<br><img src=\"https://cloudfront.tm4j.smartbear.com/tenant/eda8235d-f9b3-3651-8805-cde8801fc677/project/10277/e4b107e6-60f0-4f41-8948-f8fb05eab7f3-1687278208537.png\" style=\"width: 300px;\" class=\"fr-fic fr-fil fr-dib\"><img src=\"https://cloudfront.tm4j.smartbear.com/tenant/eda8235d-f9b3-3651-8805-cde8801fc677/project/10277/a0a27dba-7d8a-4899-a107-35fcb5f2ac5f-1687278175566.png\" style=\"width:300px;\" class=\"fr-fic fr-fil fr-dib\">",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 6
+  },
+  {
+    "description": "Document the procedure including topics and time window. &nbsp;Particular attention shall be paid to differences in interactions between the running EFD and the archival version. &nbsp;If any topics chosen for this test were downsampled in the archiving process, the document shall report on the self consistency of the down/re-sampling of those topics.",
+    "testData": "None",
+    "expectedResult": "<ul><li>A document describing the process including the topics chosen and the time window.</li><li>The document shall be in the form of a notebook with saved outputs.</li></ul>",
+    "actualResult": "LVV-T2339.ipynb added to the DMTR-331 repo - also renderd at the end fo the test report (\\secref{sec:LVV-T2339nb})<br><br>",
+    "testDataRowNumber": "None",
+    "reflectRef": "None",
+    "status": {
+      "id": 7920141,
+      "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920141"
+    },
+    "index": 7
+  }
+]

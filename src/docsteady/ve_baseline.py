@@ -29,11 +29,10 @@ from typing import MutableMapping
 import requests
 from marshmallow import EXCLUDE
 from requests import Session
-from urllib3 import Retry
 
 from .config import Config
 from .spec import TestCase
-from .utils import create_folders_and_files
+from .utils import create_folders_and_files, get_zephyr_api
 from .vcd import VerificationE
 
 # for dubuging we do not need the hundreads of verificaiton elements
@@ -48,66 +47,52 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
     :param tckey:
     :return:
     """
-    r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
-    try:
-        jtc_det = r_tc_details.json()
-    except Exception as exception:
-        print(exception)
-        return None
+    zapi = get_zephyr_api()
+    jtc_det = zapi.test_cases.get_test_case(tckey)
     tc_details = TestCase(unknown=EXCLUDE).load(jtc_det)
 
     # get test case results, so we can build the VCD using the same data
     if "lastTestResultStatus" in jtc_det:
         tc_results: dict = dict()
-        r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
-        if r_tc_results.status_code == 200:
-            jtc_res = r_tc_results.json()
-            tc_results["key"] = jtc_res["key"]
-            if jtc_res["status"] == "Pass":
-                tc_results["status"] = "passed"
-            elif jtc_res["status"] == "Fail":
-                tc_results["status"] = "failed"
-            elif jtc_res["status"] == "Blocked":
-                tc_results["status"] = "blocked"
-            elif jtc_res["status"] == "Pass w/ Deviation":
-                tc_results["status"] = "cndpass"
-            else:
-                tc_results["status"] = "notexec"
-            if "executionDate" in jtc_res.keys():
-                tc_results["exdate"] = jtc_res["executionDate"][0:10]
-            r_tp_key = rs.get(
-                Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res["key"])
-            )
-            if r_tp_key.status_code == 200:
-                jtp_key = r_tp_key.json()
-                if "testPlan" in jtp_key["testRun"].keys():
-                    tc_results["tplan"] = jtp_key["testRun"]["testPlan"]["key"]
-                else:
-                    tc_results["tplan"] = ""
+        zapi = get_zephyr_api()
+        jtc_res = zapi.test_cases.get_test_case(tckey)
+        tc_results["key"] = jtc_res["key"]
+        if jtc_res["status"] == "Pass":
+            tc_results["status"] = "passed"
+        elif jtc_res["status"] == "Fail":
+            tc_results["status"] = "failed"
+        elif jtc_res["status"] == "Blocked":
+            tc_results["status"] = "blocked"
+        elif jtc_res["status"] == "Pass w/ Deviation":
+            tc_results["status"] = "cndpass"
+        else:
+            tc_results["status"] = "notexec"
+        if "executionDate" in jtc_res.keys():
+            tc_results["exdate"] = jtc_res["executionDate"][0:10]
+        r_tp_key = rs.get(
+            Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res["key"])
+        )
+        if r_tp_key.status_code == 200:
+            jtp_key = r_tp_key.json()
+            if "testPlan" in jtp_key["testRun"].keys():
+                tc_results["tplan"] = jtp_key["testRun"]["testPlan"]["key"]
             else:
                 tc_results["tplan"] = ""
-            tc_results["tcycle"] = jtp_key["testRun"]["key"]
-            if tc_results["tplan"] and tc_results["tplan"] != "":
-                r_tp_dets = rs.get(
-                    Config.TESTPLAN_URL.format(testplan=tc_results["tplan"])
-                )
-                if r_tp_dets.status_code == 200:
-                    jtp_dets = r_tp_dets.json()
-                    if (
-                        "customFields" in jtp_dets
-                        and "Document ID" in jtp_dets["customFields"].keys()
-                    ):
-                        tc_results["TPR"] = jtp_dets["customFields"][
-                            "Document ID"
-                        ]
-                    else:
-                        tc_results["TPR"] = ""
-                else:
-                    tc_results["TPR"] = ""
+        else:
+            tc_results["tplan"] = ""
+        tc_results["tcycle"] = jtp_key["testRun"]["key"]
+        if tc_results["tplan"] and tc_results["tplan"] != "":
+            zapi = get_zephyr_api()
+            jtp_dets = zapi.test_plans.get_test_plan(tc_results["tplan"])
+            if (
+                "customFields" in jtp_dets
+                and "Document ID" in jtp_dets["customFields"].keys()
+            ):
+                tc_results["TPR"] = jtp_dets["customFields"]["Document ID"]
             else:
                 tc_results["TPR"] = ""
         else:
-            Config.CACHED_TESTRES_SUM[tckey] = None
+            tc_results["TPR"] = ""
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
         tc_details["lastR"] = tc_results
 
@@ -284,17 +269,11 @@ def do_ve_model(component: str, subcomponent: str) -> dict:
     rs.headers = headers
     # Setting retries, sometime the connections fails
     # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
-    retries = Retry(
-        total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
-    )
-
-    rs.adapters["max_retries"] = retries
 
     # get all VEs details
     ves = extract_ves(rs, component, subcomponent)
 
     print(" Found ", len(ves), " Verification Elements.")
-
     # need to get the corresponding test cases
 
     return ves
