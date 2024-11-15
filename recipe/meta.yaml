@@ -3,7 +3,7 @@
 # Took out GIT-DESCRIBE_HASH it make shte version odd looking.
 
 package:
-  name: {{ name|lower }}
+  name: {{ name }}
   version: {{ version }}
 
 source:
@@ -37,6 +37,7 @@ requirements:
     - marshmallow >3
     - setuptools-scm
     - pillow
+    - zephyr-python-api
   test:
     pytest
 

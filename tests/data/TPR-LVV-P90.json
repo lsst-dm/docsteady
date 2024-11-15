@@ -1,0 +1,603 @@
+{
+  "tplan": {
+    "key": "LVV-P90",
+    "name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+    "objective": " The purpose of this test plan is to describe all the necessary\nrequirements and infrastructure for successfully testing the replication\nand archive of the Engineering Facility Database (EFD) as implemented\nwith Kafka, InfluxDB and Chronograf from the summit to the USDF. This\nplan will describe the prerequisites for beginning a test campaign, step\nby step instructions for each test case and a description of the\nexpected results and test artifacts.\\\\\n\\strut \\\\\nNB: The use of the term reliability in this document is intended to\nindicate the number of messages produced relative to the number of\nmessages recorded in the EFD. The system shall be considered reliable if\nat least 99.9\\% of produced messages are recorded.\\\\\n\\strut \\\\\nAt a high level, this test plan is intended to show that a nominally\noperating EFD at the summit is able to be replicated to the USDF and\narchived for future use either directly or via ingest into a secondary\ndatabase management technology. We assume here that the archive\ntechnology will be parquet datasets stored on persistent/redundant disk\nat the USDF. There are no latency requirements in this test plan, but we\nwill show that the replication and archiving are not falling behind\nrelative to the summit instance in the aggregate. We choose a period of\n6 days of continuous nominal operation in order to test the cases in\nthis test plan.\\\\\nSuccessful completion of the test campaign will show that:\\\\\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  users are able to access the same information at the USDF EFD that was\n  originally ingested in the summit version\n\\item\n  the reliability of the replication is better than the minimum of 99\\%\n\\item\n  archive products are able to be used as a primary source of\n  information for historical examination of EFD topics\n\\end{enumerate}\n",
+    "folder": "Data Management",
+    "status": "Approved",
+    "owner": "Wil O'Mullane",
+    "custom_fields": {
+      "Verification Artifacts": null,
+      "Overall Assessment": "After the meltdown we seem to now have a good replica at USDF.<br><br>",
+      "Recommended Improvements": "Non.",
+      "System Overview": "The tests will be carried out from within an instance of the notebook aspect of the RSP running at the data facility where the EFD replication is currently happening. An appropriate weekly version of the stack will be chosen.",
+      "Verification Environment": "The environment will be within notebooks running a modern stack.",
+      "Observing Required?": null,
+      "Document ID": "DMTR-331",
+      "Exit Criteria": null,
+      "PMCS Activity": null,
+      "Entry Criteria": "<ol><li>Before beginning this test, a set of viability tests shall be performed. These will show:<ol><li>The system demonstrates reliability (number of recorded messages/number of produced messages) of greater than 99.9%</li><li>The summit data is being replicated to the instance at USDF</li><li>Chronograf is set up and running at both the summit and USDF</li></ol></li><li>The summit network and Kubernetes cluster are performing nominally</li><li>A number of telemetry topics are reliably producing telemetry at both low frequency (1 Hz) and high frequency (&gt; 10 Hz).</li><li>The notebook aspect of the RSP is deployed in the summit Kubernetes cluster</li><li>The summit EFD is reliably replicated to an EFD instance running in a data facility</li><li>The notebook aspect of the RSP is deployed in the same data facility as that running the replicated EFD</li><li>The most recent version of the EFD client python modules are installed in the various deployed notebook aspects</li><li>The replication system is also successfully archiving EFD topics to parquet files on persistent disk at the data facility</li></ol>"
+    },
+    "cycles": [
+      "27531072"
+    ],
+    "milestone_id": "LDM-503-EFDb",
+    "milestone_name": "Replication of Summit EFD to USDF",
+    "product": "Data Management",
+    "doc_name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+    "system_overview": " The tests will be carried out from within an instance of the notebook\naspect of the RSP running at the data facility where the EFD replication\nis currently happening. An appropriate weekly version of the stack will\nbe chosen.\n",
+    "verification_environment": "The environment will be within notebooks running a modern stack.",
+    "entry_criteria": "\\begin{enumerate}\n\\tightlist\n\\item\n  Before beginning this test, a set of viability tests shall be\n  performed. These will show:\n\n  \\begin{enumerate}\n  \\tightlist\n  \\item\n    The system demonstrates reliability (number of recorded\n    messages/number of produced messages) of greater than 99.9\\%\n  \\item\n    The summit data is being replicated to the instance at USDF\n  \\item\n    Chronograf is set up and running at both the summit and USDF\n  \\end{enumerate}\n\\item\n  The summit network and Kubernetes cluster are performing nominally\n\\item\n  A number of telemetry topics are reliably producing telemetry at both\n  low frequency (1 Hz) and high frequency (\\textgreater{} 10 Hz).\n\\item\n  The notebook aspect of the RSP is deployed in the summit Kubernetes\n  cluster\n\\item\n  The summit EFD is reliably replicated to an EFD instance running in a\n  data facility\n\\item\n  The notebook aspect of the RSP is deployed in the same data facility\n  as that running the replicated EFD\n\\item\n  The most recent version of the EFD client python modules are installed\n  in the various deployed notebook aspects\n\\item\n  The replication system is also successfully archiving EFD topics to\n  parquet files on persistent disk at the data facility\n\\end{enumerate}",
+    "exit_criteria": null,
+    "pmcs_activity": null,
+    "verification_artifacts": null,
+    "overall_assessment": "After the meltdown we seem to now have a good replica at USDF.\\\\\n\\strut \\\\",
+    "recommended_improvements": "Non.",
+    "document_id": "DMTR-331",
+    "extract_date": "2024-11-11"
+  },
+  "test_cycles_map": {
+    "LVV-R181": {
+      "id": 27531072,
+      "key": "LVV-R181",
+      "name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+      "description": "Engineering Facility Database of summit values queryable at USDF.",
+      "status": "Done",
+      "owner": "Wil O'Mullane",
+      "custom_fields": {
+        "Configuration": "",
+        "Software Version / Baseline": ""
+      },
+      "software_version": "",
+      "configuration": "",
+      "test_items": [
+        {
+          "id": 1243140569,
+          "key": "LVV-E1457",
+          "user_id": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+          "user": "Wil O'Mullane",
+          "status": "Approved",
+          "test_case_key": "LVV-T2338",
+          "issue_links": [
+            {
+              "issueId": 291968,
+              "id": 103118571,
+              "target": "LVV-71",
+              "type": "COVERAGE"
+            }
+          ]
+        },
+        {
+          "id": 1243140627,
+          "key": "LVV-E1552",
+          "user_id": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+          "user": "Wil O'Mullane",
+          "status": "Approved",
+          "test_case_key": "LVV-T2339",
+          "issue_links": [
+            {
+              "issueId": 299910,
+              "id": 103118572,
+              "target": "LVV-9979",
+              "type": "COVERAGE"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "test_results_map": {
+    "LVV-R181": {
+      "LVV-E1457": {
+        "id": 1243140569,
+        "key": "LVV-E1457",
+        "comment": "None",
+        "test_case_key": "LVV-T2338",
+        "issue_links": [],
+        "user_id": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+        "user": "Wil O'Mullane",
+        "testExecutionStatus": "Blocked",
+        "custom_fields": {
+          "Include Execution in Test Report": false,
+          "Test Equipment Documentation": "",
+          "DocuShare Verification Documentation Link": "",
+          "Software Versions Used": ""
+        },
+        "include": false,
+        "issues": [],
+        "script_results": [
+          {
+            "index": 0,
+            "expected_result": "The JupyterLab interface is displayed in the browser\n",
+            "actual_result": "Logged in choose large with latest weekly (23)\n",
+            "description": "Log in to the USDF notebook aspect:\nhttps://usdf-rsp-dev.slac.stanford.edu/\\\\\nMake sure to choose a recent weekly release and a large instance; record\nthe chosen release and whether or not it is the current \"recommended\"\nrelease.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-1"
+          },
+          {
+            "index": 1,
+            "expected_result": "An empty notebook running in the LSST kernel\n",
+            "actual_result": "Created a notebook LVV-T2338\n",
+            "description": "Open a notebook:\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  Navigate to the File-\\textgreater New-\\textgreater Notebook\n\\item\n  When prompted, select the LSST kernel\n\\end{enumerate}\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-2"
+          },
+          {
+            "index": 2,
+            "expected_result": "A notebook with an instance of the `EfdClient` configured to talk to the\nUSDF EFD\n",
+            "actual_result": "\\textless{}\\textbf{Image Download Error}\\textgreater Image Download\nError\\textgreater{}\n",
+            "description": "Connect to the USDF EFD.\\\\\nUse the EFD identifier name from the test case parameter,\n\\texttt{usdf\\_efd} , unless it is necessary to change at the time the\ntest is executed. ~Record the value used if different.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-3"
+          },
+          {
+            "index": 3,
+            "expected_result": "Another cell in the notebook with a second EFD connection to the summit\nEFD\n",
+            "actual_result": "times out - you can not access efd\\_summit from USDF.\\\\\nConnected to https://summit-lsp.lsst.codes/nb this allows connections to\nboth USDF and Summit EFD.\n",
+            "description": "Since we need to compare results between the summit and the USDF, also\ncreate a connection to the summit EFD. ~Use the EFD identifier name from\nthe test case parameter, \\texttt{summit\\_efd} , unless it is necessary\nto change at the time the test is executed. ~Record the value used if\ndifferent.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-4"
+          },
+          {
+            "index": 4,
+            "expected_result": "A list of 5 valid SAL topics to be queried and a time window defined as\nastropy.Time objects.\n",
+            "actual_result": "\\begin{verbatim}\nRandom selction of five 'summit' topics which hace data on the start day of the test window\n\\end{verbatim}\n\n\\begin{verbatim}\nlsst.sal.MTDomeTrajectory.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nlsst.sal.ATMonochromator.logevent_heartbeat had 29 messages in first 30 min of 2024-01-01\nlsst.sal.MTM1M3.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nlsst.sal.ESS.lightningStrikeStatus had 30 messages in first 30 min of 2024-01-01\nlsst.sal.Watcher.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nRandom selction of five 'summit' topics ['lsst.sal.MTDomeTrajectory.logevent_heartbeat', 'lsst.sal.ATMonochromator.logevent_heartbeat', 'lsst.sal.MTM1M3.logevent_heartbeat', 'lsst.sal.ESS.lightningStrikeStatus', 'lsst.sal.Watcher.logevent_heartbeat'] with messages on 2024-01-01\n\\end{verbatim}\n",
+            "description": "Choose 5 topics to query and select a 6 day window of data. The window\nis arbitrary, but must be explicit (not relative to now()) so that it\ncan be reproduced. The topics should be chosen to sample the various\ntopic contexts. I.e. the topics should be chosen to sample both\ndiagnostic topics like heartbeat monitors as well as both high and low\ncadence telemetry topics to get a broad view on how the system behaves\nwith different kinds of topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-5"
+          },
+          {
+            "index": 5,
+            "expected_result": "A total of 10 pandas.DataFrame objects, 5 each for the summit and\nreplicated EFDs. ~Each topic requires a separate query, so each will get\nits own DataFrame. ~All fields in each topic should be selected.\n",
+            "actual_result": "combined with next step\n",
+            "description": "Issue selections at both the summit and the data facility. These\nselections should select all fields for the chosen topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-6"
+          },
+          {
+            "index": 6,
+            "expected_result": "A cell in the notebook showing the DataFrames are the same length per\ntopic between the summit and the replicated EFD. ~A cell showing the\ntimes in the index are the same for each topic. ~This could be done by\nconverting to seconds and showing the difference is zero for every\nsample.\\\\\n\\strut \\\\\nIf there are missing samples, the replication should be better than\n99\\%. ~If it is not, the deviation must be traced to an intervening\nevent or system other than the replication system itself to explain the\ndiscrepancy.\n",
+            "actual_result": "\\begin{verbatim}\nThe note book check the counts per topic over the day as well as comparing actual values in the topic.\n \nChecking 2024-01-01\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-02\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-03\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-04\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-05\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-06\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n\\end{verbatim}\n",
+            "description": "First compare the index for each topic between the summit and replicated\nEFD. ~There should be:\\\\\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  The same number of samples in each topic for each location\n\\item\n  Given 1) each time stamp should represent the same time\n\\end{enumerate}\n\nReliability of the replication must be at better than 99\\%. If there are\nsamples missing from the replicated datasets, confirm that the length of\nthe replicated DataFrame divided by the length of the summit DataFrame\nis greater than 0.99 for all topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-7"
+          },
+          {
+            "index": 7,
+            "expected_result": "A cell or cells showing that all fields for all topics evaluate as\nequivalent given appropriate precision.\n",
+            "actual_result": "The note book check tactual values in the topic in the previous step.\n",
+            "description": "Compare the fields for each topic between the summit and the replicated\nEFDs. ~They should be equivalent to double precision. ~This can be done\nby looping over the topics and fields and showing numpy.all (or similar)\nevaluates to True.\n",
+            "status": "Blocked",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-8"
+          },
+          {
+            "index": 8,
+            "expected_result": "A histogram or similar showing that the difference\nprivate\\_seqNum{[}1:{]} - private\\_seqnum{[}:-1{]} is 1 more than 99.9\\%\nof the time.\n",
+            "actual_result": "\\begin{verbatim}\nlsst.sal.GIS.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.ATOODS.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.Test.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.ESS.relativeHumidity private_seqNum increases 100.0% of the sequence\nlsst.sal.ESS.logevent_heartbeat private_seqNum increases 100.0% of the sequence\n\\end{verbatim}\n",
+            "description": "Examine the summit messages to confirm that the reliability is better\nthan 99.9\\% for all topics. ~Keep in mind that the private\\_seqNum is\nintended to be a sequentially increasing index of the messages, but that\nit gets reset after every CSC reboot. ~This must be accounted for by\napplying an offset when a reset is observed.\\\\\nShow the reliability is better than 99.9\\% by showing that the\nprivate\\_seqNum is sequential better than 99.9\\% of the time (when\ncorrecte for resets).\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-9"
+          },
+          {
+            "index": 9,
+            "expected_result": "\\begin{itemize}\n\\tightlist\n\\item\n  A document describing the process including topics and time window.\n\\item\n  The document shall be in the form of a notebook with saved outputs, or\n  similar\n\\end{itemize}\n",
+            "actual_result": "Added LVV-T2334.ipynb to the test report repo\n",
+            "description": "Document the procedure including topics chosen, time window, replication\nreliability and EFD reliability\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1457-10"
+          }
+        ]
+      },
+      "LVV-E1552": {
+        "id": 1243140627,
+        "key": "LVV-E1552",
+        "comment": "None",
+        "test_case_key": "LVV-T2339",
+        "issue_links": [],
+        "user_id": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+        "user": "Wil O'Mullane",
+        "testExecutionStatus": "Pass",
+        "custom_fields": {
+          "Include Execution in Test Report": false,
+          "Test Equipment Documentation": "",
+          "DocuShare Verification Documentation Link": "",
+          "Software Versions Used": ""
+        },
+        "include": false,
+        "issues": [],
+        "script_results": [
+          {
+            "index": 0,
+            "expected_result": "The JupyterLab interface is displayed in the browser\n",
+            "actual_result": "logged in have RSP at USDF\n",
+            "description": "Log in to the USDF notebook aspect:\nhttps://usdf-rsp-dev.slac.stanford.edu/\\\\\nMake sure to choose a recent weekly release and a large instance; record\nthe chosen release and whether or not it is the current \"recommended\"\nrelease.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-1"
+          },
+          {
+            "index": 1,
+            "expected_result": "An empty notebook running in the LSST kernel\n",
+            "actual_result": "Copied LVV-T2338.ipynb to LVV-TT339.ipynb\n",
+            "description": "Open a notebook:\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  Navigate to the File-\\textgreater New-\\textgreater Notebook\n\\item\n  When prompted, select the LSST kernel\n\\end{enumerate}\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-2"
+          },
+          {
+            "index": 2,
+            "expected_result": "A notebook with an instance of the `EfdClient` configured to talk to the\nUSDF EFD\n",
+            "actual_result": "Last executed at 2023-06-16 19:50:41 in 3.71s\n",
+            "description": "Connect to the USDF EFD.\\\\\nUse the EFD identifier name from the test case parameter,\n\\texttt{usdf\\_efd} , unless it is necessary to change at the time the\ntest is executed. ~Record the value used if different.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-3"
+          },
+          {
+            "index": 3,
+            "expected_result": "A cell in a notebook specifying topic names and start and end times for\na 6 day window as astropy.Time objects.\n",
+            "actual_result": "\\begin{verbatim}\nlsst.sal.ATPneumatics.logevent_heartbeat had 529266 messages between 2023-06-13 and 2023-06-20 \nlsst.sal.MTAirCompressor.logevent_summaryState had 22 messages between 2023-06-13 and 2023-06-20 \nlsst.sal.MTM1M3.logevent_raisingLoweringInfo had 6582 messages between 2023-06-13 and 2023-06-20 \nRandom selction of 3 'usdf' topics ['lsst.sal.ATPneumatics.logevent_heartbeat', 'lsst.sal.MTAirCompressor.logevent_summaryState', 'lsst.sal.MTM1M3.logevent_raisingLoweringInfo'] with messages between 2023-06-13 and 2023-06-20\n\\end{verbatim}\n",
+            "description": "Choose 3 topics to query and select a 6 day window of data. The window\nis arbitrary, but must be explicit (not relative to now()) so that it\ncan be reproduced. The topics are also arbitrary but will sample\nmultiple subsystems.\n",
+            "status": "Not Executed",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-4"
+          },
+          {
+            "index": 4,
+            "expected_result": "A cell in a notebook with 1 DataFrame per topic. This shall be explicit\nabout all the necessary steps and any hand tuning necessary to make it\npossible to make selections from the archival data.\n",
+            "actual_result": "\\begin{verbatim}\nlsst.sal.ATPneumatics.logevent_heartbeat has fields:Index(['heartbeat', 'private_efdStamp', 'private_identity',\n       'private_kafkaStamp', 'private_origin', 'private_rcvStamp',\n       'private_revCode', 'private_seqNum', 'private_sndStamp'],\n      dtype='object')\nlsst.sal.MTAirCompressor.logevent_summaryState has fields:Index(['private_efdStamp', 'private_identity', 'private_kafkaStamp',\n       'private_origin', 'private_rcvStamp', 'private_revCode',\n       'private_seqNum', 'private_sndStamp', 'salIndex', 'summaryState'],\n      dtype='object')\nlsst.sal.MTM1M3.logevent_raisingLoweringInfo has fields:Index(['private_efdStamp', 'private_identity', 'private_kafkaStamp',\n       'private_origin', 'private_rcvStamp', 'private_revCode',\n       'private_seqNum', 'private_sndStamp', 'waitAirPressure',\n       'waitHardpoint0',\n       ...\n       'waitZForceActuator91', 'waitZForceActuator92', 'waitZForceActuator93',\n       'waitZForceActuator94', 'waitZForceActuator95', 'waitZForceActuator96',\n       'waitZForceActuator97', 'waitZForceActuator98', 'waitZForceActuator99',\n       'weightSupportedPercent'],\n      dtype='object', length=284)\n\\end{verbatim}\n",
+            "description": "Use the defined topics and the time window to read in fields from the\nchosen topics. These are expected to be pandas.DataFrames.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-5"
+          },
+          {
+            "index": 5,
+            "expected_result": "Plots of quantities including filtering and other common activities.\n~This shall specifically identify cases where there is an obvious\ndifference between how the interaction would be done with the running\nEFD vs the archival version.\n",
+            "actual_result": "not so interesting plots like this\\\\\n\\textless{}\\textbf{Image Download Error}\\textgreater Image Download\nError\\textgreater{}\\includegraphics{https://cloudfront.tm4j.smartbear.com/tenant/eda8235d-f9b3-3651-8805-cde8801fc677/project/10277/a0a27dba-7d8a-4899-a107-35fcb5f2ac5f-1687278175566.png}\n",
+            "description": "Execute various analysis tasks, e.g. plotting various quantities, to\nshow that it is practical to do so.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-6"
+          },
+          {
+            "index": 6,
+            "expected_result": "\\begin{itemize}\n\\tightlist\n\\item\n  A document describing the process including the topics chosen and the\n  time window.\n\\item\n  The document shall be in the form of a notebook with saved outputs.\n\\end{itemize}\n",
+            "actual_result": "LVV-T2339.ipynb added to the DMTR-331 repo - also renderd at the end fo\nthe test report (\\textbackslash secref\\{sec:LVV-T2339nb\\})\\\\\n\\strut \\\\\n",
+            "description": "Document the procedure including topics and time window. ~Particular\nattention shall be paid to differences in interactions between the\nrunning EFD and the archival version. ~If any topics chosen for this\ntest were downsampled in the archiving process, the document shall\nreport on the self consistency of the down/re-sampling of those topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E1552-7"
+          }
+        ]
+      },
+      "LVV-E3446": {
+        "id": 1243141982,
+        "key": "LVV-E3446",
+        "comment": "None",
+        "test_case_key": "LVV-T2338",
+        "issue_links": [],
+        "user_id": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+        "user": "Wil O'Mullane",
+        "testExecutionStatus": "Pass",
+        "custom_fields": {
+          "Include Execution in Test Report": true,
+          "Test Equipment Documentation": "",
+          "DocuShare Verification Documentation Link": "",
+          "Software Versions Used": ""
+        },
+        "include": true,
+        "issues": [],
+        "script_results": [
+          {
+            "index": 0,
+            "expected_result": "The JupyterLab interface is displayed in the browser\n",
+            "actual_result": "",
+            "description": "Log in to the USDF notebook aspect:\nhttps://usdf-rsp-dev.slac.stanford.edu/\\\\\nMake sure to choose a recent weekly release and a large instance; record\nthe chosen release and whether or not it is the current \"recommended\"\nrelease.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-1"
+          },
+          {
+            "index": 1,
+            "expected_result": "An empty notebook running in the LSST kernel\n",
+            "actual_result": "Loaded existing notebook LVVT-2338 from the github repo already on the\nRSP.\n",
+            "description": "Open a notebook:\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  Navigate to the File-\\textgreater New-\\textgreater Notebook\n\\item\n  When prompted, select the LSST kernel\n\\end{enumerate}\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-2"
+          },
+          {
+            "index": 2,
+            "expected_result": "A notebook with an instance of the `EfdClient` configured to talk to the\nUSDF EFD\n",
+            "actual_result": "Last executed at 2024-02-08 10:32:00 in 3.71s\n",
+            "description": "Connect to the USDF EFD.\\\\\nUse the EFD identifier name from the test case parameter,\n\\texttt{usdf\\_efd} , unless it is necessary to change at the time the\ntest is executed. ~Record the value used if different.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-3"
+          },
+          {
+            "index": 3,
+            "expected_result": "Another cell in the notebook with a second EFD connection to the summit\nEFD\n",
+            "actual_result": "previous cell also does this\n",
+            "description": "Since we need to compare results between the summit and the USDF, also\ncreate a connection to the summit EFD. ~Use the EFD identifier name from\nthe test case parameter, \\texttt{summit\\_efd} , unless it is necessary\nto change at the time the test is executed. ~Record the value used if\ndifferent.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-4"
+          },
+          {
+            "index": 4,
+            "expected_result": "A list of 5 valid SAL topics to be queried and a time window defined as\nastropy.Time objects.\n",
+            "actual_result": "these are selected\\\\\n\n\\begin{verbatim}\nlsst.sal.MTDomeTrajectory.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nlsst.sal.ATMonochromator.logevent_heartbeat had 29 messages in first 30 min of 2024-01-01\nlsst.sal.MTM1M3.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nlsst.sal.ESS.lightningStrikeStatus had 30 messages in first 30 min of 2024-01-01\nlsst.sal.Watcher.logevent_heartbeat had 30 messages in first 30 min of 2024-01-01\nRandom selction of five 'summit' topics ['lsst.sal.MTDomeTrajectory.logevent_heartbeat', 'lsst.sal.ATMonochromator.logevent_heartbeat', 'lsst.sal.MTM1M3.logevent_heartbeat', 'lsst.sal.ESS.lightningStrikeStatus', 'lsst.sal.Watcher.logevent_heartbeat'] with messages on 2024-01-01\n\\end{verbatim}\n\n\\hfill\\break\n\n\\hfill\\break\n",
+            "description": "Choose 5 topics to query and select a 6 day window of data. The window\nis arbitrary, but must be explicit (not relative to now()) so that it\ncan be reproduced. The topics should be chosen to sample the various\ntopic contexts. I.e. the topics should be chosen to sample both\ndiagnostic topics like heartbeat monitors as well as both high and low\ncadence telemetry topics to get a broad view on how the system behaves\nwith different kinds of topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-5"
+          },
+          {
+            "index": 5,
+            "expected_result": "A total of 10 pandas.DataFrame objects, 5 each for the summit and\nreplicated EFDs. ~Each topic requires a separate query, so each will get\nits own DataFrame. ~All fields in each topic should be selected.\n",
+            "actual_result": "previous topis have dtat - there are five - next step will retrieve\nframes and compare.\n",
+            "description": "Issue selections at both the summit and the data facility. These\nselections should select all fields for the chosen topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-6"
+          },
+          {
+            "index": 6,
+            "expected_result": "A cell in the notebook showing the DataFrames are the same length per\ntopic between the summit and the replicated EFD. ~A cell showing the\ntimes in the index are the same for each topic. ~This could be done by\nconverting to seconds and showing the difference is zero for every\nsample.\\\\\n\\strut \\\\\nIf there are missing samples, the replication should be better than\n99\\%. ~If it is not, the deviation must be traced to an intervening\nevent or system other than the replication system itself to explain the\ndiscrepancy.\n",
+            "actual_result": "",
+            "description": "First compare the index for each topic between the summit and replicated\nEFD. ~There should be:\\\\\n\n\\begin{enumerate}\n\\tightlist\n\\item\n  The same number of samples in each topic for each location\n\\item\n  Given 1) each time stamp should represent the same time\n\\end{enumerate}\n\nReliability of the replication must be at better than 99\\%. If there are\nsamples missing from the replicated datasets, confirm that the length of\nthe replicated DataFrame divided by the length of the summit DataFrame\nis greater than 0.99 for all topics.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-7"
+          },
+          {
+            "index": 7,
+            "expected_result": "A cell or cells showing that all fields for all topics evaluate as\nequivalent given appropriate precision.\n",
+            "actual_result": "\\begin{verbatim}\n Checking 2024-01-01\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-02\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-03\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-04\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-05\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n Checking 2024-01-06\nCompare lsst.sal.MTDomeTrajectory.logevent_heartbeat\nCompare lsst.sal.ATMonochromator.logevent_heartbeat\nCompare lsst.sal.MTM1M3.logevent_heartbeat\nCompare lsst.sal.ESS.lightningStrikeStatus\nCompare lsst.sal.Watcher.logevent_heartbeat\n\\end{verbatim}\n\n\\hfill\\break\n",
+            "description": "Compare the fields for each topic between the summit and the replicated\nEFDs. ~They should be equivalent to double precision. ~This can be done\nby looping over the topics and fields and showing numpy.all (or similar)\nevaluates to True.\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-8"
+          },
+          {
+            "index": 8,
+            "expected_result": "A histogram or similar showing that the difference\nprivate\\_seqNum{[}1:{]} - private\\_seqnum{[}:-1{]} is 1 more than 99.9\\%\nof the time.\n",
+            "actual_result": "\\begin{verbatim}\nlsst.sal.MTDomeTrajectory.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.ATMonochromator.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.MTM1M3.logevent_heartbeat private_seqNum increases 100.0% of the sequence\nlsst.sal.ESS.lightningStrikeStatus private_seqNum increases 100.0% of the sequence\nlsst.sal.Watcher.logevent_heartbeat private_seqNum increases 100.0% of the sequence\n\\end{verbatim}\n",
+            "description": "Examine the summit messages to confirm that the reliability is better\nthan 99.9\\% for all topics. ~Keep in mind that the private\\_seqNum is\nintended to be a sequentially increasing index of the messages, but that\nit gets reset after every CSC reboot. ~This must be accounted for by\napplying an offset when a reset is observed.\\\\\nShow the reliability is better than 99.9\\% by showing that the\nprivate\\_seqNum is sequential better than 99.9\\% of the time (when\ncorrecte for resets).\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-9"
+          },
+          {
+            "index": 9,
+            "expected_result": "\\begin{itemize}\n\\tightlist\n\\item\n  A document describing the process including topics and time window.\n\\item\n  The document shall be in the form of a notebook with saved outputs, or\n  similar\n\\end{itemize}\n",
+            "actual_result": "The notebook LVV-T2338 does this.\n",
+            "description": "Document the procedure including topics chosen, time window, replication\nreliability and EFD reliability\n",
+            "status": "Pass",
+            "testdata": "None\n",
+            "reflectRef": "None",
+            "testDataRowNumber": "None",
+            "result_issues": [],
+            "label": "LVV-E3446-10"
+          }
+        ]
+      }
+    }
+  },
+  "test_cases_map": {
+    "LVV-T2338": {
+      "key": "LVV-T2338",
+      "name": "Replicated telemetry data agrees with telemetry produced at the summit",
+      "owner": "Wil O'Mullane",
+      "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T2338",
+      "component": "DM",
+      "folder": "Replication",
+      "precondition": "See prerequisites in the Test Plan LVV-P90",
+      "objective": "Show that telemetry data can be accessed from the replicated EFD.\n~Further, show that the values in the replicated database agree with the\nvalues in the summit EFD over a specified time range and set of\ntopics.\\\\\n\\strut \\\\\nThis test case provides partial coverage of the requirement\nDMS-REQ-0168, Summit Facility Data Communications: \"The DMS shall\nprovide data communications infrastructure to accept science data and\nassociated metadata read-outs, and \\textbf{the collection of ancillary\nand engineering data}, for transfer to the base facility.\", as adapted\nto the current design for EFD replication (see\n\\href{https://dmtn-082.lsst.io}{DMTN-082}).",
+      "status": "Approved",
+      "priority": "Normal",
+      "labels": [],
+      "test_script": null,
+      "requirement_issue_keys": [
+        "LVV-71"
+      ],
+      "custom_fields": {
+        "Vendor": false,
+        "Reuse for Maintenance": false,
+        "Verification Configuration": "",
+        "Verification Type": "Test",
+        "Test Equipment": "",
+        "Safety Hazards": "",
+        "Critical Event": "false",
+        "Test Personnel": "William O Mullane",
+        "Unit Under Test": "",
+        "Required Software": "",
+        "Predecessors": "",
+        "Required PPE": "",
+        "Associated Risks": "",
+        "Postcondition": "",
+        "Jupyter Notebook Link": "https://github.com/lsst-dm/DMTR-331/blob/tickets/DM-33378/LVV-T2338.ipynb"
+      },
+      "verification_type": "Test",
+      "verification_configuration": "",
+      "predecessors": "",
+      "critical_event": "false",
+      "associated_risks": "",
+      "unit_under_test": "",
+      "required_software": "",
+      "test_equipment": "",
+      "test_personnel": "William O Mullane",
+      "safety_hazards": "",
+      "required_ppe": "",
+      "postcondition": "",
+      "doc_href": "lvv-t2338---replicated-telemetry-data-agrees-with-telemetry-produced-at-the-summit",
+      "requirements": [
+        {
+          "key": "LVV-71",
+          "summary": "DMS-REQ-0168-V-01: Summit Facility Data Communications\n",
+          "jira_url": "https://rubinobs.atlassian.net/browse/LVV-71"
+        }
+      ],
+      "keyid": 2338,
+      "version": "1.0(d)"
+    },
+    "LVV-T2339": {
+      "key": "LVV-T2339",
+      "name": "Archival EFD products can be used for historical analysis",
+      "owner": "Wil O'Mullane",
+      "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T2339",
+      "component": "DM",
+      "folder": "Replication",
+      "precondition": "None",
+      "objective": "Show that the archival replicated EFD products (nominally Parquet files)\ncan be used to query for topics post facto and that analysis in the\nNotebook Aspect of the RSP is not only possible but straightforward.\\\\\n\\strut \\\\\nThis test case provides partial coverage of the requirement\nDMS-NB-REQ-0023, Access to All Data Products: \"An authorized user of the\nNotebook Aspect shall be able to access the Transformed Engineering and\nFacilities Database (EFD) and and all other LSST released data\nproducts.\", as adapted to the current design for EFD replication and\naccess (see \\href{https://dmtn-082.lsst.io}{DMTN-082}). ~Note that it is\nstill also anticipated that TAP access to the EFD will be provided in\nthe RSP as an alternative to the Python-API access covered by this test\ncase. ~Note in particular that this test case does not cover the feature\nof the \"Transformed\" EFD from the original design in which EFD data is\npre-processed with associations to exposure/visit IDs.",
+      "status": "Approved",
+      "priority": "Normal",
+      "labels": [],
+      "test_script": null,
+      "requirement_issue_keys": [
+        "LVV-9979"
+      ],
+      "custom_fields": {
+        "Vendor": false,
+        "Reuse for Maintenance": false,
+        "Verification Configuration": "",
+        "Verification Type": "Demonstration",
+        "Test Equipment": "",
+        "Safety Hazards": "",
+        "Critical Event": "false",
+        "Test Personnel": "William O'Mullane<br><br>",
+        "Unit Under Test": "",
+        "Required Software": "",
+        "Predecessors": "",
+        "Required PPE": "",
+        "Associated Risks": "",
+        "Postcondition": "",
+        "Jupyter Notebook Link": "https://github.com/lsst-dm/DMTR-331/blob/tickets/DM-33378/LVV-T2339.ipynb"
+      },
+      "verification_type": "Demonstration",
+      "verification_configuration": "",
+      "predecessors": "",
+      "critical_event": "false",
+      "associated_risks": "",
+      "unit_under_test": "",
+      "required_software": "",
+      "test_equipment": "",
+      "test_personnel": "William O\\textquotesingle Mullane\\\\\n\\strut \\\\",
+      "safety_hazards": "",
+      "required_ppe": "",
+      "postcondition": "",
+      "doc_href": "lvv-t2339---archival-efd-products-can-be-used-for-historical-analysis",
+      "requirements": [
+        {
+          "key": "LVV-9979",
+          "summary": "DMS-NB-REQ-0023-V-01: Access to All Data Products\\_1\n",
+          "jira_url": "https://rubinobs.atlassian.net/browse/LVV-9979"
+        }
+      ],
+      "keyid": 2339,
+      "version": "1.0(d)"
+    }
+  },
+  "attachments": {
+    "LVV-P90": [],
+    "cycles": {
+      "LVV-R181": []
+    },
+    "results": {
+      "1243140569": [],
+      "1243140627": [],
+      "1243141982": []
+    },
+    "n_attachments": 0
+  }
+}
