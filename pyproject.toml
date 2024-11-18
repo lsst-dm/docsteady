@@ -1,7 +1,7 @@
 [project]
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 name = "docsteady"
-description = "Generate test relted documentation from Jira Test"
+description = "Generate test relted documentation from Zephyrscale Jira Test"
 license = { file = "LICENSE" }
 readme = "README.md"
 keywords = ["rubin", "lsst"]
@@ -31,6 +31,8 @@ Source = "https://github.com/lsst-dm/docsteady"
 [build-system]
 requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -124,5 +126,15 @@ init_typed = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
-
-
+[tool.scriv]
+categories = [
+    "Backwards-incompatible changes",
+    "New features",
+    "Bug fixes",
+    "Other changes",
+]
+entry_title_template = "{{ version }} ({{ date.strftime('%Y-%m-%d') }})"
+format = "md"
+md_header_level = "2"
+new_fragment_template = "file:changelog.d/_template.md.jinja"
+skip_fragments = "_template.md.jinja"

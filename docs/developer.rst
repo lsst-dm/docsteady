@@ -72,6 +72,18 @@ In the last release 2.5 the docsteady source had to be moved under ''src'' for c
 
 .. _docproc:
 
+Version 3.0 - pip
+-----------------
+The Zephyr API is not available on conda.
+The packages is already pip compatible so just building for PyPI seems sensible.
+So in th checked out tagged docsteady directory:
+  ''python3 -m pip install --upgrade build``
+  ''python3 -m build``
+
+This will give the package in ''dist'' directory.
+
+I have not made the github action to upload so after renaming the dist ..
+
 Documentation Procedure
 -----------------------
 

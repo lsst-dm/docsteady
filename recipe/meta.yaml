@@ -17,6 +17,7 @@ build:
     - pyproject.toml
     - tests
     - docsteady
+  script: {{ PYTHON }} -m pip install . --no-deps --ignore-installed zephyr-python-api
   script: {{ PYTHON }} -m pip install --no-deps --ignore-installed . -vv
 
 requirements:
@@ -37,7 +38,6 @@ requirements:
     - marshmallow >3
     - setuptools-scm
     - pillow
-    - zephyr-python-api
   test:
     pytest
 
