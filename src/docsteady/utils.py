@@ -215,10 +215,14 @@ def download_and_rewrite_images(value: str) -> str:
                 if fs_path in existing_file:
                     fs_path = existing_file
             if not exists(fs_path):
+                errstr = None
                 if img_url.startswith(Config.JIRA_INSTANCE):
-                    resp = requests.get(img_url, auth=Config.AUTH)
+                    try:
+                        resp = requests.get(img_url, auth=Config.AUTH)
+                    except ConnectionError as ce:
+                        Config.exeuction_errored = True
+                        errstr = f"Failed to get {img_url}: {ce}"
                 else:
-                    errstr = None
                     # the rest api does not work for images in smartbear
                     try:
                         if "cloudfront" in img_url or "smartbear" in img_url:
@@ -229,14 +233,14 @@ def download_and_rewrite_images(value: str) -> str:
                     except requests.exceptions.HTTPError as err:
                         Config.exeuction_errored = True
                         errstr = str(err)
-                    if errstr is not None:
-                        print(errstr)
-                        # in order the final user can see where the problem is
-                        img.insert_before(
-                            soup.new_tag("<b>Image Download Error</b>")
-                        )
-                        img.decompose()
-                        return str(soup)
+                if errstr is not None:
+                    print(errstr)
+                    # in order the final user can see where the problem is
+                    img.insert_before(
+                        soup.new_tag("<b>Image Download Error</b>")
+                    )
+                    img.decompose()
+                    return str(soup)
                 extension = None
                 if "png" in resp.headers["content-type"]:
                     extension = "png"
@@ -244,6 +248,8 @@ def download_and_rewrite_images(value: str) -> str:
                     extension = "jpg"
                 elif "gif" in resp.headers["content-type"]:
                     extension = "gif"
+                elif "svg" in resp.headers["content-type"]:
+                    extension = "svg"
                 fs_path = f"{fs_path}.{extension}"
                 with open(fs_path, "w+b") as img_f:
                     img_f.write(resp.content)

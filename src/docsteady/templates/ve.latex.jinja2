@@ -128,8 +128,7 @@ Upper Level Requirement &
 
   {% if ve.test_cases %}
 \subsubsection{Test Cases Summary}
-    {% for testc in ve.test_cases %}
-      {% set tc = test_cases[testc[0]] %}
+    {% for tc in ve.test_cases %}
 \begin{tabular}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
 \toprule
 {{ atmtc(tc.key) }} & \multicolumn{4}{p{12cm}}{ {{ tc.name }} } \\ \hline

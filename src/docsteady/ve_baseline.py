@@ -22,33 +22,35 @@
 Subroutines required to baseline the Verification Elements
 """
 
-import re
-from base64 import b64encode
-from typing import MutableMapping
-
-import requests
 from marshmallow import EXCLUDE
 from requests import Session
+from urllib3 import Retry
 
 from .config import Config
 from .spec import TestCase
-from .utils import create_folders_and_files, get_zephyr_api
+from .utils import (
+    create_folders_and_files,
+    fix_json,
+    get_rest_session,
+    get_zephyr_api,
+)
 from .vcd import VerificationE
 
 # for dubuging we do not need the hundreads of verificaiton elements
-DOFEW = False
+DOFEW = True
 FEWCOUNT = 3
 
 
-def get_testcase(rs: Session, tckey: str) -> dict | None:
+def get_testcase(tckey: str) -> dict | None:
     """
     Get test case details from Jira
     :param rs:
     :param tckey:
     :return:
     """
+
     zapi = get_zephyr_api()
-    jtc_det = zapi.test_cases.get_test_case(tckey)
+    jtc_det = fix_json(zapi.test_cases.get_test_case(tckey))
     tc_details = TestCase(unknown=EXCLUDE).load(jtc_det)
 
     # get test case results, so we can build the VCD using the same data
@@ -69,6 +71,8 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
             tc_results["status"] = "notexec"
         if "executionDate" in jtc_res.keys():
             tc_results["exdate"] = jtc_res["executionDate"][0:10]
+        # Check this ..
+        rs = get_rest_session()
         r_tp_key = rs.get(
             Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res["key"])
         )
@@ -99,25 +103,24 @@ def get_testcase(rs: Session, tckey: str) -> dict | None:
     return tc_details
 
 
-def process_raw_test_cases(rs: Session, ve_details: dict) -> dict:
+def get_testcases_ve(key: str) -> [str]:
+    "VE key form LVV-NNN"
+    zapi = get_zephyr_api()
+    resp = zapi.issue_links.get_test_cases(key)
+    tcs = []
+    for v in resp:
+        tcs.append(v["key"])
+    return tcs
+
+
+def process_test_cases(tcs: [str], ve_details: dict) -> dict:
     # populate test_cases from raw_test_cases
-    if (
-        "raw_test_cases" in ve_details.keys()
-        and ve_details["raw_test_cases"] != ""
-    ):
-        # regex to get content between {}
-        regex = r"\{([^}]+)\}"
-        matches = re.findall(regex, ve_details["raw_test_cases"])
+    if tcs and len(tcs) > 0:
         ve_details["test_cases"] = []
-        for matchNum, match in enumerate(matches):
-            if matchNum % 2 == 1:
-                tc_split = match.split(":")
-                tc_split[1] = tc_split[1].strip().replace("\n", " ")
-                ve_details["test_cases"].append(tc_split)
-                if tc_split[0] not in Config.CACHED_TESTCASES:
-                    Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(
-                        rs, tc_split[0]
-                    )
+        for tc in tcs:
+            if tc not in Config.CACHED_TESTCASES:
+                Config.CACHED_TESTCASES[tc] = get_testcase(tc)
+            ve_details["test_cases"].append(Config.CACHED_TESTCASES[tc])
     return ve_details
 
 
@@ -128,16 +131,20 @@ def get_ve_details(rs: Session, key: str) -> dict:
     :param key:
     :return:
     """
-
     print(f"get_ve_details {key}", end=".", flush=True)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
     jve_res = ve_res.json()
+    return get_ve_json(jve_res)
 
+
+def get_ve_json(jve_res: dict) -> dict:
     ve_details = VerificationE(unknown=EXCLUDE).load(jve_res, partial=True)
     ve_details["summary"] = ve_details["summary"].strip()
     # @post_load is not working
     # populate test_cases from raw_test_cases
-    process_raw_test_cases(rs, ve_details)
+    rs = get_rest_session()
+    tcs = get_testcases_ve(ve_details["key"])
+    process_test_cases(tcs, ve_details)
     # populate upper level reqs from raw_upper_reqs
     ve_details["upper_reqs"] = []
     if "raw_upper_req" in ve_details.keys():
@@ -175,10 +182,8 @@ def get_ve_details(rs: Session, key: str) -> dict:
     return ve_details
 
 
-def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
+def extract_ves(cmp: str, subcmp: str) -> dict:
     """
-
-    :param rs:
     :param cmp:
     :param subcmp:
     :return:
@@ -186,13 +191,22 @@ def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
     # ve_list = []
     ve_details = dict()
 
-    max = 200
+    max = 500
     startAt = 0
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")
     # if subcomponents have & character, need to be encoded as above
     subcmp = subcmp.replace("&", "%26")
     count = 0
+    rs = get_rest_session()
+
+    # Setting retries, sometime the connections fails
+    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
+    retries = Retry(
+        total=10, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
+    )
+
+    rs.adapters["max_retries"] = retries
 
     while True:
         if subcmp == "":
@@ -244,7 +258,7 @@ def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
 
 def do_ve_model(component: str, subcomponent: str) -> dict:
     """
-    Extract VE model informatino from Jira
+    Extract VE model information from Jira, Zephyr
     :param component:
     :param subcomponent:
     :return:
@@ -256,22 +270,9 @@ def do_ve_model(component: str, subcomponent: str) -> dict:
         f"Looking for all Verification Elements in component '{component}', "
         f"sub-component '{subcomponent}'."
     )
-    usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
-    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
-
-    headers: MutableMapping[str, str | bytes] = {
-        "accept": "application/json",
-        "authorization": "Basic %s" % connection_str,
-        "Connection": "close",
-    }
-
-    rs = requests.Session()
-    rs.headers = headers
-    # Setting retries, sometime the connections fails
-    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
 
     # get all VEs details
-    ves = extract_ves(rs, component, subcomponent)
+    ves = extract_ves(component, subcomponent)
 
     print(" Found ", len(ves), " Verification Elements.")
     # need to get the corresponding test cases

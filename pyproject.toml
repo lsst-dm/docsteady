@@ -29,7 +29,7 @@ Homepage = "https://docsteady.lsst.io"
 Source = "https://github.com/lsst-dm/docsteady"
 
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=70", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
@@ -105,7 +105,7 @@ python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"
 # there are a lot of classes with the word Test in them in the codebase - this
 # is a way to exclude them from being considered tests
 python_classes = "TestCase"
-
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.mypy]
 disallow_untyped_defs = true

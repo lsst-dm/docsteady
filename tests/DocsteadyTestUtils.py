@@ -5,7 +5,13 @@ import zephyr.scale.cloud.endpoints.paths
 
 from docsteady.config import Config
 from docsteady.tplan import build_tpr_model
-from docsteady.utils import get_all_executions, get_teststeps, get_zephyr_api
+from docsteady.utils import (
+    get_all_executions,
+    get_rest_session,
+    get_teststeps,
+    get_zephyr_api,
+)
+from docsteady.ve_baseline import do_ve_model, get_testcases_ve
 
 ROOT = "tests/data"
 # ROOT = "data"
@@ -65,6 +71,10 @@ def getTestExecutionData(id: str) -> None:
     write_test_data(resp, "TestResult-" + id)
 
 
+def getTestCases(id: str) -> dict:
+    return get_testcases_ve(id)
+
+
 def getScriptStepsData(id: str) -> None:
     resp = get_teststeps(
         id, zephyr.scale.cloud.endpoints.paths.CloudPaths.EXECUTIONS_STEPS
@@ -78,6 +88,28 @@ def getTprData(id: str) -> None:
     write_test_data(tplan, "TPR-" + id)
 
 
+def getVEdata(component: str = "DM", subcomponent: str = "") -> None:
+    """construct the Verification Element  file for testing."""
+    rs = get_rest_session()
+    result = rs.get(
+        Config.VE_COMPONENT_URL.format(cmpnt=component, maxR=5, startAt=0)
+    ).json()
+    ves = []
+    for i in result["issues"]:
+        det = rs.get(Config.ISSUE_URL.format(issue=i["key"]))
+        ves.append(det.json())
+
+    write_test_data(ves, f"VE-{component}-{subcomponent}")
+
+
+def getVEdetail(key: str) -> None:
+    """construct the Verification Element  file for testing."""
+    rs = get_rest_session()
+    ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
+    jve_res = ve_res.json()
+    write_test_data(jve_res, f"VE-{key}")
+
+
 def getExecutionsData(ids: List[str]) -> None:
     get_all_executions()
     keep = {}
@@ -88,3 +120,9 @@ def getExecutionsData(ids: List[str]) -> None:
 
 def dumpPointers() -> None:
     write_test_data(Config.CACHED_POINTERS, "POINTERS")
+
+
+def getVEmodel() -> None:
+    # May want to set DOFEW to true in ve_baseline .. to get small dataset
+    mod = do_ve_model("DM", "")
+    write_test_data(mod, "VEmodel")

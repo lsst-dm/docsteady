@@ -38,6 +38,7 @@ jst: dict = {}
 
 class VerificationE(Schema):
     key = fields.String(required=True)
+    id = fields.String()
     summary = fields.String()
     jira_url = fields.String()
     assignee = fields.String()
@@ -73,18 +74,22 @@ class VerificationE(Schema):
         if data_fields["priority"]:
             data["ve_priority"] = data_fields["priority"]["name"]
         try:
-            data["req_id"] = data_fields["customfield_15502"]
+            data["req_id"] = data_fields["customfield_10395"]  # 15502
         except KeyError:
-            print(f'Failed to get req_id customfield_15502 for {data["key"]}')
-        data["req_spec"] = data["renderedFields"]["customfield_13513"]
-        data["req_discussion"] = data["renderedFields"]["customfield_13510"]
-        if data_fields["customfield_15204"]:
-            data["req_priority"] = data_fields["customfield_15204"]["value"]
-        data["req_params"] = data["renderedFields"]["customfield_13512"]
-        data["raw_upper_req"] = data_fields["customfield_13515"]
-        data["raw_test_cases"] = data_fields["customfield_15106"]
+            print(f'Failed to get req_id customfield_10395 for {data["key"]}')
+        data["req_spec"] = data["renderedFields"][
+            "customfield_10396"
+        ]  # requirement specification (13513)
+        data["req_discussion"] = data["renderedFields"]["customfield_10080"]
+        if data_fields["customfield_10166"]:  # Priority
+            data["req_priority"] = data_fields["customfield_10166"]["value"]
+        data["req_params"] = data["renderedFields"][
+            "customfield_10101"
+        ]  # Refining Parameters ?
+        # gone data["raw_upper_req"] = data_fields["customfield_13515"]
+        # gone data["raw_test_cases"] = data_fields["customfield_15106"]
         data["verified_by"] = self.extract_verified_by(data_fields)
-        ref = data_fields["customfield_14701"]["value"]
+        ref = data_fields["customfield_10076"]["value"]
         if ":" in ref:
             ref = ref.split(":")[0]
         data["req_doc_id"] = ref

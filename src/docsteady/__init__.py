@@ -79,8 +79,37 @@ if "JIRA_PASSWORD" in os.environ:
     help="Path to search for templates in. "
     "Defaults to the working directory",
 )
+@click.option(
+    "--token",
+    prompt="Jira Zephyr Token",
+    hide_input=True,
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphry API Token",
+)
+@click.option(
+    "--username",
+    prompt="Jira User Name for Jira API",
+    hide_input=True,
+    envvar="JIRA_USER",
+    help="Jira cloud user - an email address ",
+)
+@click.option(
+    "--password",
+    prompt="Jira password (or Token)  for Jira API",
+    hide_input=True,
+    envvar="JIRA_PASSWORD",
+    help="Jira cloud  password - usually an API token  ",
+)
 @click.version_option(__version__)
-def cli(namespace: str, template_format: str, load_from: str) -> None:
+@click.version_option(__version__)
+def cli(
+    namespace: str,
+    template_format: str,
+    load_from: str,
+    token: str,
+    username: str,
+    password: str,
+) -> None:
     """Docsteady generates documents from Jira with the
     Test Management for Jira (TM4J) plugin.
     """
@@ -88,6 +117,8 @@ def cli(namespace: str, template_format: str, load_from: str) -> None:
     Config.NAMESPACE = namespace
     Config.TEMPLATE_LANGUAGE = template_format
     Config.TEMPLATE_DIRECTORY = load_from
+    Config.ZEPHYR_TOKEN = token
+    Config.AUTH = (username, password)
 
 
 @cli.command("generate-spec")
@@ -95,13 +126,6 @@ def cli(namespace: str, template_format: str, load_from: str) -> None:
     "--format",
     default="latex",
     help="Pandoc output format (see pandoc for options)",
-)
-@click.option(
-    "--token",
-    prompt="Jira Zephyr Token",
-    hide_input=True,
-    envvar="ZEPHYR_TOKEN",
-    help="Jira token from jira cloud, Zyphry API Token",
 )
 @click.argument("folder")
 @click.argument("path", required=False, type=click.Path())
@@ -213,13 +237,6 @@ def generate_spec(
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--token",
-    prompt="Jira Zephyr Token",
-    hide_input=True,
-    envvar="ZEPHYR_TOKEN",
-    help="Jira token from jira cloud, Zyphry API Token",
-)
-@click.option(
     "--trace",
     default=False,
     help="If true, traceability table will be added in appendix",
@@ -227,14 +244,13 @@ def generate_spec(
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
 def generate_report(
-    format: str, token: str, trace: str, plan: str, path: str, includeall: bool
+    format: str, trace: str, plan: str, path: str, includeall: bool
 ) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.ZEPHYR_TOKEN = token
     Config.INCLUDE_ALL_EXECS = includeall
     target = "tpr"
 
@@ -319,13 +335,6 @@ def _metadata() -> dict:
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--token",
-    prompt="Jira Zephyr Token",
-    hide_input=True,
-    envvar="ZEPHYR_TOKEN",
-    help="Jira token from jira cloud, Zyphry API Token",
-)
-@click.option(
     "--spec",
     required=False,
     default=False,
@@ -340,12 +349,6 @@ def _metadata() -> dict:
 @click.argument("path", required=False, type=click.Path())
 def generate_vcd(
     format: str,
-    jiradb: str,
-    vcduser: str,
-    vcdpwd: str,
-    username: str,
-    password: str,
-    sql: str,
     spec: str,
     subcomponent: str,
     path: str,
@@ -360,15 +363,7 @@ def generate_vcd(
 
     component = Config.NAMESPACE.upper()
 
-    Config.DB_PARAMETERS = {
-        "host": jiradb,
-        "user": vcduser,
-        "pwd": vcdpwd,
-        "schema": "jira",
-    }
-
     print("Building VCD using Rest API access (VE extraction).")
-    Config.AUTH = (username, password)
     if not subcomponent:
         subcomponent = ""
     ve_model = do_ve_model(component, subcomponent)
@@ -492,13 +487,6 @@ if __name__ == "__main__":
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--token",
-    prompt="Jira Zephyr Token",
-    hide_input=True,
-    envvar="ZEPHYR_TOKEN",
-    help="Jira token from jira cloud, Zyphyr API Token",
-)
-@click.option(
     "--details",
     default=False,
     help="If true, an extra detailed report will be produced",
@@ -512,8 +500,6 @@ if __name__ == "__main__":
 @click.argument("path", required=False, type=click.Path())
 def baseline_ve(
     format: str,
-    username: str,
-    password: str,
     details: str,
     subcomponent: str,
     path: str,
@@ -525,7 +511,6 @@ def baseline_ve(
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.AUTH = (username, password)
     target = "ve"
 
     component = Config.NAMESPACE.upper()
