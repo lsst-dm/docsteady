@@ -1,14 +1,21 @@
 import unittest
 
 from DocsteadyTestUtils import read_test_data
-from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 
-#  getTestCaseData, getTestCases, getVEdata, getVEdetail, getVEmodel,
+#  getTestCaseData, getTestCases, getVEdata, getVEdetail,
+#  getVEmodel, dumpTestcases
+from jinja2 import (
+    ChoiceLoader,
+    Environment,
+    FileSystemLoader,
+    PackageLoader,
+    Template,
+)
 from marshmallow import EXCLUDE
 
 from docsteady.config import Config
-from docsteady.vcd import VerificationE
-from docsteady.ve_baseline import process_test_cases
+from docsteady.vcd import VerificationE, build_vcd_dict, summary
+from docsteady.ve_baseline import do_ve_model, process_test_cases
 
 
 class TestVCD(unittest.TestCase):
@@ -60,17 +67,27 @@ class TestVCD(unittest.TestCase):
             autoescape=False,
         )
         template_path = f"VE.{Config.TEMPLATE_LANGUAGE}.jinja2"
-        template = env.get_template(template_path)
+        template: Template = env.get_template(template_path)
 
         metadata = {}
         metadata["component"] = "DM"
         metadata["subcomponent"] = ""
-        metadata["template"] = template.filename
+        metadata["template"] = str(template.filename)
         text = template.render(
             metadata=metadata,
             velements=ve_model,
-            reqs=Config.CACHED_REQS_FOR_VES,
+            reqs={"DMS-REQ-0002": ["LVV-3"], "DMS-REQ-0008": ["LVV-5"]},
             test_cases=Config.CACHED_TESTCASES,
         )
 
         self.assertTrue(len(text) > 1000)
+
+    def test_vcd(self) -> None:
+        dump = True
+        if dump:
+            ve_model = read_test_data("ve_model")
+        else:
+            ve_model = do_ve_model("DM", "Infrastructure", DOFEW=True)
+        vcd_dict = build_vcd_dict(ve_model, usedump=dump)
+        sum_dict = summary(vcd_dict)
+        self.assertTrue(sum_dict[0]["Deprecated"] == 1)

@@ -71,7 +71,7 @@ def getTestExecutionData(id: str) -> None:
     write_test_data(resp, "TestResult-" + id)
 
 
-def getTestCases(id: str) -> dict:
+def getTestCases(id: str) -> list:
     return get_testcases_ve(id)
 
 
@@ -120,6 +120,10 @@ def getExecutionsData(ids: List[str]) -> None:
 
 def dumpPointers() -> None:
     write_test_data(Config.CACHED_POINTERS, "POINTERS")
+
+
+def dumpTestcases() -> None:
+    write_test_data(Config.CACHED_TESTCASES, "TESTCASES")
 
 
 def getVEmodel() -> None:

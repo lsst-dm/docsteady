@@ -21,10 +21,13 @@ the right of the org people page e.g. :
 
 To look at an example see `SCTR-14 action <https://github.com/lsst-sitcom/SCTR-14/actions/workflows/docgen_from_Jira.yaml>`__.
 
-Know Problem
-------------
-Jira occasionally requires a CAPTCHA for the login which is very in convenient.
-This manifests itself by the action failing with a ``403 error``.
-The only way around this is to log into Jira from a browser with the user ``lvv-atm-ci-rest`` and answer the CAPTCHA.
-The password for this user is in `1password` DM Architecture folder. If you do not have access to this
-ask someone in DM Architecture or IT to do it for you.
+Migration to docsteady >= 3
+---------------------------
+If you action is still using conda it will need to be modified.
+The 'ZEPHYR_TOKEN' secret must be added to the envirnment along with JIRA_USER and JIRA_PASSWORD.
+The TOKEN has been add at the org secrets level already for DM, TS and SITCOM.
+
+The conda line can be replaced with 'pip install docsteady'.
+
+The docsteady call  and arguments remains the same as before.
+

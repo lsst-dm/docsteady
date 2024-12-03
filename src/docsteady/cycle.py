@@ -221,6 +221,10 @@ class TestCycle(Schema):
         TestResult
     ] = []  # items are not in cyle anymorre test case list near as I can tell
 
+    test_plans = fields.Method(
+        deserialize="process_test_plans", data_key="links", required=False
+    )
+
     # custom fields
     software_version = HtmlPandocField()
     configuration = HtmlPandocField()
@@ -237,3 +241,12 @@ class TestCycle(Schema):
             _set_if("software_version", "Software Version / Baseline")
             _set_if("configuration", "Configuration")
         return data
+
+    def process_test_plans(self, data: dict) -> list[str]:
+        """Test plan is in links now and it is a pointer
+        the target on the pointer gives a 404 -"""
+        plans: list[str] = []
+        if "testPlans" in data:
+            for plan in data["testPlans"]:
+                plans.append(plan["testPlanId"])
+        return plans

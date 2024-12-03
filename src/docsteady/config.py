@@ -59,10 +59,6 @@ class Config:
     GET_ISSUE_COMPONENT = (
         f"{JIRA_API}/issue/{{issue}}?fields=components,customfield_15001"
     )
-    TESTRESULT_PLAN_CYCLE = (
-        f"{ATM_API}/testresult/{{result_ID}}?"
-        f"fields=testRun(key,testPlan(key))"
-    )
 
     VE_SEARCH_URL = (
         f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component"

@@ -250,8 +250,8 @@ def download_and_rewrite_images(value: str) -> str:
                     extension = "gif"
                 elif "svg" in resp.headers["content-type"]:
                     extension = "svg"
-                fs_path = f"{fs_path}.{extension}"
-                with open(fs_path, "w+b") as img_f:
+                fs_pathe = f"{fs_path}.{extension}"
+                with open(fs_pathe, "w+b") as img_f:
                     img_f.write(resp.content)
         if (
             img.previous_element is not None
@@ -263,6 +263,8 @@ def download_and_rewrite_images(value: str) -> str:
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["src"] = fs_path
+        # Latex includegrpahics does not need extention -
+        # svg will have to be converted anyway
     return str(soup)
 
 
@@ -590,13 +592,60 @@ def get_teststeps(
 
 def get_execs(cycleId: str) -> List[dict]:
     """
-    if the cache is empyt fill it
+    get execs for a given cycleId and cache them
     return the executions for this cycle
     """
-    if cycleId not in Config.CACHED_TEST_EXECUTIONS:
-        get_all_executions()
-    execs = Config.CACHED_TEST_EXECUTIONS[cycleId]
-    return execs
+    if cycleId in Config.CACHED_TEST_EXECUTIONS:
+        return Config.CACHED_TEST_EXECUTIONS[cycleId]
+    params = {}
+    params["testCycle"] = cycleId
+    tc_execs = get_tc_executions(params)
+    Config.CACHED_TEST_EXECUTIONS[cycleId] = tc_execs
+    return tc_execs
+
+
+def get_testcase_executions(testCaseId: str) -> list[dict]:
+    """
+    Get all the test executions and cache them -
+    can not get per cycle from the API.
+    """
+    if testCaseId in Config.CACHED_TEST_EXECUTIONS:
+        tc_execs = Config.CACHED_TEST_EXECUTIONS[testCaseId]
+        return tc_execs
+    params = {}
+    params["testCase"] = testCaseId
+    tc_execs = get_tc_executions(params)
+    Config.CACHED_TEST_EXECUTIONS[testCaseId] = tc_execs
+    return tc_execs
+
+
+def get_tc_executions(params: dict) -> list[dict]:
+    """TestExecution call is paged - the parameters allow
+    specification of testCase or Cycle which are the two
+    ways we access executions.
+    This  gets the results and caches them"""
+    maxresults = 1000
+    params["maxResults"] = str(maxresults)
+    tc_execs = []
+    burl = paths.CloudPaths.EXECUTIONS
+    zapi = get_zephyr_api().session
+    b4 = zapi.base_url
+    done = False
+    startAt = 0
+    while not done:
+        resp = zapi.get(burl, params=params)
+        if "values" in resp:
+            values = resp.get("values", [])
+            done = resp.get("isLast") is True
+            if not done:  # should only be one page really
+                burl = resp.get("next")
+                zapi.base_url = ""
+                startAt += maxresults
+                params["startAt"] = str(startAt)
+            for exec in values:
+                tc_execs.append(fix_json(exec))
+    zapi.base_url = b4
+    return tc_execs
 
 
 def get_all_executions() -> None:

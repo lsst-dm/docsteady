@@ -66,7 +66,7 @@ component\footnote{Major product in the subsystem.} of the {{ text2latex(metadat
 {{ ve.assignee }} & {{ ve.ve_status }} &
 \begin{tabular}{c}
   {% for tc in ve.test_cases %}
-{{ tc[0] }} \\
+{{ tc["key"] }} \\
   {% endfor %}
 \end{tabular}
 \\
@@ -168,10 +168,9 @@ Upper Level Requirement &
  & {{ vek }} & \\
          {% endif %}
       {% else %}
-          {% for testc in ve.test_cases %}
+          {% for tc in ve.test_cases %}
 {% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if loop.index == 1 %} {{ vek }} {% endif %} &
-              {% set tc = test_cases[testc[0]] %}
 {{ tc.key }} \\
           {% endfor %}
       {% endif %}
