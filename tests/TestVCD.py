@@ -66,6 +66,7 @@ class TestVCD(unittest.TestCase):
             trim_blocks=True,
             autoescape=False,
         )
+        Config.TEMPLATE_DIRECTORY = "src/docsteady/templates::"
         template_path = f"ve.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template: Template = env.get_template(template_path)
 
