@@ -66,7 +66,7 @@ class TestVCD(unittest.TestCase):
             trim_blocks=True,
             autoescape=False,
         )
-        template_path = f"VE.{Config.TEMPLATE_LANGUAGE}.jinja2"
+        template_path = f"ve.{Config.TEMPLATE_LANGUAGE}.jinja2"
         template: Template = env.get_template(template_path)
 
         metadata = {}
@@ -88,6 +88,6 @@ class TestVCD(unittest.TestCase):
             ve_model = read_test_data("ve_model")
         else:
             ve_model = do_ve_model("DM", "Infrastructure", DOFEW=True)
-        vcd_dict = build_vcd_dict(ve_model, usedump=dump)
+        vcd_dict = build_vcd_dict(ve_model, usedump=dump, path="tests/data")
         sum_dict = summary(vcd_dict)
         self.assertTrue(sum_dict[0]["Deprecated"] == 1)

@@ -335,7 +335,9 @@ def summary(dictionary: list) -> list[dict | Any]:
     ]
 
 
-def build_vcd_dict(ve_model: dict, usedump: bool = False) -> list:
+def build_vcd_dict(
+    ve_model: dict, usedump: bool = False, path: str = "./"
+) -> list:
     """
     Build the VCD model.
     Use json files to store data extracted from jira so they
@@ -343,13 +345,14 @@ def build_vcd_dict(ve_model: dict, usedump: bool = False) -> list:
     (assuming no need to get fresh infor from jira).
     Possibly dumo is most usefull in testing
     """
-    cfile = "coverage.json"
-    tcrfile = "tcresults.json"
-    vcdfile = "vcd.json"
-    docfile = "reqperdoc.json"
-    reqfile = "reqperve.json"
-    tcasefile = "cachedtestcases.json"
-    tcresfile = "cachedtestressum.json"
+
+    cfile = f"{path}/coverage.json"
+    tcrfile = f"{path}/tcresults.json"
+    vcdfile = f"{path}/vcd.json"
+    docfile = f"{path}/reqperdoc.json"
+    reqfile = f"{path}/reqperve.json"
+    tcasefile = f"{path}/cachedtestcases.json"
+    tcresfile = f"{path}/cachedtestressum.json"
 
     if usedump and os.path.exists(cfile):
         with open(cfile, "r") as fp:
