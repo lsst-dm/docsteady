@@ -40,8 +40,8 @@ from .utils import (
 )
 from .vcd import VerificationE
 
-# for dubuging we do not need the hundreads of verificaiton elements
-FEWCOUNT = 3
+# for dubuging we do not need the hundreds of verification elements
+FEWCOUNT = 4
 
 
 def get_testcase(tckey: str) -> dict | None:

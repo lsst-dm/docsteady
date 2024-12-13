@@ -27,7 +27,11 @@ If you action is still using conda it will need to be modified.
 The 'ZEPHYR_TOKEN' secret must be added to the envirnment along with JIRA_USER and JIRA_PASSWORD.
 The TOKEN has been add at the org secrets level already for DM, TS and SITCOM.
 
-The conda line can be replaced with 'pip install docsteady'.
+The conda line can be replaced with 'pip install docsteady>=3.0'.
+Version 1.2. is an old artifact release in 2021 - for Jira cloud it must be a newer version
+This could also be done at the install pyon step pf the action.
+Python version >= 3.11 is required so check that in the set up also (some old actions are 3.7).
 
 The docsteady call  and arguments remains the same as before.
 
+To look at an example see `SCTR-14 action <https://github.com/lsst-sitcom/SCTR-14/actions/workflows/docgen_from_Jira.yaml>`__.

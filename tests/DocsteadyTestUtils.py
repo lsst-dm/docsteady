@@ -6,7 +6,7 @@ import zephyr.scale.cloud.endpoints.paths
 from docsteady.config import Config
 from docsteady.tplan import build_tpr_model
 from docsteady.utils import (
-    get_all_executions,
+    get_execs,
     get_rest_session,
     get_teststeps,
     get_zephyr_api,
@@ -111,10 +111,9 @@ def getVEdetail(key: str) -> None:
 
 
 def getExecutionsData(ids: List[str]) -> None:
-    get_all_executions()
     keep = {}
     for id in ids:
-        keep[id] = Config.CACHED_TEST_EXECUTIONS[id]
+        keep[id] = get_execs(id)
     write_test_data(keep, "TEST-EXECUTIONS")
 
 

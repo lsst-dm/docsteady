@@ -92,3 +92,37 @@ class TestVCD(unittest.TestCase):
         vcd_dict = build_vcd_dict(ve_model, usedump=dump, path="tests/data")
         sum_dict = summary(vcd_dict)
         self.assertTrue(sum_dict[0]["Deprecated"] == 1)
+
+        coverage = Config.coverage
+        for cov in coverage:
+            print(f" {cov['name']}({cov['label']})", end="")
+        print("Total")
+        print("--------------------------------------------------")
+        print(" Requirements     (All)")
+
+        for cov in coverage:
+            if cov["key"] in sum_dict[2]:
+                print(f"{sum_dict[2][cov['key']]}")
+            else:
+                print(f"No {cov['key']}")
+
+        print(f"               {sum_dict[6][0]}")
+        print("--------------------------------------------------")
+        for doc, dcounts in sum_dict[3].items():
+            loop = 1
+            for priority, pcounts in dcounts.items():
+                if priority != "count" and priority != "zAll":
+                    if loop == 1:
+                        print(f"{doc}", end="")
+                    print(f"        {priority}", end="")
+                    print(f"    {pcounts}")
+
+        print("--------------------------------------------------")
+        for cov in coverage:
+            print("{dcounts['zAll'][cov['key']]}    {dcounts['count']}")
+
+        print("--------------------------------------------------")
+        print("Verification E.      (All)", end="")
+        for cov in coverage:
+            print(" {sum_dict[1][cov['key']]}", end="")
+        print("{sum_dict[6][1]}")

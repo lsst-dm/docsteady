@@ -2,20 +2,21 @@ docsteady
 =========
 
 docsteady is a python package (and optionally Docker container) that talks to
-Jira and the Adaptavist Test Management system to output Test folders and
+Jira and the Zephy Scale Test Management system to output Test folders and
 Test plans to a variety of documents by utilizing pandoc.
 
 # Quickstart
 
-Create a conda environment based on the `docsteady` conda package::
+Pip install the package ::
 
-   conda create --name docsteady-env docsteady -c lsst-dm -c conda-forge
+   pip install docsteady>1.2
 
 
 Credentials are needed by `docsteady` to log into JIRA. The easiest way to do this is
 by setting up the following environment variables::
 
   export ZEPHYR_TOKEN=<jira-token>
+  export JIRA_USER=<user>
   export JIRA_PASSWORD=<password>
 
 
