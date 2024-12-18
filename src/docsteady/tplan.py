@@ -233,7 +233,7 @@ def build_tpr_model(tplan_key: str) -> dict:
         n_attachments = n_attachments + len(attachments["cycles"][cycle_key])
 
         # executions are now per test case not cycle ...
-        all_execs = get_execs(cycle_id)
+        all_execs = get_execs(cycle_key)
         execs = []
         if Config.INCLUDE_ALL_EXECS:
             execs = all_execs

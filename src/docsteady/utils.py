@@ -21,6 +21,7 @@
 """
 Code for Test Specification Model Generation
 """
+import logging
 import os
 import re
 import warnings
@@ -231,8 +232,16 @@ def download_and_rewrite_images(value: str) -> str:
                             resp = requests.get(img_url)
                         resp.raise_for_status()
                     except requests.exceptions.HTTPError as err:
-                        Config.exeuction_errored = True
-                        errstr = str(err)
+                        # cloudfront is private smartbear will not allow access
+                        # so its not an error it's a feature
+                        if "cloudfront" in img_url:
+                            logging.log(
+                                logging.WARN, f"You can not access {img_url}"
+                            )
+                            errstr = "No access to cloudfront images."
+                        else:
+                            Config.exeuction_errored = True
+                            errstr = str(err)
                 if errstr is not None:
                     print(errstr)
                     # in order the final user can see where the problem is

@@ -84,7 +84,7 @@ class TestVCD(unittest.TestCase):
         self.assertTrue(len(text) > 1000)
 
     def test_vcd(self) -> None:
-        dump = True
+        dump = False
         if dump:
             ve_model = read_test_data("ve_model")
         else:
