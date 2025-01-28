@@ -84,7 +84,8 @@ class TestVCD(unittest.TestCase):
         self.assertTrue(len(text) > 1000)
 
     def test_vcd(self) -> None:
-        dump = False
+        # dump can only be False when runnig locally with all creds
+        dump = True
         if dump:
             ve_model = read_test_data("ve_model")
         else:

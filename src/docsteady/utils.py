@@ -472,7 +472,14 @@ def get_rest_session() -> Session:
         return Config.THE_SESSION
 
     # initialize connection to Jira REST API
-    usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+    if Config.AUTH and len(Config.AUTH) == 2:
+        usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+    else:
+        logging.log(
+            logging.WARN,
+            "Did not get JIRA_USER and JIRA_PASSWORD in Config.AUTH",
+        )
+        usr_pwd = "NOUSER:NOPASS"
     connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
     headers: MutableMapping[str, str | bytes] = {
         "accept": "application/json",
