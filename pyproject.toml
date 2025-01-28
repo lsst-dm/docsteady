@@ -37,7 +37,7 @@ dependencies = [
     "pydantic",
     "requests>2.32.0",
     "arrow",
-    "urllib3>-2.2.2",
+    "urllib3 >=2.2.2",
     "tlslite-ng",
     "oauth2",
     "types-requests",
