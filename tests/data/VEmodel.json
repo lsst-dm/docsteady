@@ -1,0 +1,374 @@
+{
+  "LVV-3": {
+    "key": "LVV-3",
+    "id": "305177",
+    "summary": "DMS-REQ-0002-V-01: Transient Alert Distribution_1",
+    "jira_url": "https://rubinobs.atlassian.net/browse/LVV-3",
+    "assignee": "Leanne Guy",
+    "description": "With precursor data, do L1 processing and issue alerts to a\nstandards-based broker.",
+    "ve_status": "In Verification",
+    "ve_priority": "1b",
+    "req_id": "DMS-REQ-0002",
+    "req_spec": "\\textbf{Specification:} Identified transient events shall be made\navailable to end-users in the form of alerts, which shall be published\nto community alert distribution networks using community-standard\nprotocols, to be determined during the LSST construction phase as\ncommunity standards evolve.",
+    "req_discussion": "",
+    "req_doc_id": "LSE-61",
+    "req_params": "",
+    "verified_by": {},
+    "test_cases": [
+      {
+        "key": "LVV-T217",
+        "name": "Full Stream Alert Distribution",
+        "owner": "Eric Bellm",
+        "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T217",
+        "component": "DM",
+        "folder": "Acceptance|LDM-639",
+        "precondition": "Input data: A sample of Avro-formatted alert packets.",
+        "objective": "This test will check that the full stream of LSST alerts can be\ndistributed to end users.\\\\\n\\strut \\\\\nSpecifically, this will demonstrate that:\n\n\\begin{itemize}\n\\tightlist\n\\item\n  Serialized alert packets can be loaded into the alert distribution\n  system at LSST-relevant scales (10,000 alerts every 39 seconds);\n\\item\n  Alert packets can be retrieved from the queue system at LSST-relevant\n  scales.\n\\end{itemize}",
+        "version": "1.0(d)",
+        "status": "Approved",
+        "priority": "Normal",
+        "labels": [
+          "ScriptDrafted",
+          "AlertServices"
+        ],
+        "test_script": null,
+        "requirement_issue_keys": [
+          "LVV-3"
+        ],
+        "custom_fields": {
+          "Vendor": false,
+          "Reuse for Maintenance": false,
+          "Verification Configuration": "",
+          "Verification Type": "Test",
+          "Test Equipment": "This test case shall be executed on the Kubernetes Commons at the LDF.<br>As discussed in https://dmtn-028.lsst.io/ and https://dmtn-081.lsst.io/, the test machine should have at least 16 cores, 64 GB of memory and access to at least 1.5 TB of shared storage.",
+          "Safety Hazards": "",
+          "Critical Event": "false",
+          "Test Personnel": "",
+          "Required Software": "The Kafka cluster and Zookeeper shall be instantiated according to the procedure described in <a href=\"https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T216\">LVV-T216</a>.",
+          "Unit Under Test": "",
+          "Predecessors": "<a href=\"https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T216\">LVV-T216</a>",
+          "Required PPE": "",
+          "Associated Risks": "",
+          "Postcondition": "Multiple Kafka consumers will run and write log files to disk.<br>The logs will include printing every <em>Nth</em> alert to to the log as well as a log summarizing the queue offset.",
+          "Jupyter Notebook Link": ""
+        },
+        "verification_type": "Test",
+        "verification_configuration": "",
+        "predecessors": "\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCase/LVV-T216}{LVV-T216}",
+        "critical_event": "false",
+        "associated_risks": "",
+        "unit_under_test": "",
+        "required_software": "The Kafka cluster and Zookeeper shall be instantiated according to the\nprocedure described in\n\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCase/LVV-T216}{LVV-T216}.",
+        "test_equipment": "This test case shall be executed on the Kubernetes Commons at the LDF.\\\\\nAs discussed in https://dmtn-028.lsst.io/ and https://dmtn-081.lsst.io/,\nthe test machine should have at least 16 cores, 64 GB of memory and\naccess to at least 1.5 TB of shared storage.",
+        "test_personnel": "",
+        "safety_hazards": "",
+        "required_ppe": "",
+        "postcondition": "Multiple Kafka consumers will run and write log files to disk.\\\\\nThe logs will include printing every \\emph{Nth} alert to to the log as\nwell as a log summarizing the queue offset.",
+        "doc_href": "lvv-t217---full-stream-alert-distribution",
+        "requirements": [
+          {
+            "key": "LVV-3",
+            "summary": "DMS-REQ-0002-V-01: Transient Alert Distribution\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-3"
+          }
+        ],
+        "keyid": 217
+      },
+      {
+        "key": "LVV-T101",
+        "name": "Verify implementation of Transient Alert Distribution",
+        "owner": "Kian-Tat Lim",
+        "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T101",
+        "component": "DM",
+        "folder": "Acceptance|LDM-639",
+        "precondition": "Obtain precursor or simulated data; duplicated by\n\\href{https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCase/LVV-T217}{LVV-T217}\n-\\/- delete?",
+        "objective": "Precursor or simulated data, execute AP, observe distribution to\nsimulated clients using standard protocols",
+        "version": "1.0(d)",
+        "status": "Draft",
+        "priority": "Normal",
+        "labels": [
+          "ScriptDrafted",
+          "LDM-602",
+          "Delegated"
+        ],
+        "test_script": null,
+        "requirement_issue_keys": [
+          "LVV-3"
+        ],
+        "custom_fields": {
+          "Vendor": false,
+          "Reuse for Maintenance": false,
+          "Verification Configuration": "",
+          "Verification Type": "Test",
+          "Test Equipment": "",
+          "Safety Hazards": "",
+          "Critical Event": "false",
+          "Test Personnel": "",
+          "Unit Under Test": "",
+          "Required Software": "",
+          "Predecessors": "",
+          "Required PPE": "",
+          "Associated Risks": "",
+          "Postcondition": "",
+          "Jupyter Notebook Link": ""
+        },
+        "verification_type": "Test",
+        "verification_configuration": "",
+        "predecessors": "",
+        "critical_event": "false",
+        "associated_risks": "",
+        "unit_under_test": "",
+        "required_software": "",
+        "test_equipment": "",
+        "test_personnel": "",
+        "safety_hazards": "",
+        "required_ppe": "",
+        "postcondition": "",
+        "doc_href": "lvv-t101---verify-implementation-of-transient-alert-distribution",
+        "requirements": [
+          {
+            "key": "LVV-3",
+            "summary": "DMS-REQ-0002-V-01: Transient Alert Distribution\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-3"
+          }
+        ],
+        "keyid": 101
+      }
+    ],
+    "upper_reqs": []
+  },
+  "LVV-5": {
+    "key": "LVV-5",
+    "id": "292078",
+    "summary": "DMS-REQ-0008-V-01: Pipeline Availability",
+    "jira_url": "https://rubinobs.atlassian.net/browse/LVV-5",
+    "assignee": "Leanne Guy",
+    "description": "Hard to test how often the system crashes. Show that a night can be\nprocessed without crashes is good. Show that with \"chaos monkey\" the\nsystem recovers. Report statistics on processing precursor data. True up\ntime statistics can only be obtained post commissioning.",
+    "ve_status": "Covered",
+    "ve_priority": "1b",
+    "req_id": "DMS-REQ-0008",
+    "req_spec": "\\textbf{Specification:} Except in cases of major disaster, the DMS shall\nhave no unscheduled outages of the DMS pipelines extending over a period\ngreater than \\textbf{productionMaxDowntime}. A major disaster is defined\nas a natural disaster or act of war (e.g. flood, fire, hostile acts)\nthat compromises or threatens to compromise the health and integrity of\nthe DMS physical facility, computing equipment, or operational\npersonnel.",
+    "req_discussion": "",
+    "req_doc_id": "LSE-61",
+    "req_params": "",
+    "verified_by": {},
+    "test_cases": [
+      {
+        "key": "LVV-T171",
+        "name": "Verify Pipeline Availability",
+        "owner": "Robert Gruendl",
+        "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T171",
+        "component": "DM",
+        "folder": "Acceptance|LDM-639",
+        "precondition": "None",
+        "objective": "Demonstrate that Data Management System pipelines are available for use\nwithout disruptions of greater than productionMaxDowntime (24 hours). ~\nThis requires a regimented change control process and testing\ninfrastructure for all pipelines and their underlying software services,\nand regimented management and monitoring of compute and networking\nresources. ~The list of services covered by this test include: Image and\nEFD Archiving, Prompt Processing, OCS Driven Batch, Telemetry Gateway,\nAlert Distribution, Alert Filtering, Batch Production, Data Backbone,\nCompute/Storage/LAN, Inter-Site Networks, and Service Management and\nMonitoring.",
+        "version": "1.0(d)",
+        "status": "Defined",
+        "priority": "Normal",
+        "labels": [],
+        "test_script": null,
+        "requirement_issue_keys": [
+          "LVV-5"
+        ],
+        "custom_fields": {
+          "Vendor": false,
+          "Reuse for Maintenance": false,
+          "Verification Configuration": "",
+          "Verification Type": "Test",
+          "Test Equipment": "",
+          "Safety Hazards": "",
+          "Critical Event": "false",
+          "Test Personnel": "",
+          "Unit Under Test": "",
+          "Required Software": "",
+          "Predecessors": "",
+          "Required PPE": "",
+          "Associated Risks": "",
+          "Postcondition": "",
+          "Jupyter Notebook Link": ""
+        },
+        "verification_type": "Test",
+        "verification_configuration": "",
+        "predecessors": "",
+        "critical_event": "false",
+        "associated_risks": "",
+        "unit_under_test": "",
+        "required_software": "",
+        "test_equipment": "",
+        "test_personnel": "",
+        "safety_hazards": "",
+        "required_ppe": "",
+        "postcondition": "",
+        "doc_href": "lvv-t171---verify-pipeline-availability",
+        "requirements": [
+          {
+            "key": "LVV-5",
+            "summary": "DMS-REQ-0008-V-01: Pipeline Availability\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-5"
+          }
+        ],
+        "keyid": 171
+      },
+      {
+        "key": "LVV-T287",
+        "name": "RAS-00-30: Raw Image Archiving Availability, Throughput, Reliability,\nand Heterogeneity",
+        "owner": "Michelle Butler [X]",
+        "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T287",
+        "component": "DM",
+        "folder": "Acceptance|LDM-639",
+        "precondition": "None",
+        "objective": "This test will check:\\\\\n\\strut \\\\\n\n\\begin{itemize}\n\\tightlist\n\\item\n  Raw Image Archiving meets availability requirements;\n\\item\n  Raw Image Archiving meets throughput requirements;\n\\item\n  Raw Image Archiving meets reliability requirements;\n\\item\n  Raw Image Archiving meets heterogeneity requirements;\n\\end{itemize}\n\n\\hfill\\break\nThis test case need to be completed when more information is available.",
+        "version": "1.0(d)",
+        "status": "Deprecated",
+        "priority": "Normal",
+        "labels": [
+          "Archiving"
+        ],
+        "test_script": null,
+        "requirement_issue_keys": [
+          "LVV-5",
+          "LVV-65",
+          "LVV-68",
+          "LVV-70",
+          "LVV-149"
+        ],
+        "custom_fields": {
+          "Vendor": false,
+          "Reuse for Maintenance": false,
+          "Verification Configuration": "",
+          "Verification Type": "Test",
+          "Test Equipment": "",
+          "Safety Hazards": "",
+          "Critical Event": "false",
+          "Test Personnel": "",
+          "Unit Under Test": "",
+          "Required Software": "",
+          "Predecessors": "",
+          "Required PPE": "",
+          "Associated Risks": "",
+          "Postcondition": "",
+          "Jupyter Notebook Link": ""
+        },
+        "verification_type": "Test",
+        "verification_configuration": "",
+        "predecessors": "",
+        "critical_event": "false",
+        "associated_risks": "",
+        "unit_under_test": "",
+        "required_software": "",
+        "test_equipment": "",
+        "test_personnel": "",
+        "safety_hazards": "",
+        "required_ppe": "",
+        "postcondition": "",
+        "doc_href": "lvv-t287---ras-00-30-raw-image-archiving-availability-throughput-reliability-and-heterogeneity",
+        "requirements": [
+          {
+            "key": "LVV-5",
+            "summary": "DMS-REQ-0008-V-01: Pipeline Availability\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-5"
+          },
+          {
+            "key": "LVV-65",
+            "summary": "DMS-REQ-0162-V-01: Pipeline Throughput\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-65"
+          },
+          {
+            "key": "LVV-68",
+            "summary": "DMS-REQ-0165-V-01: Infrastructure Sizing for \"catching up\"\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-68"
+          },
+          {
+            "key": "LVV-70",
+            "summary": "DMS-REQ-0167-V-01: Incorporate Autonomics\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-70"
+          },
+          {
+            "key": "LVV-149",
+            "summary": "DMS-REQ-0318-V-01: Data Management Unscheduled Downtime\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-149"
+          }
+        ],
+        "keyid": 287
+      }
+    ],
+    "upper_reqs": []
+  },
+  "LVV-6": {
+    "key": "LVV-6",
+    "id": "305826",
+    "summary": "DMS-REQ-0009-V-01: Simulated Data",
+    "jira_url": "https://rubinobs.atlassian.net/browse/LVV-6",
+    "assignee": "Jim Bosch",
+    "description": "Show that artificial sources can be injected into data streams and\nrecovered. Show that processing of simulated data recovers sources to\nthe completeness required.",
+    "ve_status": "Verified",
+    "ve_priority": "1b",
+    "req_id": "DMS-REQ-0009",
+    "req_spec": "\\textbf{Specification:} The DMS shall provide the ability to inject\nartificial or simulated data into data products to assess the functional\nand temporal performance of the production processing software.",
+    "req_discussion": "",
+    "req_doc_id": "LSE-61",
+    "req_params": "",
+    "verified_by": {},
+    "test_cases": [
+      {
+        "key": "LVV-T125",
+        "name": "Verify implementation of Simulated Data",
+        "owner": "Robert Lupton",
+        "jira_url": "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/LVV-T125",
+        "component": "DM",
+        "folder": "Acceptance|LDM-639",
+        "precondition": "None",
+        "objective": "Verify that the DMS can inject simulated data into data products for\ntesting.\\\\\n\\strut \\\\\nThis should be verified for simulated stars and fake galaxies.\nFurthermore, verification should include the following:\\\\\n\n\\begin{itemize}\n\\tightlist\n\\item\n  Demonstration that fluxes of simulated stars and galaxies are\n  recovered to within \\textasciitilde10\\% of their true values,\n\\item\n  Demonstration that artificial sources are recovered to the\n  completeness levels that are required,\n\\item\n  Demonstration that star/galaxy identification is correct for a\n  reasonable fraction of simulated sources.\n\\end{itemize}",
+        "version": "1.0(d)",
+        "status": "Approved",
+        "priority": "Normal",
+        "labels": [
+          "ScriptDrafted"
+        ],
+        "test_script": null,
+        "requirement_issue_keys": [
+          "LVV-6"
+        ],
+        "custom_fields": {
+          "Vendor": false,
+          "Reuse for Maintenance": false,
+          "Verification Configuration": "",
+          "Verification Type": "Test",
+          "Test Equipment": "",
+          "Safety Hazards": "",
+          "Critical Event": "false",
+          "Test Personnel": "",
+          "Unit Under Test": "",
+          "Required Software": "",
+          "Predecessors": "",
+          "Required PPE": "",
+          "Associated Risks": "",
+          "Postcondition": "",
+          "Jupyter Notebook Link": ""
+        },
+        "verification_type": "Test",
+        "verification_configuration": "",
+        "predecessors": "",
+        "critical_event": "false",
+        "associated_risks": "",
+        "unit_under_test": "",
+        "required_software": "",
+        "test_equipment": "",
+        "test_personnel": "",
+        "safety_hazards": "",
+        "required_ppe": "",
+        "postcondition": "",
+        "doc_href": "lvv-t125---verify-implementation-of-simulated-data",
+        "requirements": [
+          {
+            "key": "LVV-6",
+            "summary": "DMS-REQ-0009-V-01: Simulated Data\n",
+            "jira_url": "https://rubinobs.atlassian.net/browse/LVV-6"
+          }
+        ],
+        "keyid": 125
+      }
+    ],
+    "upper_reqs": []
+  }
+}

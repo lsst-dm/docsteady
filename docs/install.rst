@@ -4,17 +4,21 @@
 Installing docsteady
 ####################
 
+Simple:
 
-Create a conda environment based on the `docsteady` conda package::
+   pip install docsteady
 
-   conda create --name docsteady-env docsteady -c lsst-dm -c conda-forge
 
-Ensure that the conda configuration file  `.condarc` does not include the conda-forge channel.
+Nicer:
+Create a virtual environment based on the `docsteady` package some directly you like::
+
+   python -m venv venv
 
 To use docsteady, activate the environment as follows::
 
-   conda activate docsteady-env
+   pip install docsteady
 
 This environment will provide all dependencies that are required to run docsteady.
+Use it with:
 
-It is recommended to use the provided conda environment also for development activities, see :ref:`developer page <developer>`.
+   . venv/bin/activate

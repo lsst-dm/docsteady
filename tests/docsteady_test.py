@@ -2,11 +2,13 @@ from unittest import TestCase
 
 from bs4 import BeautifulSoup
 from DocsteadyTestUtils import read_test_data
+
+# from DocsteadyTestUtils import getTplanData,
 from marshmallow import EXCLUDE
 
 from docsteady.config import Config
 from docsteady.tplan import TestPlan
-from docsteady.utils import download_and_rewrite_images
+from docsteady.utils import download_and_rewrite_images, fix_json
 
 
 class TestHtmlPandocField(TestCase):
@@ -29,12 +31,22 @@ class TestHtmlPandocField(TestCase):
 
 class TestTplan(TestCase):
     def test_tplan(self) -> None:
+        # steo through genertion of LVV-P90 DMTR-331 -
+        # uncomment this call to remake the test json file
+        # data = getTplanData()
         data = read_test_data("tplandata")
         Config.CACHED_USERS["womullan"] = {"displayName": "wil"}
         Config.CACHED_USERS["gpdf"] = {
             "displayName": "Gregory Dubois-Felsmann"
         }
         Config.CACHED_USERS["mareuter"] = {"displayName": "Michael Reuter"}
+        Config.CACHED_POINTERS[
+            "https://api.zephyrscale.smartbear.com/v2/folders/18157119"
+        ] = "Data Management"
+        Config.CACHED_POINTERS[
+            "https://api.zephyrscale.smartbear.com/v2/statuses/7920149"
+        ] = "Approved"
+        data = fix_json(data)
         testplan: dict = TestPlan(unknown=EXCLUDE).load(data)
         self.assertEqual(
             testplan["name"], "LDM-503-EFDb: Replication of Summit EFD to USDF"

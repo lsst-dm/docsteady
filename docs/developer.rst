@@ -10,21 +10,13 @@ See also the :doc:`API docs <api/docsteady>`
 Releasing a new version
 -----------------------
 
-0) conda activate docsteady-dev (environment used for development)
-    ( if not created previously ``conda create --name docsteady-dev docsteady -c lsst-dm -c conda-forge`` )
+1) In the branch, create the tag and push it e.g.
+    ''' git tag 3.0.1 '''
+    ''' git pus --tags  '''
 
-1) In the branch, create the tag and push it
+2) The github action should build and push to PyPI.
 
-2) ``conda build recipe/``
-
-3) on a different terminal activate the base conda env, where you  have anaconda installed, and you have logged in
-       (You may need to anaconda login - credentials in 1password)
-
-4) copy and paste the anaconda upload command line proposed at the end of the build, and add ``--user lsst-dm``:
-       (otherwise it will be uploaded to the user logged in) e.g.
-       ``` anaconda upload --user lsst-dm /usr/local/anaconda3/conda-bld/noarch/docsteady-2.0_0_gae9669c-py_0.tar.bz2 ```
-
-5) merge the branch
+3) merge the branch
 
 
 
@@ -41,12 +33,11 @@ The docsteady source code is available at `On github <https://github.com/lsst-dm
 
 To test changes done locally in the source code, use the following procedure:
 
-- (if not already available) create the environment as specified in section :ref:`install<install>`
-- activate the environment: ``conda activate docsteady-env``
+- You may like create a virtual environment as specified in section :ref:`install<install>`
+- activate the environment: ``. venv/activate``
 - clone docsteady repository and checkout a ticket branch
 - do your changes
-- install the updates in the docsteady-env environment: ``conda install .``
-- activate the same docsteady-env environment in a different terminal to test the new changes
+- install the updates in the venv environment: ``pip install .``
 - once the changes are OK, commit them in the repository and open a PR for merging the branch to master
 
 Before Committing
@@ -57,18 +48,20 @@ The project is now set up with tox - run tox before your commit to do type check
 
 Before tagging a release make sure the the pushed version passes github actions.
 
-New Recipe
------------
-With pypproject.toml the best way to get a new conda recipe seems to e grayskull.
-You can pip install grayskull then:
+In the  release 2.5 the docsteady source had to be moved under ''src'' for conda build to pick it up.
 
-``grayskull pypi --strict-conda-forge docsteady``
 
-However this does not provide a full working recipe.
-The source needs to be  `path: ../`.
-I also found the entry point was incorrect and needed to be changed to `docsteady=docsteady:cli`.
+Version 3.0 - pip
+-----------------
+The Zephyr API is not available on conda.
+The packages is already pip compatible so just building for PyPI seems sensible.
+So in th checked out tagged docsteady directory:
+  ''python3 -m pip install --upgrade build``
+  ''python3 -m build``
 
-In the last release 2.5 the docsteady source had to be moved under ''src'' for conda build to pick it up.
+This will give the package in ''dist'' directory.
+
+The pypi github action was added to make release when a tag is pushed.
 
 .. _docproc:
 
@@ -92,12 +85,15 @@ This is the general approach for docsteady generated documents:
 Authentication
 --------------
 
-Two generic set of credentials to access the Jira REST API and the Jira database have been defined.
+A set of generic credentials to access the Jira REST API have been defined.
+Since the move to Jira cloud access to the Zephy Test API requires another additonal API token.
 These credentials are available at ``1password.com``, in the LSST-IT architecture vault, but not yet integrated into docsteady.
-In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted, as specified in this technical note.
-
-For the VCD, there is the option of running directly against the Jira database.
-In the 1password vault, the credentials and database IP address are under `Jira DataBase RO Credentials`.
+Specifically all tokens are in the Summit vault under "Gmail JIRA Cloud API Access"
+In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted.
+The simples is to define 3 environemt variable docsteady will look for:
+ JIRA_USER
+ JIRA_PASSWORD
+ ZEPHYR_TOKEN
 
 For the GitHub Action, the REST API credentials have been added as secrets in the GitHub organization for PSE and DM reports.
 

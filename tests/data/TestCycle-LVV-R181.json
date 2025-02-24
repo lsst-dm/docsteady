@@ -1,0 +1,43 @@
+{
+  "id": 27531072,
+  "key": "LVV-R181",
+  "name": "LDM-503-EFDb: Replication of Summit EFD to USDF",
+  "project": {
+    "id": 437559,
+    "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+  },
+  "jiraProjectVersion": null,
+  "status": {
+    "id": 7920152,
+    "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920152"
+  },
+  "folder": {
+    "id": 18157125,
+    "self": "https://api.zephyrscale.smartbear.com/v2/folders/18157125"
+  },
+  "description": "Engineering Facility Database of summit values queryable at USDF.",
+  "plannedStartDate": "2023-07-01T07:00:00Z",
+  "plannedEndDate": "2023-08-29T07:00:00Z",
+  "owner": {
+    "self": "https://rubinobs.atlassian.net/rest/api/2/user?accountId=557058%3A20ad3b56-9b88-4b76-bb4e-576e831f79ae",
+    "accountId": "557058:20ad3b56-9b88-4b76-bb4e-576e831f79ae"
+  },
+  "customFields": {
+    "Configuration": "",
+    "Software Version / Baseline": ""
+  },
+  "links": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcycles/27531072/links",
+    "issues": [],
+    "webLinks": [],
+    "testPlans": [
+      {
+        "id": 103121026,
+        "self": "https://api.zephyrscale.smartbear.com/v2/links/103121026",
+        "testPlanId": 796396,
+        "type": "RELATED",
+        "target": "https://rubinobs.atlassian.net/testplans/796396"
+      }
+    ]
+  }
+}

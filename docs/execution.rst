@@ -4,17 +4,28 @@
 Execution
 #########
 
-Credentials are needed by `docsteady` to log into JIRA. The easiest way to do this is
-by setting up the following environment variables::
+Credentials are needed by `docsteady` to log into JIRA and ZEPHYR.
+The easiest way to do this is by setting up the following environment variables::
 
   export JIRA_USER=<jira-username>
   export JIRA_PASSWORD=<password>
+  export ZEPHYR_TOKEN=<token>
 
-Alternatively you may specify them on the command line using the ``--username`` and ``--password`` options.
+Alternatively you may specify them on the command line using the ``--username``, ``--password`` and ``--token'' options.
 
-If neither of these are done the username and password will be prompted interactively.
+If none of these are done you will be prompted interactively for each of secrets.
 
-Personal Jira credentials may be used.
+Personal Jira credentials may no longer be used.
+
+For JIRA the JIRA_PASSWORD should be an API token or you may lock out the account.
+You can make a token by going to you 'atlassian account security page <https://id.atlassian.com/manage-profile/security>'_
+and selecting "Create and Manage API tokens".
+You still use your username but use the generated TOKEN instead of your regular password.
+
+For Zephyr there is no choice but API token.
+You may generate a token within Jira Cloud by clicking on your account avatar (top right) and
+select 'Zephyr scale API access tokens <https://rubinobs.atlassian.net/plugins/servlet/ac/com.kanoah.test-manager/api-access-tokens>`_
+
 For CI purposes, a general set of credentials are available, as specified in section :ref:`auth`.
 
 In order to execute any of the docsteady commands described in the following subsections, a conda environment providing docsteady must be activated, as described in :ref:`install`.
@@ -135,6 +146,10 @@ See :ref:`subcomp` for the description of the DM subcomponents.
 
 If the option ``--details true`` is provided, an extra technical note is generated, including all test case details.
 
+Since version 3 a new ``--dump=True'' option is avialalbe.
+If this option is added the information extracted from Jira is stored in a json file before the template is used to render it.
+This is very useful if you are working with the template and do not need to refresh the information, the extraction can be long.
+
 See LDM-732 Git repository as an example.
 
 
@@ -160,24 +175,8 @@ For each of these subcomponents, a different VE baseline document is extracted.
 Verification Control Document Generation
 #########################################
 
-The extraction of the Verification Control Document is done using direct access to the Jira database and not using REST API access, like for all other test documents described above.
-
-Since the access to the Jira database is possible only from the Tucson network, it is required to be connected via VPN.
-A direct access to the Jira database implies also that the username and password to use are different since credentials to access the Jira web interface or the REST API are not enabled to access the database. They are two different authentication systems.
-Therefore personal Jira credentials will not work with this docsteady command.
-
-A special read-only user has been enabled in the Jira database, ``jiraro``.
-The :ref:`Authorization section <auth>` explains where to find the full credentials details.
-
-For your convenience, the credentials can be specified in the following environment variables::
-
-- export JIRA_VCD_USER=jiraro
-- export JIRA_VCD_PASSWORD= (see :ref:`Auth section<auth>`)
-- export JIRA_DB=(see :ref:`Auth section<auth>`)
-
-otherwise, it is required to specify them from the command line using the options ``--vcduser``, ``--vcdpwd``, and ``--jiradb``.
-In case credential options are omitted and no environment variables are defined, they will be prompted interactively.
-Note also that the Jira database IP address may change. Updated information are maintained in the vault specified in section :ref:`auth`.
+The extraction of the Verification Control Document is done using the same APIs described above.
+It is very similar to Verification Baseline.
 
 The following command extracts all VCD information regarding ``DM`` and generates the file ``jira_docugen.tex``::
 
@@ -189,6 +188,12 @@ The generated file ``jira_docugen.tex`` is meant to be included in LDM-692.tex.
 In case you want to generate the VCD for a different LSST/Rubin Observatory subsystem,
 just use the corresponding subsystem code configured in the Jira ``component`` field.
 See next subsection :ref:`components<components>` for the complete list.
+
+Since version 3 a new ``--dump=True'' option is avialalbe.
+If this option is added the information extracted from Jira is stored in a json file before the template is used to render it.
+This is very useful if you are working with the template and do not need to refresh the information, the extraction can be long.
+
+The only example of this is LDM-692.
 
 .. _components:
 

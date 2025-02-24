@@ -1,0 +1,983 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations,customfield_10010.requestTypePractice,customfield_10257.properties",
+  "id": "292096",
+  "self": "https://rubinobs.atlassian.net/rest/api/3/issue/292096",
+  "key": "LVV-27",
+  "renderedFields": {
+    "customfield_10071": null,
+    "customfield_10193": "",
+    "customfield_10194": "",
+    "customfield_10074": null,
+    "customfield_10196": null,
+    "customfield_10075": null,
+    "customfield_10197": "",
+    "customfield_10076": null,
+    "customfield_10198": null,
+    "customfield_10077": null,
+    "customfield_10199": "",
+    "customfield_10078": null,
+    "customfield_10079": null,
+    "resolution": null,
+    "lastViewed": null,
+    "customfield_10060": null,
+    "customfield_10061": null,
+    "customfield_10062": "<p>Undefined</p>",
+    "customfield_10063": null,
+    "customfield_10064": null,
+    "customfield_10065": null,
+    "customfield_10066": null,
+    "customfield_10067": null,
+    "customfield_10068": null,
+    "labels": null,
+    "aggregatetimeoriginalestimate": null,
+    "issuelinks": null,
+    "assignee": null,
+    "components": null,
+    "customfield_10170": null,
+    "customfield_10050": null,
+    "customfield_10172": null,
+    "customfield_10052": "",
+    "customfield_10174": null,
+    "customfield_10053": "",
+    "customfield_10176": null,
+    "customfield_10055": null,
+    "customfield_10178": null,
+    "customfield_10057": null,
+    "customfield_10058": "",
+    "customfield_10059": null,
+    "subtasks": null,
+    "customfield_10160": null,
+    "customfield_10161": null,
+    "customfield_10162": null,
+    "customfield_10041": null,
+    "customfield_10163": "",
+    "customfield_10164": "",
+    "reporter": null,
+    "customfield_10165": "",
+    "customfield_10044": null,
+    "customfield_10166": null,
+    "customfield_10045": null,
+    "customfield_10167": null,
+    "customfield_10048": null,
+    "customfield_10159": null,
+    "customfield_10039": null,
+    "progress": null,
+    "votes": null,
+    "worklog": {
+      "startAt": 0,
+      "maxResults": 20,
+      "total": 0,
+      "worklogs": []
+    },
+    "issuetype": null,
+    "customfield_10151": null,
+    "customfield_10393": null,
+    "customfield_10030": null,
+    "customfield_10152": null,
+    "project": null,
+    "customfield_10394": null,
+    "customfield_10031": null,
+    "customfield_10153": "",
+    "customfield_10395": "DMS-REQ-0065",
+    "customfield_10032": null,
+    "customfield_10154": null,
+    "customfield_10396": "<p><b>Specification:</b> The DMS shall provide a service for Image Access through community data access protocols, to support programmatic search and retrieval of images or image cut&#45;outs. The service shall support one or more community standard formats, including the LSST pipeline input format.</p>",
+    "customfield_10155": null,
+    "customfield_10397": "",
+    "customfield_10156": "",
+    "customfield_10398": "<p><b>Discussion:</b> At least the FITS image format will be supported though an IVOA&#45;standard service such as SIAP. Other image formats such as JPG may be more compatible with education/public outreach needs.</p>",
+    "customfield_10399": "<p>[<a href=\"https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0180%22\" class=\"external-link\" rel=\"nofollow noreferrer\">OSS-REQ-0180</a>: 05 Data Products Query and Download Availability, <a href=\"https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0176%22\" class=\"external-link\" rel=\"nofollow noreferrer\">OSS-REQ-0176</a>: 01 Data Access, <a href=\"https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0181%22\" class=\"external-link\" rel=\"nofollow noreferrer\">OSS-REQ-0181</a>: 06 Data Products Query and Download Infrastructure, <a href=\"https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22DMS-REQ-0066%22\" class=\"external-link\" rel=\"nofollow noreferrer\">DMS-REQ-0066</a>: 06 Image Archive]</p>",
+    "customfield_10028": null,
+    "customfield_10029": null,
+    "resolutiondate": null,
+    "watches": null,
+    "customfield_10260": "",
+    "customfield_10261": "",
+    "customfield_10140": null,
+    "customfield_10141": null,
+    "customfield_10020": null,
+    "customfield_10142": null,
+    "customfield_10021": null,
+    "customfield_10022": null,
+    "customfield_10023": null,
+    "customfield_10024": null,
+    "customfield_10025": null,
+    "customfield_10137": null,
+    "customfield_10016": null,
+    "customfield_10258": "",
+    "customfield_10259": "",
+    "customfield_10138": null,
+    "customfield_10017": "",
+    "customfield_10139": null,
+    "customfield_10018": null,
+    "customfield_10019": null,
+    "updated": "26/Sep/22 5:48 PM",
+    "timeoriginalestimate": null,
+    "description": "<p>Could be verified by DMS-REQ-0298. Demonstrate that SIA can be used to retrieve image data.</p>",
+    "customfield_10131": "",
+    "customfield_10010": null,
+    "customfield_10133": null,
+    "customfield_10134": null,
+    "customfield_10255": null,
+    "customfield_10135": null,
+    "customfield_10014": null,
+    "customfield_10256": null,
+    "customfield_10136": "",
+    "customfield_10015": null,
+    "timetracking": {},
+    "customfield_10257": null,
+    "customfield_10126": "",
+    "customfield_10005": null,
+    "customfield_10127": null,
+    "customfield_10006": null,
+    "customfield_10128": "",
+    "customfield_10007": null,
+    "customfield_10129": "",
+    "customfield_10008": null,
+    "customfield_10009": null,
+    "summary": null,
+    "customfield_10121": "",
+    "customfield_10000": null,
+    "customfield_10122": "",
+    "customfield_10001": null,
+    "customfield_10123": null,
+    "customfield_10002": null,
+    "customfield_10124": null,
+    "customfield_10003": null,
+    "customfield_10125": "",
+    "customfield_10004": null,
+    "customfield_10115": "",
+    "customfield_10116": "",
+    "customfield_10117": "",
+    "customfield_10118": "",
+    "duedate": null,
+    "comment": {
+      "comments": [],
+      "self": "https://rubinobs.atlassian.net/rest/api/3/issue/292096/comment",
+      "maxResults": 0,
+      "total": 0,
+      "startAt": 0
+    },
+    "statuscategorychangedate": "17/Oct/21 9:04 AM",
+    "fixVersions": null,
+    "customfield_10110": null,
+    "customfield_10111": null,
+    "customfield_10112": "",
+    "customfield_10113": "",
+    "customfield_10476": null,
+    "customfield_10114": null,
+    "customfield_10105": "",
+    "customfield_10106": null,
+    "customfield_10107": null,
+    "customfield_10220": null,
+    "customfield_10221": "",
+    "customfield_10100": null,
+    "priority": null,
+    "customfield_10222": "",
+    "customfield_10101": "",
+    "customfield_10102": null,
+    "customfield_10103": "",
+    "customfield_10214": null,
+    "customfield_10216": null,
+    "timeestimate": null,
+    "versions": null,
+    "status": null,
+    "customfield_10210": null,
+    "customfield_10211": null,
+    "customfield_10212": null,
+    "customfield_10213": null,
+    "customfield_10203": null,
+    "customfield_10204": null,
+    "customfield_10205": null,
+    "customfield_10206": "",
+    "customfield_10207": null,
+    "aggregatetimeestimate": null,
+    "customfield_10208": null,
+    "customfield_10209": null,
+    "creator": null,
+    "aggregateprogress": null,
+    "customfield_10200": "",
+    "customfield_10201": null,
+    "customfield_10443": null,
+    "customfield_10202": null,
+    "timespent": null,
+    "aggregatetimespent": null,
+    "workratio": null,
+    "issuerestriction": null,
+    "created": "05/Jun/18 7:16 AM",
+    "customfield_10091": null,
+    "customfield_10092": "",
+    "customfield_10093": "",
+    "customfield_10094": "",
+    "customfield_10096": null,
+    "customfield_10097": null,
+    "customfield_10098": "",
+    "customfield_10099": null,
+    "customfield_10410": null,
+    "customfield_10401": null,
+    "customfield_10402": "",
+    "customfield_10403": "",
+    "security": null,
+    "customfield_10404": "",
+    "customfield_10405": "",
+    "attachment": [],
+    "customfield_10406": null,
+    "customfield_10407": null,
+    "customfield_10408": null,
+    "customfield_10409": null,
+    "customfield_10080": "",
+    "customfield_10081": null,
+    "customfield_10082": null,
+    "customfield_10083": null,
+    "customfield_10084": "",
+    "customfield_10085": null,
+    "customfield_10089": "",
+    "customfield_10400": "<p><a href=\"https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22DMS-MWBT-REQ-0061%22\" class=\"external-link\" rel=\"nofollow noreferrer\">DMS-MWBT-REQ-0061</a>: Writing FITS images</p>"
+  },
+  "fields": {
+    "customfield_10071": null,
+    "customfield_10193": null,
+    "customfield_10194": null,
+    "customfield_10074": null,
+    "customfield_10196": null,
+    "customfield_10075": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/10247",
+      "value": "Not Verified",
+      "id": "10247"
+    },
+    "customfield_10197": null,
+    "customfield_10076": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/10262",
+      "value": "LSE-61: DMS",
+      "id": "10262"
+    },
+    "customfield_10198": null,
+    "customfield_10077": null,
+    "customfield_10199": null,
+    "customfield_10078": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/10385",
+      "value": "SL",
+      "id": "10385"
+    },
+    "customfield_10079": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/10390",
+      "value": "Demonstration",
+      "id": "10390"
+    },
+    "resolution": null,
+    "lastViewed": null,
+    "customfield_10060": null,
+    "customfield_10061": null,
+    "customfield_10062": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Undefined"
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_10063": null,
+    "customfield_10064": null,
+    "customfield_10065": null,
+    "customfield_10066": null,
+    "customfield_10067": null,
+    "customfield_10068": null,
+    "labels": [],
+    "aggregatetimeoriginalestimate": null,
+    "issuelinks": [
+      {
+        "id": "186834",
+        "self": "https://rubinobs.atlassian.net/rest/api/3/issueLink/186834",
+        "type": {
+          "id": "10015",
+          "name": "Risk Verification",
+          "inward": "verified by",
+          "outward": "verifies",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issueLinkType/10015"
+        },
+        "inwardIssue": {
+          "id": "299937",
+          "key": "LVV-10004",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issue/299937",
+          "fields": {
+            "summary": "DMS-API-REQ-0028-V-01: Access to Image Data in FITS Format_1",
+            "status": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/status/10059",
+              "description": "The verification requirement has been traced to a least 1 Test Case. (Migrated on 7 Feb 2024 17:35 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/statuses/generic.png",
+              "name": "Covered",
+              "id": "10059",
+              "statusCategory": {
+                "self": "https://rubinobs.atlassian.net/rest/api/3/statuscategory/4",
+                "id": 4,
+                "key": "indeterminate",
+                "colorName": "yellow",
+                "name": "In Progress"
+              }
+            },
+            "priority": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/priority/10001",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/priorities/major.svg",
+              "name": "Undefined",
+              "id": "10001"
+            },
+            "issuetype": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/issuetype/10042",
+              "id": "10042",
+              "description": "An activity relating to planned verification (Migrated on 9 Feb 2024 00:01 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+              "name": "Verification",
+              "subtask": false,
+              "avatarId": 10318,
+              "hierarchyLevel": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "186835",
+        "self": "https://rubinobs.atlassian.net/rest/api/3/issueLink/186835",
+        "type": {
+          "id": "10015",
+          "name": "Risk Verification",
+          "inward": "verified by",
+          "outward": "verifies",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issueLinkType/10015"
+        },
+        "inwardIssue": {
+          "id": "300218",
+          "key": "LVV-10016",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issue/300218",
+          "fields": {
+            "summary": "DMS-API-REQ-0016-V-01: SIA Service for Image Availability_1",
+            "status": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/status/10059",
+              "description": "The verification requirement has been traced to a least 1 Test Case. (Migrated on 7 Feb 2024 17:35 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/statuses/generic.png",
+              "name": "Covered",
+              "id": "10059",
+              "statusCategory": {
+                "self": "https://rubinobs.atlassian.net/rest/api/3/statuscategory/4",
+                "id": 4,
+                "key": "indeterminate",
+                "colorName": "yellow",
+                "name": "In Progress"
+              }
+            },
+            "priority": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/priority/10001",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/priorities/major.svg",
+              "name": "Undefined",
+              "id": "10001"
+            },
+            "issuetype": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/issuetype/10042",
+              "id": "10042",
+              "description": "An activity relating to planned verification (Migrated on 9 Feb 2024 00:01 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+              "name": "Verification",
+              "subtask": false,
+              "avatarId": 10318,
+              "hierarchyLevel": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "186836",
+        "self": "https://rubinobs.atlassian.net/rest/api/3/issueLink/186836",
+        "type": {
+          "id": "10015",
+          "name": "Risk Verification",
+          "inward": "verified by",
+          "outward": "verifies",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issueLinkType/10015"
+        },
+        "inwardIssue": {
+          "id": "300225",
+          "key": "LVV-10018",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issue/300225",
+          "fields": {
+            "summary": "DMS-API-REQ-0017-V-01: SODA Service for Image Data_1",
+            "status": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/status/10059",
+              "description": "The verification requirement has been traced to a least 1 Test Case. (Migrated on 7 Feb 2024 17:35 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/statuses/generic.png",
+              "name": "Covered",
+              "id": "10059",
+              "statusCategory": {
+                "self": "https://rubinobs.atlassian.net/rest/api/3/statuscategory/4",
+                "id": 4,
+                "key": "indeterminate",
+                "colorName": "yellow",
+                "name": "In Progress"
+              }
+            },
+            "priority": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/priority/10001",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/priorities/major.svg",
+              "name": "Undefined",
+              "id": "10001"
+            },
+            "issuetype": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/issuetype/10042",
+              "id": "10042",
+              "description": "An activity relating to planned verification (Migrated on 9 Feb 2024 00:01 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+              "name": "Verification",
+              "subtask": false,
+              "avatarId": 10318,
+              "hierarchyLevel": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "186837",
+        "self": "https://rubinobs.atlassian.net/rest/api/3/issueLink/186837",
+        "type": {
+          "id": "10015",
+          "name": "Risk Verification",
+          "inward": "verified by",
+          "outward": "verifies",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issueLinkType/10015"
+        },
+        "inwardIssue": {
+          "id": "300212",
+          "key": "LVV-10017",
+          "self": "https://rubinobs.atlassian.net/rest/api/3/issue/300212",
+          "fields": {
+            "summary": "DMS-API-REQ-0018-V-01: Cutout Service_1",
+            "status": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/status/10059",
+              "description": "The verification requirement has been traced to a least 1 Test Case. (Migrated on 7 Feb 2024 17:35 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/statuses/generic.png",
+              "name": "Covered",
+              "id": "10059",
+              "statusCategory": {
+                "self": "https://rubinobs.atlassian.net/rest/api/3/statuscategory/4",
+                "id": 4,
+                "key": "indeterminate",
+                "colorName": "yellow",
+                "name": "In Progress"
+              }
+            },
+            "priority": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/priority/10001",
+              "iconUrl": "https://rubinobs.atlassian.net/images/icons/priorities/major.svg",
+              "name": "Undefined",
+              "id": "10001"
+            },
+            "issuetype": {
+              "self": "https://rubinobs.atlassian.net/rest/api/3/issuetype/10042",
+              "id": "10042",
+              "description": "An activity relating to planned verification (Migrated on 9 Feb 2024 00:01 UTC)",
+              "iconUrl": "https://rubinobs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+              "name": "Verification",
+              "subtask": false,
+              "avatarId": 10318,
+              "hierarchyLevel": 0
+            }
+          }
+        }
+      }
+    ],
+    "assignee": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/user?accountId=557058%3A5afef4b4-f1bc-4238-977f-9f8d3183e55c",
+      "accountId": "557058:5afef4b4-f1bc-4238-977f-9f8d3183e55c",
+      "avatarUrls": {
+        "48x48": "https://secure.gravatar.com/avatar/a0bc894b0c1d503f1d159182f357b628?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGD-2.png",
+        "24x24": "https://secure.gravatar.com/avatar/a0bc894b0c1d503f1d159182f357b628?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGD-2.png",
+        "16x16": "https://secure.gravatar.com/avatar/a0bc894b0c1d503f1d159182f357b628?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGD-2.png",
+        "32x32": "https://secure.gravatar.com/avatar/a0bc894b0c1d503f1d159182f357b628?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGD-2.png"
+      },
+      "displayName": "Gregory Dubois-Felsmann",
+      "active": true,
+      "timeZone": "America/Phoenix",
+      "accountType": "atlassian"
+    },
+    "components": [
+      {
+        "self": "https://rubinobs.atlassian.net/rest/api/3/component/12029",
+        "id": "12029",
+        "name": "DM",
+        "description": "Data Management"
+      }
+    ],
+    "customfield_10170": null,
+    "customfield_10050": null,
+    "customfield_10172": null,
+    "customfield_10052": null,
+    "customfield_10174": null,
+    "customfield_10053": null,
+    "customfield_10176": null,
+    "customfield_10055": null,
+    "customfield_10178": null,
+    "customfield_10057": null,
+    "customfield_10058": null,
+    "customfield_10059": null,
+    "subtasks": [],
+    "customfield_10160": null,
+    "customfield_10161": null,
+    "customfield_10162": null,
+    "customfield_10041": null,
+    "customfield_10163": null,
+    "customfield_10164": null,
+    "reporter": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/user?accountId=712020%3Acd8e4325-96a9-470b-be1d-e6f0b1664af9",
+      "accountId": "712020:cd8e4325-96a9-470b-be1d-e6f0b1664af9",
+      "avatarUrls": {
+        "48x48": "https://secure.gravatar.com/avatar/f0c3daf2ad19f6cf03e090ee5fcaf994?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSU-4.png",
+        "24x24": "https://secure.gravatar.com/avatar/f0c3daf2ad19f6cf03e090ee5fcaf994?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSU-4.png",
+        "16x16": "https://secure.gravatar.com/avatar/f0c3daf2ad19f6cf03e090ee5fcaf994?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSU-4.png",
+        "32x32": "https://secure.gravatar.com/avatar/f0c3daf2ad19f6cf03e090ee5fcaf994?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSU-4.png"
+      },
+      "displayName": "Syndeia PSE User",
+      "active": true,
+      "timeZone": "America/Phoenix",
+      "accountType": "atlassian"
+    },
+    "customfield_10165": null,
+    "customfield_10044": null,
+    "customfield_10166": null,
+    "customfield_10045": null,
+    "customfield_10167": null,
+    "customfield_10048": null,
+    "customfield_10159": null,
+    "customfield_10039": null,
+    "progress": {
+      "progress": 0,
+      "total": 0
+    },
+    "votes": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/issue/LVV-27/votes",
+      "votes": 0,
+      "hasVoted": false
+    },
+    "worklog": {
+      "startAt": 0,
+      "maxResults": 20,
+      "total": 0,
+      "worklogs": []
+    },
+    "issuetype": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/issuetype/10042",
+      "id": "10042",
+      "description": "An activity relating to planned verification (Migrated on 9 Feb 2024 00:01 UTC)",
+      "iconUrl": "https://rubinobs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+      "name": "Verification",
+      "subtask": false,
+      "avatarId": 10318,
+      "hierarchyLevel": 0
+    },
+    "customfield_10151": null,
+    "customfield_10393": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/11210",
+      "value": "1b",
+      "id": "11210"
+    },
+    "customfield_10030": null,
+    "customfield_10152": null,
+    "project": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/project/10277",
+      "id": "10277",
+      "key": "LVV",
+      "name": "LSST Verification and Validation",
+      "projectTypeKey": "software",
+      "simplified": false,
+      "avatarUrls": {
+        "48x48": "https://rubinobs.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10566",
+        "24x24": "https://rubinobs.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10566?size=small",
+        "16x16": "https://rubinobs.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10566?size=xsmall",
+        "32x32": "https://rubinobs.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10566?size=medium"
+      },
+      "projectCategory": {
+        "self": "https://rubinobs.atlassian.net/rest/api/3/projectCategory/10001",
+        "id": "10001",
+        "description": "Projects being actively worked.  These projects have live issues.",
+        "name": "Active Projects"
+      }
+    },
+    "customfield_10394": null,
+    "customfield_10031": null,
+    "customfield_10153": null,
+    "customfield_10395": "DMS-REQ-0065",
+    "customfield_10032": null,
+    "customfield_10154": null,
+    "customfield_10396": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Specification:",
+              "marks": [
+                {
+                  "type": "strong"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " The DMS shall provide a service for Image Access through community data access protocols, to support programmatic search and retrieval of images or image cut-outs. The service shall support one or more community standard formats, including the LSST pipeline input format."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_10155": null,
+    "customfield_10397": null,
+    "customfield_10156": null,
+    "customfield_10398": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Discussion:",
+              "marks": [
+                {
+                  "type": "strong"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " At least the FITS image format will be supported though an IVOA-standard service such as SIAP. Other image formats such as JPG may be more compatible with education/public outreach needs."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_10399": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "["
+            },
+            {
+              "type": "text",
+              "text": "OSS-REQ-0180",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0180%22"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ": 05 Data Products Query and Download Availability, "
+            },
+            {
+              "type": "text",
+              "text": "OSS-REQ-0176",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0176%22"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ": 01 Data Access, "
+            },
+            {
+              "type": "text",
+              "text": "OSS-REQ-0181",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22OSS-REQ-0181%22"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ": 06 Data Products Query and Download Infrastructure, "
+            },
+            {
+              "type": "text",
+              "text": "DMS-REQ-0066",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22DMS-REQ-0066%22"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ": 06 Image Archive]"
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_10028": null,
+    "customfield_10029": null,
+    "resolutiondate": null,
+    "watches": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/issue/LVV-27/watchers",
+      "watchCount": 0,
+      "isWatching": false
+    },
+    "customfield_10260": null,
+    "customfield_10261": null,
+    "customfield_10140": null,
+    "customfield_10141": null,
+    "customfield_10020": null,
+    "customfield_10142": null,
+    "customfield_10021": null,
+    "customfield_10022": null,
+    "customfield_10023": null,
+    "customfield_10024": null,
+    "customfield_10025": null,
+    "customfield_10137": null,
+    "customfield_10016": null,
+    "customfield_10258": null,
+    "customfield_10259": null,
+    "customfield_10138": null,
+    "customfield_10017": null,
+    "customfield_10139": null,
+    "customfield_10018": {
+      "hasEpicLinkFieldDependency": false,
+      "showField": false,
+      "nonEditableReason": {
+        "reason": "EPIC_LINK_SHOULD_BE_USED",
+        "message": "To set an epic as the parent, use the epic link instead"
+      }
+    },
+    "customfield_10019": "0|hzsje7:",
+    "updated": "2022-09-26T17:48:58.000-0700",
+    "timeoriginalestimate": null,
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Could be verified by DMS-REQ-0298. Demonstrate that SIA can be used to retrieve image data."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_10131": null,
+    "customfield_10010": null,
+    "customfield_10133": null,
+    "customfield_10134": null,
+    "customfield_10255": null,
+    "customfield_10135": null,
+    "customfield_10014": null,
+    "customfield_10256": null,
+    "customfield_10136": null,
+    "customfield_10015": null,
+    "timetracking": {},
+    "customfield_10257": null,
+    "customfield_10126": null,
+    "customfield_10005": null,
+    "customfield_10127": null,
+    "customfield_10006": null,
+    "customfield_10128": null,
+    "customfield_10007": null,
+    "customfield_10129": null,
+    "customfield_10008": null,
+    "customfield_10009": null,
+    "summary": "DMS-REQ-0065-V-01: Provide Image Access Services",
+    "customfield_10121": null,
+    "customfield_10000": "{}",
+    "customfield_10122": null,
+    "customfield_10001": null,
+    "customfield_10123": null,
+    "customfield_10002": [],
+    "customfield_10124": null,
+    "customfield_10003": null,
+    "customfield_10125": null,
+    "customfield_10004": null,
+    "customfield_10115": null,
+    "customfield_10116": null,
+    "customfield_10117": null,
+    "customfield_10118": null,
+    "duedate": null,
+    "comment": {
+      "comments": [],
+      "self": "https://rubinobs.atlassian.net/rest/api/3/issue/292096/comment",
+      "maxResults": 0,
+      "total": 0,
+      "startAt": 0
+    },
+    "statuscategorychangedate": "2021-10-17T09:04:29.000-0700",
+    "fixVersions": [],
+    "customfield_10110": null,
+    "customfield_10111": null,
+    "customfield_10112": null,
+    "customfield_10113": null,
+    "customfield_10476": null,
+    "customfield_10114": null,
+    "customfield_10105": null,
+    "customfield_10106": null,
+    "customfield_10107": null,
+    "customfield_10220": null,
+    "customfield_10221": null,
+    "customfield_10100": null,
+    "priority": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/priority/10010",
+      "iconUrl": "https://rubinobs.atlassian.net/images/icons/priorities/major.svg",
+      "name": "1b",
+      "id": "10010"
+    },
+    "customfield_10222": null,
+    "customfield_10101": null,
+    "customfield_10102": null,
+    "customfield_10103": null,
+    "customfield_10214": null,
+    "customfield_10216": [],
+    "timeestimate": null,
+    "versions": [],
+    "status": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/status/10059",
+      "description": "The verification requirement has been traced to a least 1 Test Case. (Migrated on 7 Feb 2024 17:35 UTC)",
+      "iconUrl": "https://rubinobs.atlassian.net/images/icons/statuses/generic.png",
+      "name": "Covered",
+      "id": "10059",
+      "statusCategory": {
+        "self": "https://rubinobs.atlassian.net/rest/api/3/statuscategory/4",
+        "id": 4,
+        "key": "indeterminate",
+        "colorName": "yellow",
+        "name": "In Progress"
+      }
+    },
+    "customfield_10210": null,
+    "customfield_10211": null,
+    "customfield_10212": null,
+    "customfield_10213": null,
+    "customfield_10203": null,
+    "customfield_10204": null,
+    "customfield_10205": null,
+    "customfield_10206": null,
+    "customfield_10207": null,
+    "aggregatetimeestimate": null,
+    "customfield_10208": null,
+    "customfield_10209": null,
+    "creator": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/user?accountId=5b6b1b03304ed93c17e424f2",
+      "accountId": "5b6b1b03304ed93c17e424f2",
+      "avatarUrls": {
+        "48x48": "https://secure.gravatar.com/avatar/a34c390349562e02b8874ff7ce8bfef2?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FAR-5.png",
+        "24x24": "https://secure.gravatar.com/avatar/a34c390349562e02b8874ff7ce8bfef2?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FAR-5.png",
+        "16x16": "https://secure.gravatar.com/avatar/a34c390349562e02b8874ff7ce8bfef2?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FAR-5.png",
+        "32x32": "https://secure.gravatar.com/avatar/a34c390349562e02b8874ff7ce8bfef2?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FAR-5.png"
+      },
+      "displayName": "Austin Roberts",
+      "active": true,
+      "timeZone": "America/Phoenix",
+      "accountType": "atlassian"
+    },
+    "aggregateprogress": {
+      "progress": 0,
+      "total": 0
+    },
+    "customfield_10200": null,
+    "customfield_10201": null,
+    "customfield_10443": null,
+    "customfield_10202": null,
+    "timespent": null,
+    "aggregatetimespent": null,
+    "workratio": -1,
+    "issuerestriction": {
+      "issuerestrictions": {},
+      "shouldDisplay": false
+    },
+    "created": "2018-06-05T07:16:20.000-0700",
+    "customfield_10091": null,
+    "customfield_10092": null,
+    "customfield_10093": null,
+    "customfield_10094": null,
+    "customfield_10096": null,
+    "customfield_10097": null,
+    "customfield_10098": null,
+    "customfield_10099": null,
+    "customfield_10410": null,
+    "customfield_10401": null,
+    "customfield_10402": null,
+    "customfield_10403": null,
+    "security": null,
+    "customfield_10404": null,
+    "customfield_10405": null,
+    "attachment": [],
+    "customfield_10406": null,
+    "customfield_10407": null,
+    "customfield_10408": null,
+    "customfield_10409": null,
+    "customfield_10080": null,
+    "customfield_10081": null,
+    "customfield_10082": null,
+    "customfield_10083": {
+      "self": "https://rubinobs.atlassian.net/rest/api/3/customFieldOption/10436",
+      "value": "Science",
+      "id": "10436"
+    },
+    "customfield_10084": null,
+    "customfield_10085": null,
+    "customfield_10089": null,
+    "customfield_10400": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "DMS-MWBT-REQ-0061",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://jira.lsstcorp.org/issues/?jql=%22Requirement%20ID%22%20~%20%22DMS-MWBT-REQ-0061%22"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ": Writing FITS images"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

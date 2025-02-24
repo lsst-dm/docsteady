@@ -1,0 +1,71 @@
+{
+  "id": 190696404,
+  "key": "LVV-T101",
+  "name": "Verify implementation of Transient Alert Distribution",
+  "project": {
+    "id": 437559,
+    "self": "https://api.zephyrscale.smartbear.com/v2/projects/437559"
+  },
+  "createdOn": "2018-06-08T19:00:49Z",
+  "objective": "Precursor or simulated data, execute AP, observe distribution to simulated clients using standard protocols",
+  "precondition": "Obtain precursor or simulated data; duplicated by <a href=\"https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T217\">LVV-T217</a> -- delete?",
+  "estimatedTime": null,
+  "labels": [
+    "ScriptDrafted",
+    "LDM-602",
+    "Delegated"
+  ],
+  "component": {
+    "id": 12029,
+    "self": "https://rubinobs.atlassian.net/rest/api/2/component/12029"
+  },
+  "priority": {
+    "id": 7920158,
+    "self": "https://api.zephyrscale.smartbear.com/v2/priorities/7920158"
+  },
+  "status": {
+    "id": 7920144,
+    "self": "https://api.zephyrscale.smartbear.com/v2/statuses/7920144"
+  },
+  "folder": {
+    "id": 18157132,
+    "self": "https://api.zephyrscale.smartbear.com/v2/folders/18157132"
+  },
+  "owner": {
+    "self": "https://rubinobs.atlassian.net/rest/api/2/user?accountId=557058%3A1624b468-e862-4644-aaf5-3bd8197af8ab",
+    "accountId": "557058:1624b468-e862-4644-aaf5-3bd8197af8ab"
+  },
+  "testScript": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T101/teststeps"
+  },
+  "customFields": {
+    "Vendor": false,
+    "Reuse for Maintenance": false,
+    "Verification Configuration": "",
+    "Verification Type": "Test",
+    "Test Equipment": "",
+    "Safety Hazards": "",
+    "Critical Event": "false",
+    "Test Personnel": "",
+    "Unit Under Test": "",
+    "Required Software": "",
+    "Predecessors": "",
+    "Required PPE": "",
+    "Associated Risks": "",
+    "Postcondition": "",
+    "Jupyter Notebook Link": ""
+  },
+  "links": {
+    "self": "https://api.zephyrscale.smartbear.com/v2/testcases/LVV-T101/links",
+    "issues": [
+      {
+        "self": "https://api.zephyrscale.smartbear.com/v2/links/103108005",
+        "issueId": 305177,
+        "id": 103108005,
+        "target": "https://rubinobs.atlassian.net/rest/api/2/issue/305177",
+        "type": "COVERAGE"
+      }
+    ],
+    "webLinks": []
+  }
+}

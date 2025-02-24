@@ -22,13 +22,15 @@
 Code for VCD
 """
 
+import json
+import os
 from collections import Counter
-from typing import List
+from typing import Any, List
 
 from marshmallow import Schema, fields, pre_load
 
 from .config import Config
-from .utils import HtmlPandocField
+from .utils import HtmlPandocField, get_tspec
 
 # Globals
 veduplicated: dict = {}
@@ -38,6 +40,7 @@ jst: dict = {}
 
 class VerificationE(Schema):
     key = fields.String(required=True)
+    id = fields.String()
     summary = fields.String()
     jira_url = fields.String()
     assignee = fields.String()
@@ -73,18 +76,29 @@ class VerificationE(Schema):
         if data_fields["priority"]:
             data["ve_priority"] = data_fields["priority"]["name"]
         try:
-            data["req_id"] = data_fields["customfield_15502"]
+            data["req_id"] = data_fields["customfield_10395"]  # 15502
         except KeyError:
-            print(f'Failed to get req_id customfield_15502 for {data["key"]}')
-        data["req_spec"] = data["renderedFields"]["customfield_13513"]
-        data["req_discussion"] = data["renderedFields"]["customfield_13510"]
-        if data_fields["customfield_15204"]:
-            data["req_priority"] = data_fields["customfield_15204"]["value"]
-        data["req_params"] = data["renderedFields"]["customfield_13512"]
-        data["raw_upper_req"] = data_fields["customfield_13515"]
-        data["raw_test_cases"] = data_fields["customfield_15106"]
+            print(f'Failed to get req_id customfield_10395 for {data["key"]}')
+        data["req_spec"] = data["renderedFields"][
+            "customfield_10396"
+        ]  # requirement specification (13513)
+        data["req_discussion"] = data["renderedFields"]["customfield_10080"]
+        if data_fields[
+            "customfield_10166"
+        ]:  # Priority - though not sure any more
+            if type(data_fields["customfield_10166"]) is str:
+                data["req_priority"] = data_fields["customfield_10166"]
+            else:
+                data["req_priority"] = data_fields["customfield_10166"][
+                    "value"
+                ]
+        data["req_params"] = data["renderedFields"][
+            "customfield_10101"
+        ]  # Refining Parameters ?
+        # gone data["raw_upper_req"] = data_fields["customfield_13515"]
+        # gone data["raw_test_cases"] = data_fields["customfield_15106"]
         data["verified_by"] = self.extract_verified_by(data_fields)
-        ref = data_fields["customfield_14701"]["value"]
+        ref = data_fields["customfield_10076"]["value"]
         if ":" in ref:
             ref = ref.split(":")[0]
         data["req_doc_id"] = ref
@@ -220,7 +234,7 @@ def find_vekey(reqname: str, ve_keys: list[str]) -> str | None:
     return None
 
 
-def summary(dictionary: list) -> list:
+def summary(dictionary: list) -> list[dict | Any]:
     """generate and print summary information"""
     global veduplicated
     mtrs = dict()
@@ -239,7 +253,7 @@ def summary(dictionary: list) -> list:
         Config.REQ_STATUS_PER_DOC_COUNT.update(
             [req["reqDoc"] + "." + req["priority"]]
         )
-        # Each VE now has a status so we may be ablet to simplify this
+        # Each VE now has a status so we may be able to simplify this
         #  Leanne to help
         for ve in req["VEs"]:
             vcoverage = verification_elements[ve]["status"]
@@ -306,6 +320,8 @@ def summary(dictionary: list) -> list:
 
     size = [len(reqs), total_ve, len(tcases)]
 
+    print(ve_coverage)
+    print(req_coverage)
     print(rec_count_per_doc)
 
     return [
@@ -317,3 +333,131 @@ def summary(dictionary: list) -> list:
         [],
         size,
     ]
+
+
+def build_vcd_dict(
+    ve_model: dict, usedump: bool = False, path: str = "./"
+) -> list:
+    """
+    Build the VCD model.
+    Use json files to store data extracted from jira so they
+    can be reused in the next run
+    (assuming no need to get fresh infor from jira).
+    Possibly dumo is most usefull in testing
+    """
+
+    cfile = f"{path}/coverage.json"
+    tcrfile = f"{path}/tcresults.json"
+    vcdfile = f"{path}/vcd.json"
+    docfile = f"{path}/reqperdoc.json"
+    reqfile = f"{path}/reqperve.json"
+    tcasefile = f"{path}/cachedtestcases.json"
+    tcresfile = f"{path}/cachedtestressum.json"
+
+    if usedump and os.path.exists(cfile):
+        with open(cfile, "r") as fp:
+            Config.coverage = json.load(fp)
+        with open(tcrfile, "r") as fp:
+            Config.tcresults = json.load(fp)
+        with open(vcdfile, "r") as fp:
+            vcd_dict = json.load(fp)
+        with open(docfile, "r") as fp:
+            Config.REQ_PER_DOC = json.load(fp)
+        with open(reqfile, "r") as fp:
+            Config.CACHED_REQS_FOR_VES = json.load(fp)
+        with open(tcasefile, "r") as fp:
+            Config.CACHED_TESTCASES = json.load(fp)
+        with open(tcresfile, "r") as fp:
+            Config.CACHED_TESTRES_SUM = json.load(fp)
+
+    req_dict = dict()
+    ve_dict = dict()
+    for req in Config.CACHED_REQS_FOR_VES.keys():
+        tmp_req = {}
+        tmp_req["VEs"] = Config.CACHED_REQS_FOR_VES[req]
+        tmp_req["reqDoc"] = ""
+        tmp_req["priority"] = ""
+        # tmp_req['reqTitle'] = ""  # not needed for the VCD
+        # tmp_req['reqText'] = ""  # not needed for the VCD
+        req_dict[req] = tmp_req
+    for ve in ve_model.keys():
+        ve_long_name = ve_model[ve]["summary"].split(":")
+        tmp_ve = dict()
+        tmp_ve["jkey"] = ve
+        tmp_ve["status"] = ve_model[ve]["ve_status"]
+        if "ve_priority" in ve_model[ve].keys():
+            tmp_ve["priority"] = ve_model[ve]["ve_priority"]
+        else:
+            tmp_ve["priority"] = "Not Set"
+        if tmp_ve["priority"] == "":
+            tmp_ve["priority"] = "Not Set"
+        tmp_ve["Requirement ID"] = ve_model[ve]["req_id"]
+        tmp_ve["verified_by"] = []
+        if "verified_by" in ve_model[ve].keys():
+            for vby in ve_model[ve]["verified_by"]:
+                tmp_ve["verified_by"].append(vby)
+        tmp_ve["tcs"] = {}
+        if "test_cases" in ve_model[ve].keys():
+            for tc in ve_model[ve]["test_cases"]:
+                tmp_tc = {
+                    "status": Config.CACHED_TESTCASES[tc["key"]]["status"]
+                }
+                if tc["key"] in Config.CACHED_TESTRES_SUM.keys():
+                    tmp_tc["lastR"] = Config.CACHED_TESTRES_SUM[tc["key"]]
+                else:
+                    tmp_tc["lastR"] = None
+                if "folder" in Config.CACHED_TESTCASES[tc["key"]].keys():
+                    tmp_tc["tspec"] = get_tspec(
+                        Config.CACHED_TESTCASES[tc["key"]]["folder"]
+                    )
+                else:
+                    tmp_tc["tspec"] = ""
+                tmp_ve["tcs"][tc["key"]] = tmp_tc
+        # adding missing fields in reqs
+        if "ve_priority" in ve_model[ve].keys():
+            req_dict[ve_model[ve]["req_id"]]["priority"] = ve_model[ve][
+                "ve_priority"
+            ]
+        else:
+            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
+        if req_dict[ve_model[ve]["req_id"]]["priority"] == "":
+            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
+        if "req_doc_id" in ve_model[ve].keys():
+            req_dict[ve_model[ve]["req_id"]]["reqDoc"] = ve_model[ve][
+                "req_doc_id"
+            ]
+        ve_dict[ve_long_name[0]] = tmp_ve
+    # Not sure why the ve_dict is keyed on Requirement with a version -
+    # everything wants verificaiton element so remaking it (wom)
+    # vee_dict will be all VEs keyed on verification element
+    # ve_dict remains keyed on versioned requirement.
+    vee_dict = {}
+    for vreq, elem in ve_dict.items():
+        lvv = elem["jkey"]
+        vee_dict[lvv] = elem
+    # now keyed on verification element it should work in jinga
+    vcd_dict = [vee_dict, req_dict, [], Config.CACHED_TESTCASES]
+    # creating the lookup Specs to Reqs
+    for req, values in req_dict.items():
+        if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
+            Config.REQ_PER_DOC[values["reqDoc"]] = []
+            Config.REQ_PER_DOC[values["reqDoc"]].append(req)
+
+    with open(cfile, "w") as fp:
+        json.dump(Config.coverage, fp)
+    with open(tcrfile, "w") as fp:
+        json.dump(Config.tcresults, fp)
+    with open(vcdfile, "w") as fp:
+        json.dump(vcd_dict, fp)
+    with open(docfile, "w") as fp:
+        json.dump(Config.REQ_PER_DOC, fp)
+    with open(reqfile, "w") as fp:
+        json.dump(Config.CACHED_REQS_FOR_VES, fp)
+    with open(tcasefile, "w") as fp:
+        json.dump(Config.CACHED_TESTCASES, fp)
+    with open(tcresfile, "w") as fp:
+        json.dump(Config.CACHED_TESTRES_SUM, fp)
+    with open(f"{path}/ve_model.json", "w") as fp:
+        json.dump(ve_model, fp)
+
+    return vcd_dict

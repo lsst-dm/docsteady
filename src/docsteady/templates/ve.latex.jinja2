@@ -66,7 +66,7 @@ component\footnote{Major product in the subsystem.} of the {{ text2latex(metadat
 {{ ve.assignee }} & {{ ve.ve_status }} &
 \begin{tabular}{c}
   {% for tc in ve.test_cases %}
-{{ tc[0] }} \\
+{{ tc["key"] }} \\
   {% endfor %}
 \end{tabular}
 \\
@@ -115,7 +115,7 @@ Upper Level Requirement &
 \item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, no component assigned) {{ text2latex(vby_ve.summary) }}
             {% endif %}
             {% if subcomponent == "" or subcomponent == vby_ve.subcomponent %}
-\item {{ vby }} ({{ ref(vby.lower())}}) {{ vby_ve.summary }}
+\item {{ vby }} ({{ ref(vby.lower())}}) {{ text2latex(vby_ve.summary) }}
             {% else %}
 \item {{ vby }} (in {{ text2latex(vby_ve.component) }} subsystem, {{ text2latex(vby_ve.subcomponent) }} subcomponent) {{ text2latex(vby_ve.summary) }}
             {% endif %}
@@ -128,8 +128,7 @@ Upper Level Requirement &
 
   {% if ve.test_cases %}
 \subsubsection{Test Cases Summary}
-    {% for testc in ve.test_cases %}
-      {% set tc = test_cases[testc[0]] %}
+    {% for tc in ve.test_cases %}
 \begin{tabular}{p{3cm}p{2.5cm}p{2.5cm}p{3cm}p{4cm}}
 \toprule
 {{ atmtc(tc.key) }} & \multicolumn{4}{p{12cm}}{ {{ tc.name }} } \\ \hline
@@ -169,10 +168,9 @@ Upper Level Requirement &
  & {{ vek }} & \\
          {% endif %}
       {% else %}
-          {% for testc in ve.test_cases %}
+          {% for tc in ve.test_cases %}
 {% if veloop.index == 1 and loop.index == 1%} {{ req }} {% endif %} &
 {% if loop.index == 1 %} {{ vek }} {% endif %} &
-              {% set tc = test_cases[testc[0]] %}
 {{ tc.key }} \\
           {% endfor %}
       {% endif %}

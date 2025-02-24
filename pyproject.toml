@@ -1,7 +1,7 @@
 [project]
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 name = "docsteady"
-description = "Generate test relted documentation from Jira Test"
+description = "Generate test relted documentation from Zephyrscale Jira Test"
 license = { file = "LICENSE" }
 readme = "README.md"
 keywords = ["rubin", "lsst"]
@@ -17,9 +17,40 @@ classifiers = [
     "Operating System :: POSIX",
 ]
 requires-python = ">=3.11"
-# Use requirements/main.in for runtime dependencies instead.
-dependencies = []
+dependencies = [
+    "idna>=3.7",
+    "certifi>2024.2.0",
+    "pillow>=10.3.0",
+    "ecdsa>=0.18",
+    "BeautifulSoup4",
+    "click",
+    "jinja2>=3.1.5",
+    "marshmallow",
+    "pandoc",
+    "pypandoc",
+    "pydantic",
+    "requests>2.32.0",
+    "arrow",
+    "urllib3 >=2.2.2",
+    "tlslite-ng",
+    "oauth2",
+    "zephyr-python-api"
+]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.0.1",
+    "pytest",
+    "pytest-cov",
+    "mypy",
+    "types-requests",
+    "documenteer>1.0.0",
+    "documenteer[guide]",
+    "sphinx-rtd-theme",
+    "sphinx-prompt"
+
+]
 
 [project.scripts]
 docsteady = "docsteady:cli"
@@ -29,8 +60,10 @@ Homepage = "https://docsteady.lsst.io"
 Source = "https://github.com/lsst-dm/docsteady"
 
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=70", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -103,7 +136,7 @@ python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"
 # there are a lot of classes with the word Test in them in the codebase - this
 # is a way to exclude them from being considered tests
 python_classes = "TestCase"
-
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.mypy]
 disallow_untyped_defs = true
@@ -124,5 +157,15 @@ init_typed = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
-
-
+[tool.scriv]
+categories = [
+    "Backwards-incompatible changes",
+    "New features",
+    "Bug fixes",
+    "Other changes",
+]
+entry_title_template = "{{ version }} ({{ date.strftime('%Y-%m-%d') }})"
+format = "md"
+md_header_level = "2"
+new_fragment_template = "file:changelog.d/_template.md.jinja"
+skip_fragments = "_template.md.jinja"

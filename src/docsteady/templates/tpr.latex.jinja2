@@ -7,11 +7,11 @@
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro tplan_href(tplan) -%}
-\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
+\href{{ "{" }}{{ "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/v2/testPlan/" ~ tplan }}{{ "}" }}{{ curlies(tplan) }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro tcycle_href(tcycle) -%}
-\href{{ "{" }}{{ "https://jira.lsstcorp.org/secure/Tests.jspa\\#/testCycle/" ~ tcycle }}{{ "}" }}{{ curlies(tcycle) }}
+\href{{ "{" }}{{ "https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/testPlayer/" ~ tcycle }}{{ "}" }}{{ curlies(tcycle) }}
 {%- endmacro -%}
 {# --------------------------------------------------------------------------------#}
 {%- macro text2latex(text) -%}
@@ -82,7 +82,7 @@ The most recent change to the document repository was on \vcsDate.
 {% if testplan['objective'] %}
 {{ testplan['objective'] }}
 {% else %}
-Test Plab Objective Not provided.
+Test Plan Objective Not provided.
 {% endif %}
 
 {% for extraField in testplan['objective']['extraFields'] %}
@@ -176,8 +176,8 @@ Docushare collection where additional relevant documentation can be found:
      {% for document in attachments.cycles[cycle.key] %}
 {{ cycle.key }} & {{ text2latex(document.filename) }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
      {% endfor %} {# cycle docs for #}
-     {% for test_item in testcycles_map[cycle.key].test_items %}
-       {% set result_id = testresults_map[cycle.key][test_item['test_case_key']]['id'] %}
+     {% for test_item in testcycles_map[cycle.key]["test_items"] %}
+       {% set result_id = testresults_map[cycle.key][test_item['key']]['id'] %}
        {% for document in attachments.results[result_id] %}
 To {{ cycle.key }} results &
   {{ text2latex(document.filename) }} & \attachfile{{ '{' }}{{ document.filepath }}{{ '}' }}\\ \hline
@@ -231,17 +231,20 @@ The personnel involved in the test campaign is shown in the following table.
 }
 } \\\hline
 \textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
-  {% for test_item in cycle.test_items %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
-& {\small {{ test_item.assignee }} } & {\small {{ test_item.user }} } &
+  {% if "test_items"  in cycle %}
+   {%        for test_item in cycle["test_items"] %}
+
+\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/v2/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
+& {\small {{ test_item.assignee }} } & {\small {{ test_item.executedby }} } &
 \begin{minipage}[]{6cm}
 \smallskip
-{\small {{ testcases_map[test_item.test_case_key].test_personnel }} }
+{\small {{ testcases_map[test_item["test_case_key"]]["test_personnel"] }} }
 \medskip
 \end{minipage}
 \\ \hline
   {% endfor %}
-{% endfor %}
+    {% endif %}
+  {% endfor %}
 \end{longtable}
 }
 
@@ -262,35 +265,50 @@ The personnel involved in the test campaign is shown in the following table.
 \multicolumn{2}{r}{ T. Cycle {{ tcycle_href(cycle.key) }}:} &
 \multicolumn{2}{p{10.9cm}}{\textbf{ {{ cycle.name }} }} & {{ cycle.status }} \\\hline
 \textbf{Test Cases} &  \textbf{Ver.} & \textbf{Status} & \textbf{Comment} & \textbf{Issues} \\\toprule
-  {% for test_item in testcycles_map[cycle.key].test_items %}
-\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item.test_case_key }}{{ '}' }}{{ '{' }}{{ test_item.test_case_key }}{{ '}' }}
-&  {{ testcases_map[test_item.test_case_key].version }}
+{% if "test_items"  in cycle %}
+{% for test_item in cycle["test_items"] %}
+\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/v2/testCase/{{ test_item["test_case_key"] }}{{ '}' }}{{ '{' }}{{ test_item["test_case_key"] }}{{ '}' }}
+&
+  {% if version in testcases_map[test_item["test_case_key"]] %}
+     {{ testcases_map[test_item["test_case_key"]]["version"] }}
+  {% endif %}
 \\
-  {% for run in testresults_map[cycle.key][ test_item['test_case_key'] ] %}
+{#% for run in testresults_map[cycle["key"]] %#}
+{% set run = testresults_map[cycle.key][test_item["key"]] %}
  \hfill Execution & {{ run['key'] }}
-& {{  run['status'] }} &
+& {{  run['testExecutionStatus'] }} &
 \begin{minipage}[]{9cm}
 \smallskip
 {{ run['comment'] }}
 \medskip
 \end{minipage}
-&   {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['issue_links'] %}
-\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
-    {% endfor %}
-    {% for issue_key in testresults_map[cycle.key][ test_item['test_case_key'] ]['result_issue_keys'] %}
-\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
-    {% endfor %}
-    {% for script_result in testresults_map[cycle.key][ test_item['test_case_key'] ]['script_results'] %}
-      {% if script_result['result_issues'] %}
-        {% for issue in script_result['result_issues'] %}
-\href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
+&
+    {% if "issue_links" in run %}
+        {% for issue_key in run['issue_links'] %}
+\href{{ "{" }}https://rubinobs.atlassian.net/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
         {% endfor %}
-      {% endif %}
-    {% endfor %}
+    {% endif %}{# issue_lnks #}
+    {% if "result_issue_keys" in run["script_results"] %}
+        {% for issue_key in run["script_results"]['result_issue_keys'] %}
+\href{{ "{" }}https://rubinobs.atlassian.net/browse/{{ issue_key }}{{ "}" }}{{ "{" }}{{ issue_key }}{{ "}" }}
+        {% endfor %}
+    {% endif %}{# result_issue_keys #}
+    {% if "script_results" in run %}
+        {% for script_result in run['script_results'] %}
+            {% if 'result_issues' in script_result %}
+            {% for issue in script_result['result_issues'] %}
+\href{{ "{" }}https://rubinobs.atlassian.net/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}
+            {% endfor %}
+            {% endif %} {# result_issues #}
+        {% endfor %}
+    {% else %}
+     No Script results for Test Item {{ test_item['key']  }} in {{ cycle["key"] }}
+    {% endif %} {# script_result #}
 \\\hline
-  {% endfor %}
-  {% endfor %}
-{% endfor %}
+{#% endfor %#}  {# end for run #}
+{% endfor %} {# test_item  #}
+{% endif %} {# test_item in cycle #}
+{% endfor %} {# cycle  #}
 \caption{Test Campaign Summary}
 \label{table:summary}
 \end{longtable}
@@ -321,7 +339,7 @@ Not yet available.
 {% for cycle in testcycles %}
 \subsection{Test Cycle {{ cycle.key }} }
 
-Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
+Open test cycle {\it \href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/testPlayer/{{ cycle.key }}}{{ '{' }}{{ cycle.name }}{{ '}' }}} in Jira.
 
 Test Cycle name: {{ cycle.name }}\\
 Status: {{ cycle.status }}
@@ -344,38 +362,38 @@ Not provided.
 
 \subsubsection{Test Cases in {{ cycle.key }} Test Cycle}
 
-  {% for test_item in testcycles_map[cycle.key].test_items %}
+  {% if "test_items"  in testcycles_map[cycle.key] %}
+  {% for test_item in testcycles_map[cycle.key]["test_items"] %}
 \paragraph{ {{ test_item['test_case_key'] }} - {{ testcases_map[ test_item['test_case_key'] ]['name'] }} }\mbox{}\\
 
 Version \textbf{{ "{" }}{{ testcases_map[ test_item['test_case_key'] ]['version'] }}{{ "}" }}.
 Status \textbf{{ "{" }}{{ testcases_map[ test_item['test_case_key'] ]['status'] }}{{ "}" }}.
-Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
+Open  \href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/v2/testCase/{{ test_item['test_case_key'] }}}{\textit{ {{ test_item['test_case_key'] }} } }
 test case in Jira.
 
 {{  testcases_map[ test_item['test_case_key'] ]['objective'] }}
 
-\textbf{ Preconditions}:\\
-{{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
+\textbf{ Preconditions}:\\ {{ testcases_map[ test_item['test_case_key'] ]['precondition'] }}
 
-Execution status: {\bf {{ testresults_map[cycle.key][ test_item['test_case_key'] ]['status'] }} }
 
-Final comment:\\{{ testresults_map[cycle.key][ test_item['test_case_key'] ]['comment'] }}
+Execution status: {\bf {{ testresults_map[cycle.key][test_item['key']]['testExecutionStatus'] }} }\\
+Final comment:\\{{ testresults_map[cycle.key][ test_item['key'] ]['comment'] }}
 
-    {% if testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
-Issues found during the execution of {{ test_item['test_case_key'] }} test case:
+    {% if testresults_map[cycle.key][ test_item['key'] ]['issues'] %}
+Issues found during the execution of {{ test_item['key'] }} test case:
 
 \begin{itemize}
-      {% for issue in testresults_map[cycle.key][ test_item['test_case_key'] ]['issues'] %}
-\item \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
+      {% for issue in testresults_map[cycle.key][ test_item['key'] ]['issues'] %}
+\item \href{{ "{" }}https://rubinobs.atlassian.net/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
       {% endfor %}
 \end{itemize}
     {% endif %}
 
 
-    {% for tresult in testresults_map[cycle.key][ test_item['test_case_key'] ] %}
-Detailed steps results {{ cycle.key }}-{{ test_item['test_case_key'] }} {{ tresult['key'] }}-{{ tresult['id'] }}:\\
-{\bf Note:} Steps "Not Executed" and with No Result are not shown in this report.\\
-    {% for script_result in tresult['sorted'] %}
+    {% for tresult in testresults_map[cycle.key].values() %}
+Detailed steps results {{ cycle.key }}-{{ test_item['key'] }} {{ tresult['key'] }}-{{ tresult['id'] }}:\\
+{\bf Note:} Steps "Not Executed" and with No Result are not shown in this report.
+    {% for script_result in tresult['sorted'] %}  {# sorted is filtered by status and comment #}
 \begin{tabular}{p{4cm}p{12cm}}
 \toprule
 Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
@@ -413,6 +431,7 @@ Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_re
 \hdashrule[0.5ex]{\textwidth}{1pt}{3mm}
   Actual Result \\
 {\footnotesize
+{{ script_result['actual_result'] }}
 {{ script_result['comment'] }}
 }
       {% if script_result['result_issues'] %}
@@ -421,15 +440,15 @@ Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_re
 {\footnotesize
 \begin{itemize}
         {% for issue in script_result['result_issues'] %}
-\item \href{{ "{" }}https://jira.lsstcorp.org/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
+\item \href{{ "{" }}https://rubinobs.atlassian.net/browse/{{ issue['key'] }}{{ "}" }}{{ "{" }}{{ issue['key'] }}{{ "}" }}~~{{ issue['summary'] }}
         {% endfor %}
 \end{itemize}
 }
       {% endif %}
     {% endfor %}
     {% endfor %}
-
   {% endfor %}
+     {% endif %}  %end of the if with theo test_items in testcycles_map[cyclie.id]
 
 {% endfor %}
 

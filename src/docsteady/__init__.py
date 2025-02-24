@@ -18,11 +18,13 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
+import json
+import logging
 import os
 import sys
 from collections import OrderedDict
 from importlib.metadata import PackageNotFoundError, version
-from typing import IO
+from typing import IO, Any
 
 import arrow
 import click
@@ -39,8 +41,7 @@ from .config import Config
 from .formatters import alphanum_key
 from .spec import build_spec_model
 from .tplan import build_tpr_model, render_report
-from .utils import get_tspec
-from .vcd import summary
+from .vcd import build_vcd_dict, summary
 from .ve_baseline import do_ve_model
 
 __version__: str
@@ -53,6 +54,12 @@ except PackageNotFoundError:
 
 # Global variables
 OUTPUT_FORMAT: str = "latex"
+
+if "ZEPHYR_TOKEN" in os.environ:
+    Config.ZEPHYR_TOKEN = os.environ["ZEPHYR_TOKEN"]
+
+if "JIRA_PASSWORD" in os.environ:
+    Config.AUTH = (os.environ["JIRA_USER"], os.environ["JIRA_PASSWORD"])
 
 
 @click.group()
@@ -72,8 +79,37 @@ OUTPUT_FORMAT: str = "latex"
     help="Path to search for templates in. "
     "Defaults to the working directory",
 )
+@click.option(
+    "--token",
+    prompt="Jira Zephyr Token",
+    hide_input=True,
+    envvar="ZEPHYR_TOKEN",
+    help="Jira token from jira cloud, Zyphry API Token",
+)
+@click.option(
+    "--username",
+    prompt="Jira User Name for Jira API",
+    hide_input=True,
+    envvar="JIRA_USER",
+    help="Jira cloud user - an email address ",
+)
+@click.option(
+    "--password",
+    prompt="Jira password (or Token)  for Jira API",
+    hide_input=True,
+    envvar="JIRA_PASSWORD",
+    help="Jira cloud  password - usually an API token  ",
+)
 @click.version_option(__version__)
-def cli(namespace: str, template_format: str, load_from: str) -> None:
+@click.version_option(__version__)
+def cli(
+    namespace: str,
+    template_format: str,
+    load_from: str,
+    token: str,
+    username: str,
+    password: str,
+) -> None:
     """Docsteady generates documents from Jira with the
     Test Management for Jira (TM4J) plugin.
     """
@@ -81,6 +117,8 @@ def cli(namespace: str, template_format: str, load_from: str) -> None:
     Config.NAMESPACE = namespace
     Config.TEMPLATE_LANGUAGE = template_format
     Config.TEMPLATE_DIRECTORY = load_from
+    Config.ZEPHYR_TOKEN = token
+    Config.AUTH = (username, password)
 
 
 @cli.command("generate-spec")
@@ -88,19 +126,6 @@ def cli(namespace: str, template_format: str, load_from: str) -> None:
     "--format",
     default="latex",
     help="Pandoc output format (see pandoc for options)",
-)
-@click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
-    hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
 )
 @click.argument("folder")
 @click.argument("path", required=False, type=click.Path())
@@ -201,22 +226,15 @@ def generate_spec(
 
 @cli.command("generate-tpr")
 @click.option(
+    "--includeall",
+    default=False,
+    help="Ignore the include in report field for executions and include all"
+    'Defaults to "False".',
+)
+@click.option(
     "--format",
     default="latex",
     help="Pandoc output format (see pandoc for options)",
-)
-@click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
-    hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
 )
 @click.option(
     "--trace",
@@ -226,14 +244,14 @@ def generate_spec(
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
 def generate_report(
-    format: str, username: str, password: str, trace: str, plan: str, path: str
+    format: str, trace: str, plan: str, path: str, includeall: bool
 ) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.AUTH = (username, password)
+    Config.INCLUDE_ALL_EXECS = includeall
     target = "tpr"
 
     if Config.NAMESPACE.upper() not in Config.COMPONENTS.keys():
@@ -250,11 +268,13 @@ def generate_report(
     metadata["component_long_name"] = Config.COMPONENTS[
         Config.NAMESPACE.upper()
     ]
+    logging.log(logging.INFO, f"Rendering  {path}")
     env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
 
     # output the plan - TR without results
     target = "tpnoresult"
     path = path.replace(".tex", "-plan.tex")
+    logging.log(logging.INFO, f"Rendering  {path}")
     env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
     if trace:
         # Will exit if it can't find a template
@@ -314,28 +334,6 @@ def _metadata() -> dict:
     default="latex",
     help="Pandoc output format (see pandoc for options)",
 )
-@click.option("--jiradb", envvar="JIRA_DB", help="Jira database server")
-@click.option("--vcduser", envvar="JIRA_VCD_USER", help="Jira username")
-@click.option("--vcdpwd", envvar="JIRA_VCD_PASSWORD", help="Jira Password")
-@click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
-    hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
-)
-@click.option(
-    "--sql",
-    required=False,
-    default=False,
-    help="True if direct access to the database shall be used",
-)
 @click.option(
     "--spec",
     required=False,
@@ -348,18 +346,15 @@ def _metadata() -> dict:
     help="Extract Verification Elements only "
     "for the specified subcomponent",
 )
+@click.option(
+    "--dump",
+    default=False,
+    help="If true, dump json before rendering tex, "
+    "if the file exists use it next time instead of hitting server",
+)
 @click.argument("path", required=False, type=click.Path())
 def generate_vcd(
-    format: str,
-    jiradb: str,
-    vcduser: str,
-    vcdpwd: str,
-    username: str,
-    password: str,
-    sql: str,
-    spec: str,
-    subcomponent: str,
-    path: str,
+    format: str, spec: str, subcomponent: str, path: str, dump: bool
 ) -> None:
     """Given a specific namespace, correspoding to a Jira Component
     or Rubin Subsystem, it build the VCD. By default build the DM VCD.
@@ -371,90 +366,17 @@ def generate_vcd(
 
     component = Config.NAMESPACE.upper()
 
-    Config.DB_PARAMETERS = {
-        "host": jiradb,
-        "user": vcduser,
-        "pwd": vcdpwd,
-        "schema": "jira",
-    }
-
     print("Building VCD using Rest API access (VE extraction).")
-    Config.AUTH = (username, password)
     if not subcomponent:
         subcomponent = ""
-    ve_model = do_ve_model(component, subcomponent)
-    req_dict = dict()
-    ve_dict = dict()
-    for req in Config.CACHED_REQS_FOR_VES.keys():
-        tmp_req = {}
-        tmp_req["VEs"] = Config.CACHED_REQS_FOR_VES[req]
-        tmp_req["reqDoc"] = ""
-        tmp_req["priority"] = ""
-        # tmp_req['reqTitle'] = ""  # not needed for the VCD
-        # tmp_req['reqText'] = ""  # not needed for the VCD
-        req_dict[req] = tmp_req
-    for ve in ve_model.keys():
-        ve_long_name = ve_model[ve]["summary"].split(":")
-        tmp_ve = dict()
-        tmp_ve["jkey"] = ve
-        tmp_ve["status"] = ve_model[ve]["ve_status"]
-        if "ve_priority" in ve_model[ve].keys():
-            tmp_ve["priority"] = ve_model[ve]["ve_priority"]
-        else:
-            tmp_ve["priority"] = "Not Set"
-        if tmp_ve["priority"] == "":
-            tmp_ve["priority"] = "Not Set"
-        tmp_ve["Requirement ID"] = ve_model[ve]["req_id"]
-        tmp_ve["verified_by"] = []
-        if "verified_by" in ve_model[ve].keys():
-            for vby in ve_model[ve]["verified_by"]:
-                tmp_ve["verified_by"].append(vby)
-        tmp_ve["tcs"] = {}
-        if "test_cases" in ve_model[ve].keys():
-            for tc in ve_model[ve]["test_cases"]:
-                tmp_tc = {"status": Config.CACHED_TESTCASES[tc[0]]["status"]}
-                if tc[0] in Config.CACHED_TESTRES_SUM.keys():
-                    tmp_tc["lastR"] = Config.CACHED_TESTRES_SUM[tc[0]]
-                else:
-                    tmp_tc["lastR"] = None
-                if "folder" in Config.CACHED_TESTCASES[tc[0]].keys():
-                    tmp_tc["tspec"] = get_tspec(
-                        Config.CACHED_TESTCASES[tc[0]]["folder"]
-                    )
-                else:
-                    tmp_tc["tspec"] = ""
-                tmp_ve["tcs"][tc[0]] = tmp_tc
-        # adding missing fields in reqs
-        if "req_priority" in ve_model[ve].keys():
-            req_dict[ve_model[ve]["req_id"]]["priority"] = ve_model[ve][
-                "req_priority"
-            ]
-        else:
-            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
-        if req_dict[ve_model[ve]["req_id"]]["priority"] == "":
-            req_dict[ve_model[ve]["req_id"]]["priority"] = "Not Set"
-        if "req_doc_id" in ve_model[ve].keys():
-            req_dict[ve_model[ve]["req_id"]]["reqDoc"] = ve_model[ve][
-                "req_doc_id"
-            ]
-        ve_dict[ve_long_name[0]] = tmp_ve
-    # Not sure why the ve_dict is keyed on Requirement with a version -
-    # everything wants verificaiton element so remaking it (wom)
-    # vee_dict will be all VEs keyed on verification element
-    # ve_dict remains keyed on versioned requirement.
-    vee_dict = {}
-    for vreq, elem in ve_dict.items():
-        lvv = elem["jkey"]
-        vee_dict[lvv] = elem
-    # now keyed on verification element it should work in jinga
-    vcd_dict = [vee_dict, req_dict, [], Config.CACHED_TESTCASES]
-    # creating the lookup Specs to Reqs
-    for req, values in req_dict.items():
-        if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
-            Config.REQ_PER_DOC[values["reqDoc"]] = []
-            Config.REQ_PER_DOC[values["reqDoc"]].append(req)
 
-    sum_dict = summary(vcd_dict)
+    if dump:
+        with open("ve_model.json", "r") as fp:
+            ve_model = json.load(fp)
+    else:
+        ve_model = do_ve_model(component, subcomponent)
+    vcd_dict = build_vcd_dict(ve_model, usedump=dump)
+    sum_dict: list[dict | Any] = summary(vcd_dict)
 
     file = open(path, "w") if path else sys.stdout
 
@@ -503,19 +425,6 @@ if __name__ == "__main__":
     help="Pandoc output format (see pandoc for options)",
 )
 @click.option(
-    "--username",
-    prompt="Jira Username",
-    envvar="JIRA_USER",
-    help="Jira username",
-)
-@click.option(
-    "--password",
-    prompt="Jira Password",
-    hide_input=True,
-    envvar="JIRA_PASSWORD",
-    help="Jira Password",
-)
-@click.option(
     "--details",
     default=False,
     help="If true, an extra detailed report will be produced",
@@ -526,12 +435,17 @@ if __name__ == "__main__":
     help="Extract Verification Elements only "
     "for the specified subcomponent",
 )
+@click.option(
+    "--dump",
+    default=False,
+    help="If true, dump json before rendering tex, "
+    "if the file exists use it next time instead of hitting server",
+)
 @click.argument("path", required=False, type=click.Path())
 def baseline_ve(
     format: str,
-    username: str,
-    password: str,
     details: str,
+    dump: bool,
     subcomponent: str,
     path: str,
 ) -> None:
@@ -542,15 +456,23 @@ def baseline_ve(
     """
     global OUTPUT_FORMAT
     OUTPUT_FORMAT = format
-    Config.AUTH = (username, password)
     target = "ve"
+    jfile = f"baseline_{target}.json"
 
     component = Config.NAMESPACE.upper()
 
     if not subcomponent:
         subcomponent = ""
 
-    ve_model = do_ve_model(component, subcomponent)
+    # it takes long time to get the data and sometimes it fails on render
+    # this means not going bakc to repeat all the jira calls saves an hour.
+    if dump and os.path.exists(jfile):
+        with open(jfile, "r") as fp:
+            ve_model = json.load(fp)
+    else:
+        ve_model = do_ve_model(component, subcomponent)
+        with open(jfile, "w") as f:
+            json.dump(ve_model, f)
 
     file = open(path, "w") if path else sys.stdout
 

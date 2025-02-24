@@ -1,0 +1,13 @@
+{
+  "https://api.zephyrscale.smartbear.com/v2/statuses/7920152": "Done",
+  "https://api.zephyrscale.smartbear.com/v2/projects/350001": "BLOCK",
+  "https://api.zephyrscale.smartbear.com/v2/projects/430609": "SYNDT",
+  "https://api.zephyrscale.smartbear.com/v2/projects/437559": "LVV",
+  "https://rubinobs.atlassian.net/rest/api/2/component/12029": "DM",
+  "https://api.zephyrscale.smartbear.com/v2/folders/18157395": "Replication",
+  "https://api.zephyrscale.smartbear.com/v2/statuses/7920146": "Approved",
+  "https://api.zephyrscale.smartbear.com/v2/priorities/7920158": "Normal",
+  "https://rubinobs.atlassian.net/rest/api/2/issue/291968": "LVV-71",
+  "https://rubinobs.atlassian.net/rest/api/2/issue/299910":"LVV-9979"
+
+}

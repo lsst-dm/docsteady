@@ -21,12 +21,14 @@
 """
 Code for Test Specification Model Generation
 """
+import logging
 import os
 import re
 import warnings
+from base64 import b64encode
 from collections import OrderedDict
 from os.path import dirname, exists
-from typing import Any
+from typing import Any, List, MutableMapping
 from urllib.parse import urljoin, urlparse
 
 import arrow
@@ -35,8 +37,13 @@ import requests
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from marshmallow import EXCLUDE, fields
 from requests import Session
+from zephyr import ZephyrScale
+from zephyr.scale.cloud.cloud_api import CloudApiWrapper
+from zephyr.scale.cloud.endpoints import paths
 
 from .config import Config
+
+global THE_SESSION
 
 
 class HtmlPandocField(fields.String):
@@ -138,24 +145,23 @@ def as_arrow(datestring: str) -> arrow.Arrow:
     return arrow.get(datestring).to(Config.TIMEZONE)
 
 
-def owner_for_id(owner_id: str) -> str:
-    if not owner_id:
+def owner_for_id(owner_id: str | dict) -> str:
+    if not owner_id or owner_id == "None":
         return "Undefined"
-    if owner_id not in Config.CACHED_USERS:
-        resp = requests.get(
-            Config.USER_URL.format(username=owner_id), auth=Config.AUTH
-        )
-        if resp.status_code == 404:
-            Config.CACHED_USERS[owner_id] = {"displayName": owner_id}
-            user_resp = {"displayName": owner_id}
-        else:
-            resp.raise_for_status()
-            user_resp = resp.json()
-            Config.CACHED_USERS[owner_id] = user_resp
-    else:
-        user_resp = Config.CACHED_USERS[owner_id]
-    displayName = user_resp["displayName"]
-    return displayName
+    if type(owner_id) is str:
+        oid: str = owner_id
+    if type(owner_id) is dict:
+        oid = owner_id["accountId"]
+    user_resp: dict = {"displayName": oid}
+    if oid not in Config.CACHED_USERS:
+        sess = get_rest_session()
+        # https://rubinobs.atlassian.net/rest/api/2/user?accountId=
+        url = f"{Config.JIRA_API}user?accountId={oid}"
+        resp = sess.get(url, auth=Config.AUTH)
+        resp.raise_for_status()
+        user_resp = resp.json()
+        Config.CACHED_USERS[oid] = user_resp
+    return Config.CACHED_USERS[oid]["displayName"]
 
 
 def t_case_for_key(test_case_key: str) -> dict[str, Any]:
@@ -172,13 +178,10 @@ def t_case_for_key(test_case_key: str) -> dict[str, Any]:
 
     cached_testcase_resp = Config.CACHED_TESTCASES.get(test_case_key)
     if not cached_testcase_resp:
-        resp = requests.get(
-            Config.TESTCASE_URL.format(testcase=test_case_key),
-            auth=Config.AUTH,
-        )
-        if resp.status_code == 200:
-            testcase_resp = resp.json()
-            testcase = TestCase(unknown=EXCLUDE).load(testcase_resp)
+        zapi = get_zephyr_api()
+        resp = zapi.test_cases.get_test_case(test_case_key)
+        if resp:
+            testcase = TestCase(unknown=EXCLUDE).load(resp)
             Config.CACHED_TESTCASES[test_case_key] = testcase
         else:
             testcase = {
@@ -213,23 +216,40 @@ def download_and_rewrite_images(value: str) -> str:
                 if fs_path in existing_file:
                     fs_path = existing_file
             if not exists(fs_path):
+                errstr = None
                 if img_url.startswith(Config.JIRA_INSTANCE):
-                    resp = requests.get(img_url, auth=Config.AUTH)
-                else:
                     try:
-                        resp = requests.get(img_url)
+                        resp = requests.get(img_url, auth=Config.AUTH)
+                    except ConnectionError as ce:
+                        Config.exeuction_errored = True
+                        errstr = f"Failed to get {img_url}: {ce}"
+                else:
+                    # the rest api does not work for images in smartbear
+                    try:
+                        if "cloudfront" in img_url or "smartbear" in img_url:
+                            resp = get_zephy_image(img_url)
+                        else:
+                            resp = requests.get(img_url)
                         resp.raise_for_status()
                     except requests.exceptions.HTTPError as err:
-                        print(err)
-                        Config.exeuction_errored = True
-                        # this requires that the jenkins job is pushing the
-                        # changes to github even if the build fails
-                        # in order the final user can see where the problem is
-                        img.insert_before(
-                            soup.new_tag("<b>Image Download Error</b>")
-                        )
-                        img.decompose()
-                        return str(soup)
+                        # cloudfront is private smartbear will not allow access
+                        # so its not an error it's a feature
+                        if "cloudfront" in img_url:
+                            logging.log(
+                                logging.WARN, f"You can not access {img_url}"
+                            )
+                            errstr = "No access to cloudfront images."
+                        else:
+                            Config.exeuction_errored = True
+                            errstr = str(err)
+                if errstr is not None:
+                    print(errstr)
+                    # in order the final user can see where the problem is
+                    img.insert_before(
+                        soup.new_tag("<b>Image Download Error</b>")
+                    )
+                    img.decompose()
+                    return str(soup)
                 extension = None
                 if "png" in resp.headers["content-type"]:
                     extension = "png"
@@ -237,8 +257,10 @@ def download_and_rewrite_images(value: str) -> str:
                     extension = "jpg"
                 elif "gif" in resp.headers["content-type"]:
                     extension = "gif"
-                fs_path = f"{fs_path}.{extension}"
-                with open(fs_path, "w+b") as img_f:
+                elif "svg" in resp.headers["content-type"]:
+                    extension = "svg"
+                fs_pathe = f"{fs_path}.{extension}"
+                with open(fs_pathe, "w+b") as img_f:
                     img_f.write(resp.content)
         if (
             img.previous_element is not None
@@ -250,26 +272,50 @@ def download_and_rewrite_images(value: str) -> str:
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["src"] = fs_path
+        # Latex includegrpahics does not need extention -
+        # svg will have to be converted anyway
     return str(soup)
 
 
-def download_attachments(rs: Session, link: str) -> list[dict[str, str]]:
+def get_zephy_image(img_url: str) -> requests.Response:
+    headers: MutableMapping[str, str | bytes] = {
+        "accept": "application/json",
+        "Authorization": "Bearer %s" % Config.ZEPHYR_TOKEN,
+        "JWT": "%s" % Config.ZEPHYR_TOKEN,
+    }
+    rs: Session = requests.Session()
+    rs.headers = headers
+    rs.cookies.set("JWT", Config.ZEPHYR_TOKEN)
+
+    # params = {"return_raw": False} does not work so not sure if i need raw
+    resp = rs.get(img_url)
+    return resp
+
+
+def download_attachments(adict: dict) -> list[dict[str, str]]:
     """
     download the
-    :param link: attachment resource location in the Jira server
+    :param adict: the thing containing links
     :return: none
     """
     attachments = []
-    resp = rs.get(link)
-    for doc in resp.json():
+    rs = get_rest_session()
+    weblinks = []
+    if "links" in adict:
+        weblinks = adict["links"]["webLinks"]
+    for link in weblinks:
+        doc = rs.get(link).json()
         # prepare information
         attachment_name = doc["filename"].replace(" ", "")
         fs_path = Config.ATTACHMENT_FOLDER + attachment_name
 
         # download the attachment
         try:
-            resp = requests.get(doc["url"], auth=Config.AUTH)
-            resp.raise_for_status()
+            zs = get_zephyr_api().session
+            b4 = zs.base_url
+            zs.base_url = ""
+            resp = zs.get(doc["url"])
+            zs.base_url = b4
             with open(fs_path, "w+b") as att_f:
                 att_f.write(resp.content)
             # add attachment information to the list
@@ -363,7 +409,7 @@ def rewrite_strong_to_subsection(content: str, extractable: list) -> str:
 # FIXME: This can be removed ATM API testcases/search API is fixed
 def get_folders(target_folder: str) -> list[str]:
     """
-    Get all folders that that have the target folder in their string
+    Get all folders that have the target folder in their string
     """
 
     def collect_children(children: list, path: str, folders: list) -> None:
@@ -374,10 +420,7 @@ def get_folders(target_folder: str) -> list[str]:
             if len(child["children"]):
                 collect_children(child["children"], child_path, folders)
 
-    resp = requests.get(Config.FOLDERTREE_API, auth=Config.AUTH)
-    resp.raise_for_status()
-    foldertree_json = resp.json()
-
+    foldertree_json = get_zephyr_api().folders.get_folders()
     folders: list = []
     collect_children(foldertree_json["children"], "", folders)
     target_folders: list = []
@@ -401,3 +444,244 @@ def _as_output_format(text: str, format: str) -> str:
         setattr(Config.DOC, Config.TEMPLATE_LANGUAGE, text.encode("utf-8"))
         text = getattr(Config.DOC, format).decode("utf-8")
     return text
+
+
+def get_zephyr() -> ZephyrScale:
+    """Requires token to be in the config"""
+    if not Config.THE_ZEPHYR:
+        if Config.ZEPHYR_TOKEN.startswith("set"):
+            raise (
+                Exception(
+                    "The ZEPHYR_TOKEN has not be set - "
+                    "Zephyr will fail to connect"
+                )
+            )
+        Config.THE_ZEPHYR = ZephyrScale(
+            base_url=Config.ATM_API, token=Config.ZEPHYR_TOKEN
+        )
+    return Config.THE_ZEPHYR
+
+
+def get_zephyr_api() -> CloudApiWrapper:
+    return get_zephyr().api
+
+
+def get_rest_session() -> Session:
+    """Requires JIRA_USER and JIRA_PASSWORD to be in the config"""
+    if Config.THE_SESSION:
+        return Config.THE_SESSION
+
+    # initialize connection to Jira REST API
+    if Config.AUTH and len(Config.AUTH) == 2:
+        usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+    else:
+        logging.log(
+            logging.WARN,
+            "Did not get JIRA_USER and JIRA_PASSWORD in Config.AUTH",
+        )
+        usr_pwd = "NOUSER:NOPASS"
+    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+    headers: MutableMapping[str, str | bytes] = {
+        "accept": "application/json",
+        "authorization": "Basic %s" % connection_str,
+        "Connection": "close",
+    }
+    rs: Session = requests.Session()
+    rs.headers = headers
+    Config.THE_SESSION = rs
+    return rs
+
+
+def get_key(pointer: dict, key: str = "self") -> str:
+    """
+    the self in some poinnters has the KEY embeded ..
+    """
+    parts = str(pointer[key]).split("/")
+    for p in parts:
+        if p.startswith(Config.PROJECT):
+            return p
+    return "NO_KEY_FOUND"
+
+
+def get_id(pointer: dict, key: str = "id") -> str:
+    return pointer[key]
+
+
+def get_via_zephyr(url: str) -> dict:
+    """Zephyr has a bunch of relative urls BUT frequntely returns FULL urls
+    so temporarily store the base URL get the full url restore the base url.
+
+    The Zephyr response is a json dict of the values
+    returned from the url call.
+    """
+
+    rs = get_zephyr_api().session
+    b4 = rs.base_url
+    if url.startswith("http"):
+        rs.base_url = ""
+    result = rs.get(url)
+    rs.base_url = b4
+    return result
+
+
+def get_value(pointer: dict | str, key: str = "self") -> str:
+    """
+    Given a dict there is a pointer in it which resolves to a name
+    follow it and cache it.
+    Sometimes zephyr returns a regular Jira api call,
+    those are not authorized by the zephy token
+    they require a regular JIRA session
+    """
+    if type(pointer) is str:
+        return pointer
+    if type(pointer) is dict:
+        p = pointer[key]
+    if p not in Config.CACHED_POINTERS:
+        if p.startswith(Config.JIRA_INSTANCE):
+            rs = get_rest_session()
+            hresult = rs.get(p)
+            hresult.raise_for_status()
+            result: dict = hresult.json()
+        else:
+            result = get_via_zephyr(p)
+        keys = ["name", "key", "id"]
+        key = "unknown"
+        for k in keys:
+            if k in result:
+                key = k
+                break
+        if key in result:
+            Config.CACHED_POINTERS[p] = result[key]
+        else:
+            Config.CACHED_POINTERS[p] = result
+
+    return Config.CACHED_POINTERS[p]
+
+
+def fix_json(json: dict) -> dict:
+    """Seems some nulls are in the Jason instead of None ..
+    marshmallow is not happy"""
+    for k, v in json.items():
+        if v is None:
+            json[k] = "None"
+        elif type(v) is dict:
+            json[k] = fix_json(v)
+        elif type(v) is str:
+            json[k] = v.replace("\u2060", "")  # some junky char in the jira
+    return json
+
+
+def get_teststeps(
+    id: str, burl: str = paths.CloudPaths.CASE_STEPS
+) -> List[dict]:
+    """get all the test steps from the paginated url call"""
+    steps = []
+    max = 1000
+    params = {"maxResults": str(max)}
+    zapi = get_zephyr_api().session
+    url = str.format(burl, id)
+    b4 = zapi.base_url
+    done = False
+    index = 0
+    startAt = 0
+    while not done:
+        resp = zapi.get(url, params=params)
+        done = resp.get("isLast") is True
+        if not done:
+            url = resp.get("next")
+            zapi.base_url = ""
+            startAt += max
+            params["startAt"] = str(startAt)
+        if "values" in resp:
+            inlines = resp.get("values", [])
+            vals = [fix_json(i["inline"]) for i in inlines]
+            # old system had an index ..
+            # new one does not seem to so assume they are in order ..
+            for v in vals:
+                v["index"] = index
+                index += 1
+            steps += vals
+
+    zapi.base_url = b4
+    return steps
+
+
+def get_execs(cycleId: str) -> List[dict]:
+    """
+    get execs for a given cycleId and cache them
+    return the executions for this cycle
+    """
+    if cycleId in Config.CACHED_TEST_EXECUTIONS:
+        return Config.CACHED_TEST_EXECUTIONS[cycleId]
+    params = {}
+    params["testCycle"] = cycleId
+    tc_execs = get_tc_executions(params)
+    Config.CACHED_TEST_EXECUTIONS[cycleId] = tc_execs
+    return tc_execs
+
+
+def get_testcase_executions(testCaseId: str) -> list[dict]:
+    """
+    Get all the test executions and cache them -
+    can not get per cycle from the API.
+    """
+    if testCaseId in Config.CACHED_TEST_EXECUTIONS:
+        tc_execs = Config.CACHED_TEST_EXECUTIONS[testCaseId]
+        return tc_execs
+    params = {}
+    params["testCase"] = testCaseId
+    tc_execs = get_tc_executions(params)
+    Config.CACHED_TEST_EXECUTIONS[testCaseId] = tc_execs
+    return tc_execs
+
+
+def get_tc_executions(params: dict) -> list[dict]:
+    """TestExecution call is paged - the parameters allow
+    specification of testCase or Cycle which are the two
+    ways we access executions.
+    This  gets the results and caches them"""
+    maxresults = 1000
+    params["maxResults"] = str(maxresults)
+    tc_execs = []
+    burl = paths.CloudPaths.EXECUTIONS
+    zapi = get_zephyr_api().session
+    b4 = zapi.base_url
+    done = False
+    startAt = 0
+    while not done:
+        resp = zapi.get(burl, params=params)
+        if "values" in resp:
+            values = resp.get("values", [])
+            done = resp.get("isLast") is True
+            if not done:  # should only be one page really
+                burl = resp.get("next")
+                zapi.base_url = ""
+                startAt += maxresults
+                params["startAt"] = str(startAt)
+            for exec in values:
+                tc_execs.append(fix_json(exec))
+    zapi.base_url = b4
+    return tc_execs
+
+
+def process_links(links: dict, item: str) -> List:
+    """Zephy returns a Dict of dicts for related links
+    If it is a value use it if its a http pointer follow it ..
+    links is assumed to be a dict of differnt tytpes of links
+    item is the type like 'issues'"""
+    if item in links:
+        items = []
+        array_in = links[item]
+        for anitem in array_in:
+            # loop through the keys - look at value - follow it if its a link
+            # construct a new dict with values no pointers
+            newitem = {}
+            for k in anitem.keys():
+                if k != "self":
+                    v = anitem[k]
+                    if isinstance(v, str) and v.startswith("http"):
+                        v = get_value(anitem, k)
+                    newitem[k] = v
+            items.append(newitem)
+
+    return items

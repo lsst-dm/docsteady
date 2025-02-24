@@ -7,3 +7,7 @@ build
 .pytest_cache
 _build
 VCD
+.DS_Store
+.buildinfo
+.coverage
+.tox

@@ -22,117 +22,107 @@
 Subroutines required to baseline the Verification Elements
 """
 
-import re
-from base64 import b64encode
-from typing import MutableMapping
-
-import requests
 from marshmallow import EXCLUDE
 from requests import Session
 from urllib3 import Retry
 
 from .config import Config
+from .cycle import TestCycle
 from .spec import TestCase
-from .utils import create_folders_and_files
+from .utils import (
+    create_folders_and_files,
+    fix_json,
+    get_rest_session,
+    get_testcase_executions,
+    get_value,
+    get_via_zephyr,
+    get_zephyr_api,
+)
 from .vcd import VerificationE
 
-# for dubuging we do not need the hundreads of verificaiton elements
-DOFEW = False
-FEWCOUNT = 3
+# for dubuging we do not need the hundreds of verification elements
+FEWCOUNT = 4
 
 
-def get_testcase(rs: Session, tckey: str) -> dict | None:
+def get_testcase(tckey: str) -> dict | None:
     """
     Get test case details from Jira
     :param rs:
     :param tckey:
     :return:
     """
-    r_tc_details = rs.get(Config.TESTCASE_URL.format(testcase=tckey))
-    try:
-        jtc_det = r_tc_details.json()
-    except Exception as exception:
-        print(exception)
-        return None
+
+    zapi = get_zephyr_api()
+    jtc_det = fix_json(zapi.test_cases.get_test_case(tckey))
     tc_details = TestCase(unknown=EXCLUDE).load(jtc_det)
 
-    # get test case results, so we can build the VCD using the same data
-    if "lastTestResultStatus" in jtc_det:
+    # apparently need to get he last execution also ..
+    # Zpehyr no longer returns it
+    execs = get_testcase_executions(tckey)
+    if len(execs) >= 1:
+        jtc_res = execs[0]
         tc_results: dict = dict()
-        r_tc_results = rs.get(Config.TESTCASERESULT_URL.format(tcid=tckey))
-        if r_tc_results.status_code == 200:
-            jtc_res = r_tc_results.json()
-            tc_results["key"] = jtc_res["key"]
-            if jtc_res["status"] == "Pass":
-                tc_results["status"] = "passed"
-            elif jtc_res["status"] == "Fail":
-                tc_results["status"] = "failed"
-            elif jtc_res["status"] == "Blocked":
-                tc_results["status"] = "blocked"
-            elif jtc_res["status"] == "Pass w/ Deviation":
-                tc_results["status"] = "cndpass"
-            else:
-                tc_results["status"] = "notexec"
-            if "executionDate" in jtc_res.keys():
-                tc_results["exdate"] = jtc_res["executionDate"][0:10]
-            r_tp_key = rs.get(
-                Config.TESTRESULT_PLAN_CYCLE.format(result_ID=jtc_res["key"])
+        tc_results["key"] = jtc_res["key"]
+        tc_results["status"] = "notexec"
+        status = get_value(jtc_res["testExecutionStatus"])
+        if status == "Pass":
+            tc_results["status"] = "passed"
+        elif status == "Fail":
+            tc_results["status"] = "failed"
+        elif status == "Blocked":
+            tc_results["status"] = "blocked"
+        elif status == "Pass w/ Deviation":
+            tc_results["status"] = "cndpass"
+        if "executionDate" in jtc_res.keys():
+            tc_results["exdate"] = jtc_res["executionDate"][0:10]
+        elif "actualEndDate" in jtc_res.keys():
+            tc_results["exdate"] = jtc_res["actualEndDate"][0:10]
+        test_cycle = None
+        if "testCycle" in jtc_res and type(jtc_res["testCycle"]) is dict:
+            test_cyclej = get_via_zephyr(jtc_res["testCycle"]["self"])
+            test_cycle = TestCycle(unknown=EXCLUDE).load(fix_json(test_cyclej))
+            # now to get the plan should be in the test case but the cycle
+            tc_results["tcycle"] = test_cycle["key"]
+        if test_cycle and len(test_cycle["test_plans"]) > 0:
+            zapi = get_zephyr_api()
+            jtp_dets = zapi.test_plans.get_test_plan(
+                test_cycle["test_plans"][0]
             )
-            if r_tp_key.status_code == 200:
-                jtp_key = r_tp_key.json()
-                if "testPlan" in jtp_key["testRun"].keys():
-                    tc_results["tplan"] = jtp_key["testRun"]["testPlan"]["key"]
-                else:
-                    tc_results["tplan"] = ""
-            else:
-                tc_results["tplan"] = ""
-            tc_results["tcycle"] = jtp_key["testRun"]["key"]
-            if tc_results["tplan"] and tc_results["tplan"] != "":
-                r_tp_dets = rs.get(
-                    Config.TESTPLAN_URL.format(testplan=tc_results["tplan"])
-                )
-                if r_tp_dets.status_code == 200:
-                    jtp_dets = r_tp_dets.json()
-                    if (
-                        "customFields" in jtp_dets
-                        and "Document ID" in jtp_dets["customFields"].keys()
-                    ):
-                        tc_results["TPR"] = jtp_dets["customFields"][
-                            "Document ID"
-                        ]
-                    else:
-                        tc_results["TPR"] = ""
-                else:
-                    tc_results["TPR"] = ""
+            if (
+                "customFields" in jtp_dets
+                and "Document ID" in jtp_dets["customFields"].keys()
+            ):
+                tc_results["TPR"] = jtp_dets["customFields"]["Document ID"]
             else:
                 tc_results["TPR"] = ""
         else:
-            Config.CACHED_TESTRES_SUM[tckey] = None
+            tc_results["TPR"] = ""
         Config.CACHED_TESTRES_SUM[tckey] = tc_results
         tc_details["lastR"] = tc_results
 
     return tc_details
 
 
-def process_raw_test_cases(rs: Session, ve_details: dict) -> dict:
+def get_testcases_ve(key: str) -> list[str]:
+    "VE key form LVV-NNN"
+    zapi = get_zephyr_api()
+    resp = zapi.issue_links.get_test_cases(key)
+    tcs = []
+    for v in resp:
+        tcs.append(v["key"])
+
+    return tcs
+
+
+def process_test_cases(tcs: list[str], ve_details: dict) -> dict:
     # populate test_cases from raw_test_cases
-    if (
-        "raw_test_cases" in ve_details.keys()
-        and ve_details["raw_test_cases"] != ""
-    ):
-        # regex to get content between {}
-        regex = r"\{([^}]+)\}"
-        matches = re.findall(regex, ve_details["raw_test_cases"])
+    if tcs and len(tcs) > 0:
         ve_details["test_cases"] = []
-        for matchNum, match in enumerate(matches):
-            if matchNum % 2 == 1:
-                tc_split = match.split(":")
-                tc_split[1] = tc_split[1].strip().replace("\n", " ")
-                ve_details["test_cases"].append(tc_split)
-                if tc_split[0] not in Config.CACHED_TESTCASES:
-                    Config.CACHED_TESTCASES[tc_split[0]] = get_testcase(
-                        rs, tc_split[0]
-                    )
+        for tc in tcs:
+            if tc not in Config.CACHED_TESTCASES:
+                Config.CACHED_TESTCASES[tc] = get_testcase(tc)
+
+            ve_details["test_cases"].append(Config.CACHED_TESTCASES[tc])
     return ve_details
 
 
@@ -143,16 +133,20 @@ def get_ve_details(rs: Session, key: str) -> dict:
     :param key:
     :return:
     """
-
-    print(f"get_ve_details {key}", end=".", flush=True)
+    # print(f"get_ve_details {key}", end=".", flush=True)
     ve_res = rs.get(Config.ISSUE_URL.format(issue=key))
-    jve_res = ve_res.json()
+    jve_res = fix_json(ve_res.json())
+    return get_ve_json(jve_res)
 
+
+def get_ve_json(jve_res: dict) -> dict:
     ve_details = VerificationE(unknown=EXCLUDE).load(jve_res, partial=True)
     ve_details["summary"] = ve_details["summary"].strip()
     # @post_load is not working
     # populate test_cases from raw_test_cases
-    process_raw_test_cases(rs, ve_details)
+    rs = get_rest_session()
+    tcs = get_testcases_ve(ve_details["key"])
+    process_test_cases(tcs, ve_details)
     # populate upper level reqs from raw_upper_reqs
     ve_details["upper_reqs"] = []
     if "raw_upper_req" in ve_details.keys():
@@ -190,10 +184,8 @@ def get_ve_details(rs: Session, key: str) -> dict:
     return ve_details
 
 
-def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
+def extract_ves(cmp: str, subcmp: str, DOFEW: bool = False) -> dict:
     """
-
-    :param rs:
     :param cmp:
     :param subcmp:
     :return:
@@ -201,13 +193,22 @@ def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
     # ve_list = []
     ve_details = dict()
 
-    max = 200
+    max = 500
     startAt = 0
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")
     # if subcomponents have & character, need to be encoded as above
     subcmp = subcmp.replace("&", "%26")
     count = 0
+    rs: Session | Session = get_rest_session()
+
+    # Setting retries, sometime the connections fails
+    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
+    retries = Retry(
+        total=10, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
+    )
+
+    rs.adapters["max_retries"] = retries  # type: ignore
 
     while True:
         if subcmp == "":
@@ -257,11 +258,14 @@ def extract_ves(rs: Session, cmp: str, subcmp: str) -> dict:
     return ve_details
 
 
-def do_ve_model(component: str, subcomponent: str) -> dict:
+def do_ve_model(
+    component: str, subcomponent: str, DOFEW: bool = False
+) -> dict:
     """
-    Extract VE model informatino from Jira
+    Extract VE model information from Jira, Zephyr
     :param component:
     :param subcomponent:
+    :param DOFEW:  mainly for testing - jsut get some VEs not all
     :return:
     """
     # create folders for images and attachments if not already there
@@ -271,30 +275,14 @@ def do_ve_model(component: str, subcomponent: str) -> dict:
         f"Looking for all Verification Elements in component '{component}', "
         f"sub-component '{subcomponent}'."
     )
-    usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
-    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
-
-    headers: MutableMapping[str, str | bytes] = {
-        "accept": "application/json",
-        "authorization": "Basic %s" % connection_str,
-        "Connection": "close",
-    }
-
-    rs = requests.Session()
-    rs.headers = headers
-    # Setting retries, sometime the connections fails
-    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
-    retries = Retry(
-        total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
-    )
-
-    rs.adapters["max_retries"] = retries
 
     # get all VEs details
-    ves = extract_ves(rs, component, subcomponent)
+    ves = extract_ves(component, subcomponent, DOFEW)
 
-    print(" Found ", len(ves), " Verification Elements.")
-
+    if DOFEW:
+        print(f" Only doing (DOFEW={DOFEW}) {len(ves)} Verification Elements.")
+    else:
+        print(f" Found {len(ves)} Verification Elements.")
     # need to get the corresponding test cases
 
     return ves
