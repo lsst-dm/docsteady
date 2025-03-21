@@ -226,6 +226,12 @@ def generate_spec(
 
 @cli.command("generate-tpr")
 @click.option(
+    "--excludenoexec",
+    default=False,
+    help="Ignore the test execution steps not executed/with no comment"
+    'Defaults to "False".',
+)
+@click.option(
     "--includeall",
     default=False,
     help="Ignore the include in report field for executions and include all"
@@ -244,7 +250,12 @@ def generate_spec(
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
 def generate_report(
-    format: str, trace: str, plan: str, path: str, includeall: bool
+    format: str,
+    trace: str,
+    plan: str,
+    path: str,
+    includeall: bool,
+    excludenoexec: bool,
 ) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
@@ -269,13 +280,17 @@ def generate_report(
         Config.NAMESPACE.upper()
     ]
     logging.log(logging.INFO, f"Rendering  {path}")
-    env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
+    env = render_report(
+        excludenoexec, metadata, target, plan_dict, OUTPUT_FORMAT, path
+    )
 
     # output the plan - TR without results
     target = "tpnoresult"
     path = path.replace(".tex", "-plan.tex")
     logging.log(logging.INFO, f"Rendering  {path}")
-    env = render_report(metadata, target, plan_dict, OUTPUT_FORMAT, path)
+    env = render_report(
+        excludenoexec, metadata, target, plan_dict, OUTPUT_FORMAT, path
+    )
     if trace:
         # Will exit if it can't find a template
         appendix_template = _try_appendix_template(target, env)

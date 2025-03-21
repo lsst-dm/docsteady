@@ -65,10 +65,17 @@ class TestTPR(unittest.TestCase):
         )
         self.assertTrue("LVV-R181" in plan_dict["test_results_map"])
         self.check_plan(plan_dict)
-        render_report(metadata, "tpr", plan_dict, format="latex", path=path)
+        render_report(
+            False, metadata, "tpr", plan_dict, format="latex", path=path
+        )
         self.assertTrue(exists(path))
         render_report(
-            metadata, "tpnoresult", plan_dict, format="latex", path=ppath
+            False,
+            metadata,
+            "tpnoresult",
+            plan_dict,
+            format="latex",
+            path=ppath,
         )
         self.assertTrue(exists(ppath))
 

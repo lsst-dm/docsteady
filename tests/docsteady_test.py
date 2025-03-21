@@ -1,3 +1,4 @@
+import typing
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
@@ -12,6 +13,7 @@ from docsteady.utils import download_and_rewrite_images, fix_json
 
 
 class TestHtmlPandocField(TestCase):
+    @typing.no_type_check
     def test_download(self) -> None:
         Config.DOWNLOAD_IMAGES = False
         has_json_text = r"""The default catalog

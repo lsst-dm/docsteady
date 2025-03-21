@@ -50,6 +50,9 @@ class ScriptResult(Schema):
     comment = MarkdownableHtmlPandocField(data_key="comment")
     status = fields.Function(
         deserialize=lambda obj: get_value(obj), data_key="testExecutionStatus"
+    )  # this or the next ...hoepfully only one
+    status = fields.Function(
+        deserialize=lambda obj: get_value(obj), data_key="status"
     )
     testdata = MarkdownableHtmlPandocField(data_key="testData")
     # result_issue_keys are actually jira issue keys (not HTTP links)
@@ -83,6 +86,8 @@ class ScriptResult(Schema):
     def postprocess(self, data: dict, **kwargs: List[str]) -> dict:
         # Need to do this here because we need result_issue_keys _and_ key
         data["result_issues"] = self.process_result_issues(data)
+        if type(data["status"]) is dict:
+            data["status"] = get_value(data["status"])
         return data
 
     def process_result_issues(self, data: dict) -> list[Issue]:

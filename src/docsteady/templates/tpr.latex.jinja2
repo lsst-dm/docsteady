@@ -267,7 +267,7 @@ The personnel involved in the test campaign is shown in the following table.
 \textbf{Test Cases} &  \textbf{Ver.} & \textbf{Status} & \textbf{Comment} & \textbf{Issues} \\\toprule
 {% if "test_items"  in cycle %}
 {% for test_item in cycle["test_items"] %}
-\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page\#\!/v2/testCase/{{ test_item["test_case_key"] }}{{ '}' }}{{ '{' }}{{ test_item["test_case_key"] }}{{ '}' }}
+\href{https://rubinobs.atlassian.net/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/{{ test_item["test_case_key"] }}{{ '}' }}{{ '{' }}{{ test_item["test_case_key"] }}{{ '}' }}
 &
   {% if version in testcases_map[test_item["test_case_key"]] %}
      {{ testcases_map[test_item["test_case_key"]]["version"] }}
@@ -390,10 +390,11 @@ Issues found during the execution of {{ test_item['key'] }} test case:
     {% endif %}
 
 
+{% if testresults_map[cycle.key][test_item['key']]['testExecutionStatus'] != "Not Executed"%}
+% Note Steps "Not Executed" and with No Result are not shown in this report if the flag is passed
     {% for tresult in testresults_map[cycle.key].values() %}
 Detailed steps results {{ cycle.key }}-{{ test_item['key'] }} {{ tresult['key'] }}-{{ tresult['id'] }}:\\
-{\bf Note:} Steps "Not Executed" and with No Result are not shown in this report.
-    {% for script_result in tresult['sorted'] %}  {# sorted is filtered by status and comment #}
+    {% for script_result in tresult['script_results'] %}  {
 \begin{tabular}{p{4cm}p{12cm}}
 \toprule
 Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
@@ -447,6 +448,7 @@ Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_re
       {% endif %}
     {% endfor %}
     {% endfor %}
+{%endif %}  % end if not not executed - no steps if not executed
   {% endfor %}
      {% endif %}  %end of the if with theo test_items in testcycles_map[cyclie.id]
 
