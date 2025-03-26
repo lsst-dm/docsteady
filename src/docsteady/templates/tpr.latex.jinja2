@@ -392,9 +392,10 @@ Issues found during the execution of {{ test_item['key'] }} test case:
 
 {% if testresults_map[cycle.key][test_item['key']]['testExecutionStatus'] != "Not Executed"%}
 % Note Steps "Not Executed" and with No Result are not shown in this report if the flag is passed
-    {% for tresult in testresults_map[cycle.key].values() %}
-Detailed steps results {{ cycle.key }}-{{ test_item['key'] }} {{ tresult['key'] }}-{{ tresult['id'] }}:\\
+    {% set tresult = testresults_map[cycle.key][test_item['key']] %}
+Detailed steps results {{ cycle.key }}-{{ test_item['key'] }}-{{ tresult['id'] }}:\\
     {% for script_result in tresult['script_results'] %}  {
+
 \begin{tabular}{p{4cm}p{12cm}}
 \toprule
 Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_result['status'] }} } \\ \hline
@@ -446,7 +447,6 @@ Step {{ script_result['label'] }} & Step Execution Status: \textbf{ {{ script_re
 \end{itemize}
 }
       {% endif %}
-    {% endfor %}
     {% endfor %}
 {%endif %}  % end if not not executed - no steps if not executed
   {% endfor %}

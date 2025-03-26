@@ -263,10 +263,10 @@ def build_tpr_model(tplan_key: str) -> dict:
         for result in testresults:
             # Jira does not number them 1.1 1.2 etc
             if (
-                result["testExecutionStatus"] == "Not Executed"
-                and result["test_case_key"] in test_results_map[cycle_key]
-            ):
+                result["test_case_key"] in test_results_map[cycle_key]
+            ):  # was and .. but we want  skip if done already ...
                 continue
+
             results = get_teststeps(
                 result["id"], paths.CloudPaths.EXECUTIONS_STEPS
             )
