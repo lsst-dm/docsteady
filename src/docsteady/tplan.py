@@ -263,10 +263,10 @@ def build_tpr_model(tplan_key: str) -> dict:
         for result in testresults:
             # Jira does not number them 1.1 1.2 etc
             if (
-                result["testExecutionStatus"] == "Not Executed"
-                and result["test_case_key"] in test_results_map[cycle_key]
-            ):
+                result["test_case_key"] in test_results_map[cycle_key]
+            ):  # was and .. but we want  skip if done already ...
                 continue
+
             results = get_teststeps(
                 result["id"], paths.CloudPaths.EXECUTIONS_STEPS
             )
@@ -322,9 +322,12 @@ def filter_notexecuted_nocomment(testresults_map: dict) -> None:
     for cycle_key, test_results in testresults_map.items():
         for test_exec_key, result in test_results.items():
             newsteps = []
-            key = "sorted"  # was sorted
+            key = "script_results"  # was sorted
             if key in result:
                 for step in result[key]:
+                    status = step["status"]
+                    if type(status) is dict:
+                        status = get_value(status)
                     if step["status"] == "Not Executed" and (
                         "comment" not in step or step["comment"] == ""
                     ):
@@ -336,6 +339,7 @@ def filter_notexecuted_nocomment(testresults_map: dict) -> None:
 
 
 def render_report(
+    excludenoexec: bool,
     metadata: dict,
     target: str,
     plan_dict: dict,
@@ -347,7 +351,8 @@ def render_report(
     testresults_map = alphanum_map_sort(plan_dict["test_results_map"])
     testcases_map = alphanum_map_sort(plan_dict["test_cases_map"])
 
-    filter_notexecuted_nocomment(testresults_map)
+    if excludenoexec:
+        filter_notexecuted_nocomment(testresults_map)
 
     for cycle in plan_dict["test_cycles_map"].values():
         if "test_items" not in cycle:

@@ -24,6 +24,7 @@ Code for Test Specification Model Generation
 import logging
 import os
 import re
+import typing
 import warnings
 from base64 import b64encode
 from collections import OrderedDict
@@ -194,15 +195,16 @@ def t_case_for_key(test_case_key: str) -> dict[str, Any]:
     return cached_testcase_resp
 
 
+@typing.no_type_check
 def download_and_rewrite_images(value: str) -> str:
     warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
     for img in soup.find_all("img"):
-        # print(" - ", img)
-        try:
+        try:  # img["style"] before typing ..
             img_width = re.sub("[^0-9]", "", img["style"])
-        except Exception:
+        except Exception as w:
+            logging.log(logging.WARN, w)
             img_width = "150"
         img_url = urljoin(rest_location, img["src"])
         url_path = urlparse(img_url).path[1:]
@@ -359,6 +361,7 @@ def create_folders_and_files() -> None:
             pass
 
 
+@typing.no_type_check
 def rewrite_strong_to_subsection(content: str, extractable: list) -> str:
     """
     Extract specific "strong" elements and rewrite them to headings so
