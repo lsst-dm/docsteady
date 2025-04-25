@@ -25,7 +25,7 @@ dependencies = [
     "BeautifulSoup4",
     "click",
     "jinja2>=3.1.5",
-    "marshmallow",
+    "marshmallow<4.0",
     "pandoc",
     "pypandoc",
     "pydantic",

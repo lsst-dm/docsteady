@@ -103,7 +103,7 @@ class TestTPR(unittest.TestCase):
                         if "script_results" in run:
                             print(
                                 f"{test_item['key']} - has  "
-                                f"{len(run['script_results']) } "
+                                f"{len(run['script_results'])} "
                                 f"script results "
                             )
                         else:
@@ -114,7 +114,7 @@ class TestTPR(unittest.TestCase):
                     for tresult in testresults_map[cycle["key"]].values():
                         print(
                             f" Details {cycle['key']}-{test_item['key']} "
-                            f"{tresult['key']}-{tresult['id']}:"
+                            f"{tresult['key']}-{tresult['id']}: "
                         )
                         for script_result in tresult["sorted"]:
                             print(
