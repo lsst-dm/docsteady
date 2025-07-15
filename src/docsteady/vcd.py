@@ -83,9 +83,10 @@ class VerificationE(Schema):
             "customfield_10396"
         ]  # requirement specification (13513)
         data["req_discussion"] = data["renderedFields"]["customfield_10080"]
-        if data_fields[
-            "customfield_10166"
-        ]:  # Priority - though not sure any more
+        if (
+            "customfield_10166" in data_fields
+            and data_fields["customfield_10166"]
+        ):  # Priority - though not sure any more
             if type(data_fields["customfield_10166"]) is str:
                 data["req_priority"] = data_fields["customfield_10166"]
             else:
