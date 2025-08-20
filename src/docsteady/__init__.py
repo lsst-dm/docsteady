@@ -386,7 +386,7 @@ def generate_vcd(
         subcomponent = ""
 
     if dump:
-        with open("ve_model.json", "r") as fp:
+        with open("VEmodel.json", "r") as fp:
             ve_model = json.load(fp)
     else:
         ve_model = do_ve_model(component, subcomponent)
