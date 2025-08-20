@@ -1,9 +1,14 @@
 import unittest
 
-from DocsteadyTestUtils import read_test_data
-
-#  getTestCaseData, getTestCases, getVEdata, getVEdetail,
-#  getVEmodel, dumpTestcases
+from DocsteadyTestUtils import (  # noqa: F401
+    dumpTestcases,
+    getTestCaseData,
+    getTestCases,
+    getVEdata,
+    getVEdetail,
+    getVEmodel,
+    read_test_data,
+)
 from jinja2 import (
     ChoiceLoader,
     Environment,
@@ -22,7 +27,7 @@ class TestVCD(unittest.TestCase):
     def test_ve(self) -> None:
         # un comments to replace the VE-DM- json file
         key = "LVV-3"
-        # getVEdetail(key)
+        getVEdetail(key)
         data = read_test_data(f"VE-{key}")
         ve_details = VerificationE(unknown=EXCLUDE).load(data)
         self.assertEqual(ve_details["key"], "LVV-3")
@@ -44,7 +49,7 @@ class TestVCD(unittest.TestCase):
 
     def test_ve_LVV_27(self) -> None:
         key = "LVV-27"
-        # getVEdetail(key)
+        getVEdetail(key)
         data = read_test_data(f"VE-{key}")
         ve_details = VerificationE(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(ve_details["key"], "LVV-27")
@@ -52,7 +57,7 @@ class TestVCD(unittest.TestCase):
         self.assertEqual(4, len(ve_details["verified_by"]))
 
     def test_baseline(self) -> None:
-        # getVEmodel()
+        getVEmodel()
         ve_model = read_test_data("VEmodel")
 
         env = Environment(
@@ -85,7 +90,7 @@ class TestVCD(unittest.TestCase):
 
     def test_vcd(self) -> None:
         # dump can only be False when runnig locally with all creds
-        dump = True
+        dump = False
         if dump:
             ve_model = read_test_data("ve_model")
         else:
