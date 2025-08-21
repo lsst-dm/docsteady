@@ -321,8 +321,13 @@ def summary(dictionary: list) -> list[dict | Any]:
 
     size = [len(reqs), total_ve, len(tcases)]
 
+    print("tc_status")
+    print(tc_status)
+    print("ve_coverage")
     print(ve_coverage)
+    print("req_coverage")
     print(req_coverage)
+    print("req_count_per_doc")
     print(rec_count_per_doc)
 
     return [

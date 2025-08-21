@@ -419,7 +419,7 @@ def generate_vcd(
     metadata["template"] = template.filename
     text = template.render(
         metadata=metadata,
-        coverage=Config.coverage,
+        coverage=Config.req_coverage,
         tcresults=Config.tcresults,
         sum_dict=sum_dict,
         spec_to_reqs=Config.REQ_PER_DOC,

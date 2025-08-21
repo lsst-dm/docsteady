@@ -139,36 +139,62 @@ class Config:
 
     exeuction_errored = False
 
-    coverage = [  # Coverage for requirements and verification elements
+    coverage = [  # Coverage for verification elements
         {
             "id": 0,
-            "key": "FullyVerified",
+            "key": "Verified",
             "name": "Fully Verified",
             "label": "sec:fullyverified",
         },
         {
-            "id": 1,  #  I htink this may now be InVeririfcation
-            "key": "PartiallyVerified",
-            "name": "Partially Verified",
-            "label": "sec:partiallyverified",
+            "id": 1,  # I htink this may now be InVeririfcation
+            "key": "InVerification",
+            "name": "In Verification",
+            "label": "sec:inverification",
         },
         {
             "id": 2,
-            "key": "WithFailures",
-            "name": "With Failures",
-            "label": "sec:withfaulres",
+            "key": "Covered",
+            "name": "Covered",
+            "label": "sec:covered",
         },
         {
             "id": 3,
-            "key": "NotVerified",
-            "name": "Not Verified",
-            "label": "sec:notverified",
-        },
-        {
-            "id": 4,
             "key": "NotCovered",
             "name": "Not Covered",
             "label": "sec:notcovered",
+        },
+        {
+            "id": 4,
+            "key": "Monitoring",
+            "name": "Monitoring",
+            "label": "sec:monitoring",
+        },
+        {
+            "id": 5,
+            "key": "Descoped",
+            "name": "Descoped",
+            "label": "sec:descoped",
+        },
+    ]
+    req_coverage = [  # Coverage for requirements
+        {
+            "id": 0,
+            "key": "Verified",
+            "name": "Verified",
+            "label": "sec:verified",
+        },
+        {
+            "id": 1,  #  I htink this may now be InVeririfcation
+            "key": "InVerification",
+            "name": "In Verification",
+            "label": "sec:inverification",
+        },
+        {
+            "id": 2,
+            "key": "NotVerified",
+            "name": "Not Verified",
+            "label": "sec:notverified",
         },
     ]
 
