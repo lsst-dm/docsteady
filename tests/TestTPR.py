@@ -1,7 +1,7 @@
 import unittest
 from os.path import exists
 
-from DocsteadyTestUtils import read_test_data
+from DocsteadyTestUtils import getTprData, read_test_data
 
 from docsteady.config import Config
 from docsteady.formatters import alphanum_map_array_sort, alphanum_map_sort
@@ -11,6 +11,9 @@ from docsteady.tplan import render_report
 
 
 # from DocsteadyTestUtils import getExecutionsData, getTprData
+
+
+GET_DATA = False
 
 
 class TestTPR(unittest.TestCase):
@@ -24,10 +27,11 @@ class TestTPR(unittest.TestCase):
 
         Config.CACHED_POINTERS = read_test_data("POINTERS")
 
-        # getExecutionsData([27531072, 27531013, 27531080])
+        if GET_DATA:  # rewrite images only gets called if you get data
+            getTprData(plan)
+            # not workign getExecutionsData([27531072, 27531013, 27531080])
+            # unless the cache is full
         Config.CACHED_TEST_EXECUTIONS = read_test_data("TEST-EXECUTIONS")
-
-        # getTprData(plan)
 
         plan_dict = read_test_data(f"TPR-{plan}")
         # the next updates the sorted result inside the map
@@ -106,6 +110,10 @@ class TestTPR(unittest.TestCase):
                                 f"{len(run['script_results'])} "
                                 f"script results "
                             )
+                            for res in run["script_results"]:
+                                if "cloudfront" in res["actual_result"]:
+                                    print(f'URL NONO - {res["actual_result"]}')
+                                    ok = False
                         else:
                             print(
                                 f"{test_item['key']} - has  no script results "

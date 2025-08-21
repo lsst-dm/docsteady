@@ -210,6 +210,13 @@ def download_and_rewrite_images(value: str) -> str:
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path).replace(".", "_")
         fs_path = Config.IMAGE_FOLDER + img_name
+        img["style"] = ""
+        # fixing the aspect ratio of images is working only with pandoc 1.19.1
+        img["width"] = f"{img_width}px"
+        img["display"] = "block"
+        img["src"] = fs_path
+        # Latex includegrpahics does not need extention -
+        # svg will have to be converted anyway
         if Config.DOWNLOAD_IMAGES:
             os.makedirs(dirname(fs_path), exist_ok=True)
             existing_files = os.listdir(dirname(fs_path))
@@ -251,31 +258,24 @@ def download_and_rewrite_images(value: str) -> str:
                         soup.new_tag("<b>Image Download Error</b>")
                     )
                     img.decompose()
-                    return str(soup)
-                extension = None
-                if "png" in resp.headers["content-type"]:
-                    extension = "png"
-                elif "jpeg" in resp.headers["content-type"]:
-                    extension = "jpg"
-                elif "gif" in resp.headers["content-type"]:
-                    extension = "gif"
-                elif "svg" in resp.headers["content-type"]:
-                    extension = "svg"
-                fs_pathe = f"{fs_path}.{extension}"
-                with open(fs_pathe, "w+b") as img_f:
-                    img_f.write(resp.content)
+                else:
+                    extension = None
+                    if "png" in resp.headers["content-type"]:
+                        extension = "png"
+                    elif "jpeg" in resp.headers["content-type"]:
+                        extension = "jpg"
+                    elif "gif" in resp.headers["content-type"]:
+                        extension = "gif"
+                    elif "svg" in resp.headers["content-type"]:
+                        extension = "svg"
+                    fs_pathe = f"{fs_path}.{extension}"
+                    with open(fs_pathe, "w+b") as img_f:
+                        img_f.write(resp.content)
         if (
             img.previous_element is not None
             and img.previous_element.name != "br"
         ):
             img.insert_before(soup.new_tag("br"))
-        img["style"] = ""
-        # fixing the aspect ratio of images is working only with pandoc 1.19.1
-        img["width"] = f"{img_width}px"
-        img["display"] = "block"
-        img["src"] = fs_path
-        # Latex includegrpahics does not need extention -
-        # svg will have to be converted anyway
     return str(soup)
 
 

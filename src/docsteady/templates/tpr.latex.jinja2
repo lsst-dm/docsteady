@@ -45,6 +45,11 @@
 
 \providecommand{\ul}[1]{\textbf{{ '{' }}#1}{{ '}' }}
 
+{% raw %}
+% Pandoc >= 3.2.1 introduces \pandocbounded; fallback for older/custom templates
+\providecommand{\pandocbounded}[1]{#1}
+{% endraw %}
+
 \begin{document}
 
 \def\milestoneName{{ '{' }}{{ testplan.milestone_name }}{{ '}' }}

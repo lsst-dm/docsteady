@@ -22,7 +22,7 @@ from docsteady.config import Config
 from docsteady.vcd import VerificationE, build_vcd_dict, summary
 from docsteady.ve_baseline import do_ve_model, process_test_cases
 
-# set this to flase to create new test files - need all the dredentials.
+# set this to True to create new test files - need all the credentials.
 GET_DATA = False
 
 
@@ -109,13 +109,14 @@ class TestVCD(unittest.TestCase):
         self.assertTrue(sum_dict[0]["Deprecated"] == 3)
 
         coverage = Config.coverage
+        req_coverage = Config.req_coverage
         for cov in coverage:
             print(f" {cov['name']}({cov['label']})", end="")
         print("Total")
         print("--------------------------------------------------")
         print(" Requirements     (All)")
 
-        for cov in coverage:
+        for cov in req_coverage:
             if cov["key"] in sum_dict[2]:
                 print(f"{sum_dict[2][cov['key']]}")
             else:
@@ -134,10 +135,12 @@ class TestVCD(unittest.TestCase):
 
         print("--------------------------------------------------")
         for cov in coverage:
-            print("{dcounts['zAll'][cov['key']]}    {dcounts['count']}")
+            if cov["key"] in dcounts["zAll"]:
+                print(f"{dcounts['zAll'][cov['key']]}    {dcounts['count']}")
 
         print("--------------------------------------------------")
         print("Verification E.      (All)", end="")
-        for cov in coverage:
-            print(" {sum_dict[1][cov['key']]}", end="")
-        print("{sum_dict[6][1]}")
+        for state in Config.tcresults:
+            if state["key"] in sum_dict[1]:
+                print(f" {sum_dict[1][state['key']]}", end="")
+        print(f"{sum_dict[6][1]}")
