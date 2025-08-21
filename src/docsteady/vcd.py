@@ -458,7 +458,7 @@ def build_vcd_dict(
         json.dump(Config.CACHED_TESTCASES, fp)
     with open(tcresfile, "w") as fp:
         json.dump(Config.CACHED_TESTRES_SUM, fp)
-    with open(f"{path}/ve_model.json", "w") as fp:
+    with open(f"{path}/VEmodel.json", "w") as fp:
         json.dump(ve_model, fp)
 
     return vcd_dict
