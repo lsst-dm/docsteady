@@ -101,7 +101,6 @@ if "JIRA_PASSWORD" in os.environ:
     help="Jira cloud  password - usually an API token  ",
 )
 @click.version_option(__version__)
-@click.version_option(__version__)
 def cli(
     namespace: str,
     template_format: str,
@@ -247,6 +246,12 @@ def generate_spec(
     default=False,
     help="If true, traceability table will be added in appendix",
 )
+@click.option(
+    "--dump",
+    default=False,
+    help="If true, dump json before rendering tex, "
+    "if the file exists use it next time instead of hitting server",
+)
 @click.argument("plan")
 @click.argument("path", required=False, type=click.Path())
 def generate_report(
@@ -256,6 +261,7 @@ def generate_report(
     path: str,
     includeall: bool,
     excludenoexec: bool,
+    dump: bool,
 ) -> None:
     """Read in a Test Plan and related cycles from TM4J.
     If specified, PATH is the resulting output.
@@ -272,7 +278,14 @@ def generate_report(
     # Commented this line out since it seems to never be used.
     # Config.output = TemporaryFile(mode="r+")
 
-    plan_dict = build_tpr_model(plan)
+    fname = "tpr_model.json"
+    if dump and os.path.isfile(fname):
+        with open(fname, "r") as fp:
+            plan_dict = json.load(fp)
+    else:
+        plan_dict = build_tpr_model(plan)
+        with open(fname, "w") as fp:
+            json.dump(plan_dict, fp)
 
     metadata = _metadata()
     metadata["namespace"] = Config.NAMESPACE
@@ -386,7 +399,7 @@ def generate_vcd(
         subcomponent = ""
 
     if dump:
-        with open("ve_model.json", "r") as fp:
+        with open("VEmodel.json", "r") as fp:
             ve_model = json.load(fp)
     else:
         ve_model = do_ve_model(component, subcomponent)
@@ -419,7 +432,7 @@ def generate_vcd(
     metadata["template"] = template.filename
     text = template.render(
         metadata=metadata,
-        coverage=Config.coverage,
+        coverage=Config.req_coverage,
         tcresults=Config.tcresults,
         sum_dict=sum_dict,
         spec_to_reqs=Config.REQ_PER_DOC,

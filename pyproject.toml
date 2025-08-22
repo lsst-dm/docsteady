@@ -11,7 +11,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: POSIX",
@@ -137,6 +137,7 @@ python_files = ["docsteady/*py", "docsteady/*/*py", "tests/*.py", "tests/*/*.py"
 # is a way to exclude them from being considered tests
 python_classes = "TestCase"
 asyncio_default_fixture_loop_scope = "function"
+addopts = ["--ignore=dsdebug.py"]
 
 [tool.mypy]
 disallow_untyped_defs = true

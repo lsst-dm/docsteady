@@ -1,9 +1,14 @@
 import unittest
 
-from DocsteadyTestUtils import read_test_data
-
-#  getTestCaseData, getTestCases, getVEdata, getVEdetail,
-#  getVEmodel, dumpTestcases
+from DocsteadyTestUtils import (  # noqa: F401
+    dumpTestcases,
+    getTestCaseData,
+    getTestCases,
+    getVEdata,
+    getVEdetail,
+    getVEmodel,
+    read_test_data,
+)
 from jinja2 import (
     ChoiceLoader,
     Environment,
@@ -17,22 +22,28 @@ from docsteady.config import Config
 from docsteady.vcd import VerificationE, build_vcd_dict, summary
 from docsteady.ve_baseline import do_ve_model, process_test_cases
 
+# set this to True to create new test files - need all the credentials.
+GET_DATA = False
+
 
 class TestVCD(unittest.TestCase):
     def test_ve(self) -> None:
         # un comments to replace the VE-DM- json file
         key = "LVV-3"
-        # getVEdetail(key)
+        if GET_DATA:
+            getVEdetail(key)
         data = read_test_data(f"VE-{key}")
         ve_details = VerificationE(unknown=EXCLUDE).load(data)
         self.assertEqual(ve_details["key"], "LVV-3")
 
         tc = "LVV-T101"
-        # getTestCaseData(tc)
+        if GET_DATA:
+            getTestCaseData(tc)
         tc_LVVT101 = read_test_data(f"TestCase-{tc}")
         Config.CACHED_TESTCASES[tc_LVVT101["key"]] = tc_LVVT101
         tc = "LVV-T217"
-        # getTestCaseData(tc)
+        if GET_DATA:
+            getTestCaseData(tc)
         tc_LVVT217 = read_test_data(f"TestCase-{tc}")
         Config.CACHED_TESTCASES[tc_LVVT217["key"]] = tc_LVVT217
 
@@ -44,7 +55,8 @@ class TestVCD(unittest.TestCase):
 
     def test_ve_LVV_27(self) -> None:
         key = "LVV-27"
-        # getVEdetail(key)
+        if GET_DATA:
+            getVEdetail(key)
         data = read_test_data(f"VE-{key}")
         ve_details = VerificationE(unknown=EXCLUDE).load(data, partial=True)
         self.assertEqual(ve_details["key"], "LVV-27")
@@ -52,7 +64,8 @@ class TestVCD(unittest.TestCase):
         self.assertEqual(4, len(ve_details["verified_by"]))
 
     def test_baseline(self) -> None:
-        # getVEmodel()
+        if GET_DATA:
+            getVEmodel()
         ve_model = read_test_data("VEmodel")
 
         env = Environment(
@@ -84,24 +97,26 @@ class TestVCD(unittest.TestCase):
         self.assertTrue(len(text) > 1000)
 
     def test_vcd(self) -> None:
-        # dump can only be False when runnig locally with all creds
-        dump = True
-        if dump:
-            ve_model = read_test_data("ve_model")
-        else:
+        # can only get data running locally with all creds
+        if GET_DATA:
             ve_model = do_ve_model("DM", "Infrastructure", DOFEW=True)
-        vcd_dict = build_vcd_dict(ve_model, usedump=dump, path="tests/data")
+        else:
+            ve_model = read_test_data("VEmodel")
+        vcd_dict = build_vcd_dict(
+            ve_model, usedump=not GET_DATA, path="tests/data"
+        )
         sum_dict = summary(vcd_dict)
-        self.assertTrue(sum_dict[0]["Deprecated"] == 1)
+        self.assertTrue(sum_dict[0]["Deprecated"] == 3)
 
         coverage = Config.coverage
+        req_coverage = Config.req_coverage
         for cov in coverage:
             print(f" {cov['name']}({cov['label']})", end="")
         print("Total")
         print("--------------------------------------------------")
         print(" Requirements     (All)")
 
-        for cov in coverage:
+        for cov in req_coverage:
             if cov["key"] in sum_dict[2]:
                 print(f"{sum_dict[2][cov['key']]}")
             else:
@@ -120,10 +135,12 @@ class TestVCD(unittest.TestCase):
 
         print("--------------------------------------------------")
         for cov in coverage:
-            print("{dcounts['zAll'][cov['key']]}    {dcounts['count']}")
+            if cov["key"] in dcounts["zAll"]:
+                print(f"{dcounts['zAll'][cov['key']]}    {dcounts['count']}")
 
         print("--------------------------------------------------")
         print("Verification E.      (All)", end="")
-        for cov in coverage:
-            print(" {sum_dict[1][cov['key']]}", end="")
-        print("{sum_dict[6][1]}")
+        for state in Config.tcresults:
+            if state["key"] in sum_dict[1]:
+                print(f" {sum_dict[1][state['key']]}", end="")
+        print(f"{sum_dict[6][1]}")

@@ -28,14 +28,15 @@ import typing
 import warnings
 from base64 import b64encode
 from collections import OrderedDict
-from os.path import dirname, exists
-from typing import Any, List, MutableMapping
+from os.path import dirname
+from pathlib import Path
+from typing import Any, List, MutableMapping, Optional
 from urllib.parse import urljoin, urlparse
 
 import arrow
 import pypandoc
 import requests
-from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning, Tag
 from marshmallow import EXCLUDE, fields
 from requests import Session
 from zephyr import ZephyrScale
@@ -196,6 +197,110 @@ def t_case_for_key(test_case_key: str) -> dict[str, Any]:
 
 
 @typing.no_type_check
+def download_image_asset(
+    img_url: str,
+    fs_path: str | Path,
+    img: Tag,
+    soup: BeautifulSoup,
+    *,
+    timeout: float = 20.0,
+) -> Optional[Path]:
+    """
+    Download an image to fs_path (without extension), handling Jira auth and
+    SmartBear/CloudFront quirks. Mutates the DOM on error.
+
+    """
+    path = Path(fs_path)
+
+    if not getattr(Config, "DOWNLOAD_IMAGES", False):
+        return None
+
+    # Ensure output dir exists
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # If a file already exists with any extension, use it
+    existing = next(path.parent.glob(f"{path.name}.*"), None)
+    if existing and existing.is_file():
+        return existing
+
+    # Fetch
+    errstr: Optional[str] = None
+    resp: Optional[requests.Response] = None
+
+    try:
+        if img_url.startswith(getattr(Config, "JIRA_INSTANCE", "")):
+            resp = requests.get(
+                img_url, auth=getattr(Config, "AUTH", None), timeout=timeout
+            )
+            resp.raise_for_status()
+        else:
+            if "cloudfront" in img_url or "smartbear" in img_url:
+                resp = get_zephy_image(img_url)
+            else:
+                resp = requests.get(img_url, timeout=timeout)
+            resp.raise_for_status()
+    except requests.exceptions.ConnectionError as ce:
+        _set_execution_error(True)
+        errstr = f"Failed to get {img_url}: {ce}"
+    except requests.exceptions.HTTPError as he:
+        if "cloudfront" in img_url:
+            logging.warning("You cannot access %s", img_url)
+            errstr = "No access to cloudfront images."
+        else:
+            _set_execution_error(True)
+            errstr = str(he)
+    except Exception as e:
+        _set_execution_error(True)
+        errstr = f"Unexpected error fetching {img_url}: {e}"
+
+    if errstr is not None:
+        print(errstr)
+        b = soup.new_tag("b")
+        b.string = "Image Download Error"
+        img.insert_before(b)
+        img.decompose()
+        return None
+
+    # Decide extension
+    ct = (resp.headers.get("Content-Type") or "").lower()
+    ext = _ext_from_content_type(ct)
+    if ext is None:
+        url_ext = Path(urlparse(img_url).path).suffix.lstrip(".").lower()
+        if url_ext in {"png", "jpg", "jpeg", "gif", "svg", "webp"}:
+            ext = "jpg" if url_ext == "jpeg" else url_ext
+        else:
+            ext = "bin"
+
+    final_path = path.with_suffix(f".{ext}")
+    with open(final_path, "wb") as fh:
+        fh.write(resp.content)
+    return final_path
+
+
+def _ext_from_content_type(content_type: str) -> Optional[str]:
+    if "png" in content_type:
+        return "png"
+    if "jpeg" in content_type or "jpg" in content_type:
+        return "jpg"
+    if "gif" in content_type:
+        return "gif"
+    if "svg" in content_type:
+        return "svg"
+    if "webp" in content_type:
+        return "webp"
+    return None
+
+
+def _set_execution_error(value: bool) -> None:
+    """Set Config.execution_errored (or the legacy exeuction_errored)
+    if present."""
+    if hasattr(Config, "execution_errored"):
+        setattr(Config, "execution_errored", value)
+    elif hasattr(Config, "exeuction_errored"):
+        setattr(Config, "exeuction_errored", value)
+
+
+@typing.no_type_check
 def download_and_rewrite_images(value: str) -> str:
     warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
@@ -210,72 +315,20 @@ def download_and_rewrite_images(value: str) -> str:
         url_path = urlparse(img_url).path[1:]
         img_name = os.path.basename(url_path).replace(".", "_")
         fs_path = Config.IMAGE_FOLDER + img_name
-        if Config.DOWNLOAD_IMAGES:
-            os.makedirs(dirname(fs_path), exist_ok=True)
-            existing_files = os.listdir(dirname(fs_path))
-            # Look for a file in this path, we don't know what the extension is
-            for existing_file in existing_files:
-                if fs_path in existing_file:
-                    fs_path = existing_file
-            if not exists(fs_path):
-                errstr = None
-                if img_url.startswith(Config.JIRA_INSTANCE):
-                    try:
-                        resp = requests.get(img_url, auth=Config.AUTH)
-                    except ConnectionError as ce:
-                        Config.exeuction_errored = True
-                        errstr = f"Failed to get {img_url}: {ce}"
-                else:
-                    # the rest api does not work for images in smartbear
-                    try:
-                        if "cloudfront" in img_url or "smartbear" in img_url:
-                            resp = get_zephy_image(img_url)
-                        else:
-                            resp = requests.get(img_url)
-                        resp.raise_for_status()
-                    except requests.exceptions.HTTPError as err:
-                        # cloudfront is private smartbear will not allow access
-                        # so its not an error it's a feature
-                        if "cloudfront" in img_url:
-                            logging.log(
-                                logging.WARN, f"You can not access {img_url}"
-                            )
-                            errstr = "No access to cloudfront images."
-                        else:
-                            Config.exeuction_errored = True
-                            errstr = str(err)
-                if errstr is not None:
-                    print(errstr)
-                    # in order the final user can see where the problem is
-                    img.insert_before(
-                        soup.new_tag("<b>Image Download Error</b>")
-                    )
-                    img.decompose()
-                    return str(soup)
-                extension = None
-                if "png" in resp.headers["content-type"]:
-                    extension = "png"
-                elif "jpeg" in resp.headers["content-type"]:
-                    extension = "jpg"
-                elif "gif" in resp.headers["content-type"]:
-                    extension = "gif"
-                elif "svg" in resp.headers["content-type"]:
-                    extension = "svg"
-                fs_pathe = f"{fs_path}.{extension}"
-                with open(fs_pathe, "w+b") as img_f:
-                    img_f.write(resp.content)
-        if (
-            img.previous_element is not None
-            and img.previous_element.name != "br"
-        ):
-            img.insert_before(soup.new_tag("br"))
         img["style"] = ""
         # fixing the aspect ratio of images is working only with pandoc 1.19.1
         img["width"] = f"{img_width}px"
         img["display"] = "block"
         img["src"] = fs_path
-        # Latex includegrpahics does not need extention -
+        # Latex includegraphics does not need extention -
         # svg will have to be converted anyway
+        if Config.DOWNLOAD_IMAGES:
+            download_image_asset(img_url, fs_path, img, soup)
+        if (
+            img.previous_element is not None
+            and img.previous_element.name != "br"
+        ):
+            img.insert_before(soup.new_tag("br"))
     return str(soup)
 
 
