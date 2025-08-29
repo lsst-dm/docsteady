@@ -254,8 +254,6 @@ def summary(dictionary: list) -> list[dict | Any]:
         Config.REQ_STATUS_PER_DOC_COUNT.update(
             [req["reqDoc"] + "." + req["priority"]]
         )
-        # Each VE now has a status so we may be able to simplify this
-        #  Leanne to help
         for ve in req["VEs"]:
             vcoverage = verification_elements[ve]["status"]
             Config.VE_STATUS_COUNT.update([vcoverage])

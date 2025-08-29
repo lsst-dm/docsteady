@@ -11,3 +11,7 @@ VCD
 .buildinfo
 .coverage
 .tox
+_sources
+_static
+tpr_test*
+tp_plan.*
