@@ -195,7 +195,7 @@ def do_ve_coverage(tcs: dict, results: dict) -> str:
 def do_req_coverage(ves: list, ve_coverage: dict) -> str:
     """
     Calculate the coverage level of a requirement
-    based on the downstram verification elements.
+    based on the downstream verification elements.
     :param myvreq: version requirement name
     :param ves:
     :param ve_coverage:
@@ -208,22 +208,18 @@ def do_req_coverage(ves: list, ve_coverage: dict) -> str:
         # This implies there is only one VE per requirement (true for now)
         cover = element["coverage"]
         vecount.update([cover])
-    # @Leanne I dont think we need these failures anymore
-    if vecount["WithFailures"] and vecount["WithFailures"] > 0:
-        rcoverage = "WithFailures"
-    else:
-        if "Verified" in vecount.keys():
-            if vecount["Verified"] == nves:
-                rcoverage = "Verified"
-            else:
-                rcoverage = "InVerification"
-        elif "In Verification" in vecount.keys():
-            rcoverage = "InVerification"
+    if "Verified" in vecount.keys() or "SE Review" in vecount.keys():
+        if vecount["Verified"] == nves:
+            rcoverage = "Verified"
         else:
-            if vecount["NotCovered"] == nves:
-                rcoverage = "NotCovered"
-            else:
-                rcoverage = "NotVerified"
+            rcoverage = "InVerification"
+    elif "In Verification" in vecount.keys():
+        rcoverage = "InVerification"
+    else:
+        if vecount["NotCovered"] == nves:
+            rcoverage = "NotCovered"
+        else:
+            rcoverage = "NotVerified"
     return rcoverage
 
 
