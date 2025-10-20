@@ -425,7 +425,7 @@ def rewrite_strong_to_subsection(content: str, extractable: list) -> str:
     """
     # The default is to preserve order,
     preserve_order = True
-    soup = BeautifulSoup(content, "html.parser")
+    soup = BeautifulSoup(content, "html.parser", from_encoding="utf-8")
     element_neighbor_text = ""
     seen_name: str | None = None
     shelved: list[str] = []

@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.0
@@ -27,13 +27,14 @@ jobs:
       matrix:
         python:
           - "3.11"
+          - "3.13"
 
     steps:
       - name: Install pandoc
         run: |
           sudo apt-get -y install pandoc
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Run tox
         uses: lsst-sqre/run-tox@v1
@@ -45,12 +46,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install Python dependencies
         run: |
@@ -80,7 +81,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Need to clone everything to embed the version.
           fetch-depth: 0
