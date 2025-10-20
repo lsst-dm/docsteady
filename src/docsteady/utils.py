@@ -21,6 +21,7 @@
 """
 Code for Test Specification Model Generation
 """
+import base64
 import logging
 import os
 import re
@@ -46,6 +47,8 @@ from zephyr.scale.cloud.endpoints import paths
 from .config import Config
 
 global THE_SESSION
+
+IMG_COUNT = 0
 
 
 class HtmlPandocField(fields.String):
@@ -302,6 +305,7 @@ def _set_execution_error(value: bool) -> None:
 
 @typing.no_type_check
 def download_and_rewrite_images(value: str) -> str:
+    global IMG_COUNT
     warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
     soup = BeautifulSoup(value.encode("utf-8"), "html.parser")
     rest_location = urljoin(Config.JIRA_INSTANCE, "rest")
@@ -311,19 +315,32 @@ def download_and_rewrite_images(value: str) -> str:
         except Exception as w:
             logging.log(logging.WARN, w)
             img_width = "150"
-        img_url = urljoin(rest_location, img["src"])
-        url_path = urlparse(img_url).path[1:]
-        img_name = os.path.basename(url_path).replace(".", "_")
-        fs_path = Config.IMAGE_FOLDER + img_name
-        img["style"] = ""
-        # fixing the aspect ratio of images is working only with pandoc 1.19.1
-        img["width"] = f"{img_width}px"
-        img["display"] = "block"
-        img["src"] = fs_path
-        # Latex includegraphics does not need extention -
-        # svg will have to be converted anyway
-        if Config.DOWNLOAD_IMAGES:
-            download_image_asset(img_url, fs_path, img, soup)
+        fs_path = Config.IMAGE_FOLDER
+        if img["src"].startswith("data:image") and Config.DOWNLOAD_IMAGES:
+            # Zephyr started stuffing the image in the url src
+            # Strip the prefix: data:image/png;base64,...
+            base64_data = img["src"].split(",")[1]
+            # we have no name so count ..
+            # Decode and save the image
+            fs_path = f"{fs_path}/zephyr{IMG_COUNT}.png"
+            img["src"] = fs_path
+            IMG_COUNT += 1
+            with open(fs_path, "wb") as f:
+                f.write(base64.b64decode(base64_data))
+        else:
+            img_url = urljoin(rest_location, img["src"])
+            url_path = urlparse(img_url).path[1:]
+            img_name = os.path.basename(url_path).replace(".", "_")
+            fs_path = f"{fs_path}{img_name}"
+            img["style"] = ""
+            # fixing the aspect ratio of images
+            img["width"] = f"{img_width}px"
+            img["display"] = "block"
+            img["src"] = fs_path
+            # Latex includegraphics does not need extention -
+            # svg will have to be converted anyway
+            if Config.DOWNLOAD_IMAGES:
+                download_image_asset(img_url, fs_path, img, soup)
         if (
             img.previous_element is not None
             and img.previous_element.name != "br"
