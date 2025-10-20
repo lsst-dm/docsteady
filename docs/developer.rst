@@ -86,16 +86,19 @@ Authentication
 --------------
 
 A set of generic credentials to access the Jira REST API have been defined.
-Since the move to Jira cloud access to the Zephy Test API requires another additonal API token.
+Since the move to Jira cloud access to the Zephyr Test API requires another additional API token.
 These credentials are available at ``1password.com``, in the LSST-IT architecture vault, but not yet integrated into docsteady.
 Specifically all tokens are in the Summit vault under "Gmail JIRA Cloud API Access"
 In order to use these credentials, they have to be configured using environment variables, added as options from the command line, or entered when prompted.
-The simples is to define 3 environemt variable docsteady will look for:
+The simplest is to define 3 environment variable docsteady will look for:
  JIRA_USER
  JIRA_PASSWORD
  ZEPHYR_TOKEN
 
 For the GitHub Action, the REST API credentials have been added as secrets in the GitHub organization for PSE and DM reports.
+
+NOTE: Zephyr tokens last one year so it needs renewal by logging in Jira with rubinjiraapiaccess@gmail.com (creds for jira are in 1Password) and
+getting a new token by clicking the profile top right and choosing "Zephyr Scale API Access Tokens".
 
 
 
