@@ -193,8 +193,7 @@ def extract_ves(cmp: str, subcmp: str, DOFEW: bool = False) -> dict:
     # ve_list = []
     ve_details = dict()
 
-    max = 500
-    startAt = 0
+    max = 100  # 3 for testing
     # if T&S component is given, the JQL query needs to be adjusted
     cmp = cmp.replace("&", "%26")
     # if subcomponents have & character, need to be encoded as above
@@ -210,28 +209,20 @@ def extract_ves(cmp: str, subcmp: str, DOFEW: bool = False) -> dict:
 
     rs.adapters["max_retries"] = retries  # type: ignore
 
+    url: str = ""
+    if subcmp == "":
+        # get all VEs for a given Component
+        url = Config.VE_COMPONENT_URL.format(cmpnt=cmp, maxR=max)
+    elif subcmp == "None":
+        # get all VEs without SubComponet assigned, for a given Component
+        url = Config.VE_NULLSUBCMP_URL.format(cmpnt=cmp, maxR=max)
+    else:
+        # get all VES for given Component/SubComponent
+        url = Config.VE_SUBCMP_URL.format(cmpnt=cmp, subcmp=subcmp, maxR=max)
+
+    next = ""
     while True:
-        if subcmp == "":
-            # get all VEs for a given Component
-            result = rs.get(
-                Config.VE_COMPONENT_URL.format(
-                    cmpnt=cmp, maxR=max, startAt=startAt
-                )
-            )
-        elif subcmp == "None":
-            # get all VEs without SubComponet assigned, for a given Component
-            result = rs.get(
-                Config.VE_NULLSUBCMP_URL.format(
-                    cmpnt=cmp, maxR=max, startAt=startAt
-                )
-            )
-        else:
-            # get all VES for given Component/SubComponent
-            result = rs.get(
-                Config.VE_SUBCMP_URL.format(
-                    cmpnt=cmp, subcmp=subcmp, maxR=max, startAt=startAt
-                )
-            )
+        result = rs.get(f"{url}{next}")
         if result.status_code in [401, 403]:  # Forbidden
             print("Wrong password ? Access denied to " + result.url)
             exit(2)
@@ -240,20 +231,19 @@ def extract_ves(cmp: str, subcmp: str, DOFEW: bool = False) -> dict:
             print(jresult["errors"])
             print(jresult["errorMessages"])
             exit(3)
-        totals = jresult["total"]
         for i in jresult["issues"]:
             ve_details[i["key"]] = get_ve_details(rs, i["key"])
             count = count + 1
             if DOFEW and count >= FEWCOUNT:
                 break
         print("")
-        startAt = startAt + max
-        if startAt > totals:
+        if "nextPageToken" in jresult:
+            next = f"&nextPageToken={jresult['nextPageToken']}"
+        else:  # no nextPageToken on last page
             break
-        else:
-            print(f"[Found {startAt} VEs. Continuing...]")
-            if DOFEW and count >= FEWCOUNT:
-                break
+        print(f"[Found {count} VEs. Continuing...]")
+        if DOFEW and count >= FEWCOUNT:
+            break
 
     return ve_details
 
