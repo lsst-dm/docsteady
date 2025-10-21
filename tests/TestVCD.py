@@ -90,7 +90,7 @@ class TestVCD(unittest.TestCase):
         text = template.render(
             metadata=metadata,
             velements=ve_model,
-            reqs={"DMS-REQ-0002": ["LVV-3"], "DMS-REQ-0008": ["LVV-5"]},
+            reqs={"DMS-REQ-0089": ["LVV-36"], "DMS-REQ-0008": ["LVV-5"]},
             test_cases=Config.CACHED_TESTCASES,
         )
 
@@ -106,7 +106,7 @@ class TestVCD(unittest.TestCase):
             ve_model, usedump=not GET_DATA, path="tests/data"
         )
         sum_dict = summary(vcd_dict)
-        self.assertTrue(sum_dict[0]["Deprecated"] == 3)
+        self.assertTrue(sum_dict[0]["Deprecated"] == 1)
 
         coverage = Config.coverage
         req_coverage = Config.req_coverage
