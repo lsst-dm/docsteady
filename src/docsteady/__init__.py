@@ -61,6 +61,11 @@ if "ZEPHYR_TOKEN" in os.environ:
 if "JIRA_PASSWORD" in os.environ:
     Config.AUTH = (os.environ["JIRA_USER"], os.environ["JIRA_PASSWORD"])
 
+# Suppress BSoup/logging warnings
+logging.getLogger("root").setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger("bs4.dammit").setLevel(logging.ERROR)
+
 
 @click.group()
 @click.option(

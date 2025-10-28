@@ -61,7 +61,7 @@ class Config:
     )
 
     VE_SEARCH_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20AND%20component"
+        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20AND%20component"
         f"%20%20%3D%20%27{{cmpnt}}"
         f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,"
         f"customfield_13511,"
@@ -70,28 +70,26 @@ class Config:
         f"maxResults={{maxR}}"
     )
     VE_COMPONENT_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%20%3D%"
+        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component%20%3D%"
         f"20%22{{cmpnt}}"
         f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY"
         f"%20key%20ASC&fields=key"
-        f"&maxResults={{maxR}}&startAt={{startAt}}"
+        f"&maxResults={{maxR}}"
     )
     VE_SUBCMP_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component"
+        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component"
         f"%20%3D%20%22{{cmpnt}}"
         f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and"
         f"%20issuetype%20%3D%2"
         f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults="
         f"{{maxR}}"
-        f"&startAt={{startAt}}"
     )
     VE_NULLSUBCMP_URL = (
-        f"{JIRA_API}/search?jql=project%20%3D%20LVV%20and%20component%"
+        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component%"
         f"20%3D%20%22{{cmpnt}}"
         f"%22%20%20AND%20Sub-Component%20is%20null%20and%20issuetype%20%3D%2"
         f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults="
         f"{{maxR}}"
-        f"&startAt={{startAt}}"
     )
     PANDOC_TYPE: None = None
     AUTH: Any = None  # for Jira - cna not access all via zephyr

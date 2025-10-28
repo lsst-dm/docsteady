@@ -157,41 +157,6 @@ def runstatus(trs: str) -> str:
     return status
 
 
-def do_ve_coverage(tcs: dict, results: dict) -> str:
-    """
-
-    :param tcs: test cases results
-    :return: coverage
-    """
-    ntc = len(tcs)
-    if ntc == 0:
-        coverage = "NotCovered"
-    else:
-        tccount: Counter = Counter()
-        for tc in tcs.keys():
-            # if tc in results.keys() and results[tc]['lastR']:
-            if (
-                tc in results.keys()
-                and "lastR" in results[tc].keys()
-                and results[tc]["lastR"]
-            ):
-                tccount.update([results[tc]["lastR"]["status"]])
-            else:
-                tccount.update(["notexec"])
-        if tccount["failed"] and tccount["failed"] > 0:
-            coverage = "WithFailures"
-        else:
-            if tccount["passed"] + tccount["cndpass"] == ntc:
-                coverage = "FullyVerified"
-            else:
-                if tccount["notexec"] == ntc:
-                    coverage = "NotVerified"
-                else:
-                    coverage = "PartiallyVerified"
-
-    return coverage
-
-
 def do_req_coverage(ves: list, ve_coverage: dict) -> str:
     """
     Calculate the coverage level of a requirement
@@ -208,7 +173,12 @@ def do_req_coverage(ves: list, ve_coverage: dict) -> str:
         # This implies there is only one VE per requirement (true for now)
         cover = element["coverage"]
         vecount.update([cover])
-    if "Verified" in vecount.keys() or "SE Review" in vecount.keys():
+    if (
+        "Verified" in vecount.keys()
+        or "SE Review" in vecount.keys()
+        or "Descoped" in vecount.keys()
+        or "Monitoring" in vecount.keys()
+    ):
         if vecount["Verified"] == nves:
             rcoverage = "Verified"
         else:
@@ -441,7 +411,7 @@ def build_vcd_dict(
     for req, values in req_dict.items():
         if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
             Config.REQ_PER_DOC[values["reqDoc"]] = []
-            Config.REQ_PER_DOC[values["reqDoc"]].append(req)
+        Config.REQ_PER_DOC[values["reqDoc"]].append(req)
 
     with open(cfile, "w") as fp:
         json.dump(Config.coverage, fp)
