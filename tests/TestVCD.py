@@ -101,12 +101,12 @@ class TestVCD(unittest.TestCase):
         if GET_DATA:
             ve_model = do_ve_model("DM", "Infrastructure", DOFEW=True)
         else:
-            ve_model = read_test_data("VEmodel")
+            ve_model = read_test_data("VEmodel-vcd")
         vcd_dict = build_vcd_dict(
             ve_model, usedump=not GET_DATA, path="tests/data"
         )
         sum_dict = summary(vcd_dict)
-        self.assertTrue(sum_dict[0]["Deprecated"] == 1)
+        self.assertTrue(sum_dict[0]["Deprecated"] == 3)
 
         coverage = Config.coverage
         req_coverage = Config.req_coverage
@@ -144,3 +144,56 @@ class TestVCD(unittest.TestCase):
             if state["key"] in sum_dict[1]:
                 print(f" {sum_dict[1][state['key']]}", end="")
         print(f"{sum_dict[6][1]}")
+
+        spec_to_reqs = Config.REQ_PER_DOC
+        for spec in spec_to_reqs:
+            print(f"**Spec : {spec}")
+            for req in spec_to_reqs[spec]:
+                print(
+                    f"    {req} {vcd_dict[1][req]['reqDoc']} "
+                    f"{vcd_dict[1][req]['priority']} "
+                )
+                for ve in vcd_dict[1][req]["VEs"]:
+                    print(
+                        f"        {vcd_dict[0][ve]['jkey']} "
+                        f"{vcd_dict[0][ve]['priority']}"
+                    )
+                    ntc = len(vcd_dict[0][ve]["tcs"])
+                    ntby = 0
+                    if "verified_by" in vcd_dict[0][ve]:
+                        print("            Verified in: ")
+                        for vby in vcd_dict[0][ve]["verified_by"]:
+                            if "cname" in vcd_dict[0][vby]:
+                                print(
+                                    f"                 {vby} "
+                                    f"{vcd_dict[0][vby]['cname']} "
+                                    f"{vcd_dict[0][vby]['jkey']}"
+                                )
+                    if ntc == 0:
+                        if ntby != 0:
+                            for tc in vcd_dict[0][ve]["tcs"]:
+                                print(
+                                    f"                 {tc} "
+                                    f"{vcd_dict[0][ve]['tcs'][tc]['tspec']}"
+                                )
+                                v3tc = vcd_dict[3][tc]
+                                if v3tc["lastR"]:
+                                    print(
+                                        "                 "
+                                        f"{v3tc['lastR']['exdate']}"
+                                    )
+                                    tpl = v3tc["lastR"]["tplan"]
+                                    if tpl != "NA":
+                                        print(
+                                            "                 "
+                                            f"{v3tc['lastR']['dmtr']} - {tpl}"
+                                        )
+                                    else:
+                                        print(
+                                            "            "
+                                            f"{v3tc['lastR']['tcycle']}"
+                                        )
+                                    print(
+                                        f"                   "
+                                        f"{v3tc['lastR']['status']}"
+                                    )

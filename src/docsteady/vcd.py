@@ -411,7 +411,7 @@ def build_vcd_dict(
     for req, values in req_dict.items():
         if values["reqDoc"] not in Config.REQ_PER_DOC.keys():
             Config.REQ_PER_DOC[values["reqDoc"]] = []
-            Config.REQ_PER_DOC[values["reqDoc"]].append(req)
+        Config.REQ_PER_DOC[values["reqDoc"]].append(req)
 
     with open(cfile, "w") as fp:
         json.dump(Config.coverage, fp)

@@ -225,11 +225,11 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
     \end{tabular} &
     {% set ntc = vcd_dict[0][ve]['tcs']| length %}
     {% set ntby = 0 %}
-    {% if vcd_dict[0][ve]['verifiedby'] %}
+    {% if vcd_dict[0][ve]['verified_by'] %}
         \multicolumn{3}{c}{
         \begin{tabular}{ r l }
         Verified in: &
-        {% for vby in vcd_dict[0][ve]['verifiedby'] %}
+        {% for vby in vcd_dict[0][ve]['verified_by'] %}
             {% if loop.index != 1 %}
                &
             {% endif %}
@@ -241,7 +241,7 @@ For a full description of the prioritization levels, see \citeds{LSE-61}.
         {% endfor %}
         \end{tabular}
         } \\
-        {% set ntby = vcd_dict[0][ve]['verifiedby']| length %}
+        {% set ntby = vcd_dict[0][ve]['verified_by']| length %}
         {% if ntc != 0 %}
           \cmidrule{3-5}
         {% endif %}
