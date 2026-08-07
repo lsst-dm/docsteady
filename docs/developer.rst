@@ -12,7 +12,7 @@ Releasing a new version
 
 1) In the branch, create the tag and push it e.g.
     ''' git tag 3.0.1 '''
-    ''' git pus --tags  '''
+    ''' git push --tags  '''
 
 2) The github action should build and push to PyPI.
 
@@ -55,7 +55,7 @@ Version 3.0 - pip
 -----------------
 The Zephyr API is not available on conda.
 The packages is already pip compatible so just building for PyPI seems sensible.
-So in th checked out tagged docsteady directory:
+So in the checked out tagged docsteady directory:
   ''python3 -m pip install --upgrade build``
   ''python3 -m build``
 
