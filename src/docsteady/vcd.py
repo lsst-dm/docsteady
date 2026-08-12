@@ -93,11 +93,11 @@ class VerificationE(Schema):
                 data["req_priority"] = data_fields["customfield_10166"][
                     "value"
                 ]
-        data["req_params"] = data["renderedFields"][
-            "customfield_10101"
-        ]  # Refining Parameters ?
-        # gone data["raw_upper_req"] = data_fields["customfield_13515"]
-        # gone data["raw_test_cases"] = data_fields["customfield_15106"]
+        if "customfield_10101" in data["renderedFields"]:
+            #  Aug 2026 this seems to have gone missing
+            data["req_params"] = data["renderedFields"][
+                "customfield_10101"
+            ]  # Refining Parameters ?
         data["verified_by"] = self.extract_verified_by(data_fields)
         ref = data_fields["customfield_10076"]["value"]
         if ":" in ref:
