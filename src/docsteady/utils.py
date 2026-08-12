@@ -150,6 +150,57 @@ def as_arrow(datestring: str) -> arrow.Arrow:
     return arrow.get(datestring).to(Config.TIMEZONE)
 
 
+def bulk_fetch_users(account_ids: list[str]) -> None:
+    """
+    Fetch multiple users in a single bulk API call and cache them.
+    The Jira bulk user API accepts up to 200 accountIds per request.
+
+    :param account_ids: List of Jira account IDs to fetch
+    """
+    if not account_ids:
+        return
+
+    # Filter out already cached users and invalid IDs
+    ids_to_fetch = [
+        aid
+        for aid in account_ids
+        if aid and aid != "None" and aid not in Config.CACHED_USERS
+    ]
+
+    if not ids_to_fetch:
+        return
+
+    # Remove duplicates while preserving order
+    ids_to_fetch = list(dict.fromkeys(ids_to_fetch))
+
+    sess = get_rest_session()
+    # Jira bulk API accepts max 200 accountIds per request
+    batch_size = 200
+
+    for i in range(0, len(ids_to_fetch), batch_size):
+        batch = ids_to_fetch[i : i + batch_size]
+        # Build query string with multiple accountId params
+        query_params = "&".join(f"accountId={aid}" for aid in batch)
+        url = f"{Config.JIRA_API}user/bulk?{query_params}"
+
+        try:
+            resp = sess.get(url, auth=Config.AUTH)
+            resp.raise_for_status()
+            result = resp.json()
+            # The bulk API returns {"values": [...users...]}
+            users = result.get("values", [])
+            for user in users:
+                account_id = user.get("accountId")
+                if account_id:
+                    Config.CACHED_USERS[account_id] = user
+        except requests.exceptions.HTTPError as e:
+            logging.warning(f"Failed to bulk fetch users: {e}")
+            # Mark failed IDs so we don't retry them
+            for aid in batch:
+                if aid not in Config.CACHED_USERS:
+                    Config.CACHED_USERS[aid] = {"displayName": aid}
+
+
 def owner_for_id(owner_id: str | dict) -> str:
     if not owner_id or owner_id == "None":
         return "Undefined"
@@ -157,16 +208,15 @@ def owner_for_id(owner_id: str | dict) -> str:
         oid: str = owner_id
     if type(owner_id) is dict:
         oid = owner_id["accountId"]
-    user_resp: dict = {"displayName": oid}
-    if oid not in Config.CACHED_USERS:
-        sess = get_rest_session()
-        # https://rubinobs.atlassian.net/rest/api/2/user?accountId=
-        url = f"{Config.JIRA_API}user?accountId={oid}"
-        resp = sess.get(url, auth=Config.AUTH)
-        resp.raise_for_status()
-        user_resp = resp.json()
-        Config.CACHED_USERS[oid] = user_resp
-    return Config.CACHED_USERS[oid]["displayName"]
+
+    # Return from cache if available
+    if oid in Config.CACHED_USERS:
+        return Config.CACHED_USERS[oid]["displayName"]
+
+    # If not in cache, return the ID as fallback
+    # (bulk_fetch_users should have been called before deserialization)
+    logging.warning(f"User {oid} is missing from cache, returning ID as name")
+    return oid
 
 
 def t_case_for_key(test_case_key: str) -> dict[str, Any]:

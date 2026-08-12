@@ -34,6 +34,7 @@ from .utils import (
     HtmlPandocField,
     MarkdownableHtmlPandocField,
     as_arrow,
+    bulk_fetch_users,
     create_folders_and_files,
     get_folders,
     get_value,
@@ -279,6 +280,18 @@ def build_spec_model(folder: str) -> tuple[dict, dict, dict]:
         testcases_resp = resp.json()
         tc_count = 0
         testcases_resp.sort(key=lambda tc: alphanum_key(tc["key"]))
+
+        # Pre-fetch users from batch before deserialization
+        user_ids = []
+        for tc in testcases_resp:
+            if "owner" in tc:
+                owner = tc["owner"]
+                if isinstance(owner, str) and owner != "None":
+                    user_ids.append(owner)
+                elif isinstance(owner, dict) and "accountId" in owner:
+                    user_ids.append(owner["accountId"])
+        bulk_fetch_users(user_ids)
+
         for testcase_resp in testcases_resp:
             tc_count = tc_count + 1
             testcase = TestCase(unknown=EXCLUDE).load(testcase_resp)

@@ -39,6 +39,7 @@ from .utils import (
     SubsectionableHtmlPandocField,
     _as_output_format,
     as_arrow,
+    bulk_fetch_users,
     create_folders_and_files,
     download_attachments,
     fix_json,
@@ -193,6 +194,31 @@ def labelResults(result: dict) -> None:
     pass
 
 
+def _extract_user_ids(data: dict | list) -> list[str]:
+    """
+    Extract user account IDs from Jira/Zephyr response data.
+    Looks for common user ID fields in the data structure.
+    """
+    user_ids: list[str] = []
+
+    if isinstance(data, list):
+        for item in data:
+            user_ids.extend(_extract_user_ids(item))
+        return user_ids
+
+    # Direct accountId fields
+    user_fields = ["owner", "createdBy", "executedById", "assignedToId"]
+    for field in user_fields:
+        if field in data:
+            val = data[field]
+            if isinstance(val, str) and val != "None":
+                user_ids.append(val)
+            elif isinstance(val, dict) and "accountId" in val:
+                user_ids.append(val["accountId"])
+
+    return user_ids
+
+
 def build_tpr_model(tplan_key: str) -> dict:
     # create folders for images and attachments if not already there
     logging.log(logging.INFO, "Building Test Plan Report Model")
@@ -206,6 +232,11 @@ def build_tpr_model(tplan_key: str) -> dict:
     # get test plan information
     zapi = get_zephyr_api()
     resp = fix_json(zapi.test_plans.get_test_plan(tplan_key))
+
+    # Pre-fetch users from test plan before deserialization
+    user_ids = _extract_user_ids(resp)
+    bulk_fetch_users(user_ids)
+
     testplan: dict = TestPlan(unknown=EXCLUDE).load(resp)
     if "document_id" not in testplan or testplan["document_id"] == "":
         print(
@@ -225,6 +256,11 @@ def build_tpr_model(tplan_key: str) -> dict:
     for cycle_id in testplan["cycles"]:
         logging.log(logging.INFO, f"Adding cycle {cycle_id}")
         resp = zapi.test_cycles.get_test_cycle(cycle_id)
+
+        # Pre-fetch users from test cycle before deserialization
+        user_ids = _extract_user_ids(resp)
+        bulk_fetch_users(user_ids)
+
         test_cycle = TestCycle(unknown=EXCLUDE).load(resp, partial=True)
         cycle_key = test_cycle["key"]
         test_cycles_map[cycle_key] = test_cycle
@@ -256,6 +292,11 @@ def build_tpr_model(tplan_key: str) -> dict:
         logging.log(
             logging.INFO, f"Adding {len(execs)} executions to cycle {cycle_id}"
         )
+
+        # Pre-fetch users from all executions before deserialization
+        user_ids = _extract_user_ids(execs)
+        bulk_fetch_users(user_ids)
+
         testresults = TestResult(unknown=EXCLUDE).load(
             execs, many=True, partial=True
         )
