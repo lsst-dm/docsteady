@@ -43,12 +43,26 @@ class Config:
     THE_SESSION: Session | None = None
     THE_ZEPHYR: ZephyrScale = None
     ZEPHYR_TOKEN = "set in env or with --token"
+
+    # Jira API configuration
+    # If JIRA_CLOUD_ID is set, use api.atlassian.com (scoped tokens)
+    # Otherwise, use the site-specific URL (classic tokens)
+    JIRA_CLOUD_ID: str | None = os.environ.get("JIRA_CLOUD_ID")
+    JIRA_SCOPED_TOKEN: str | None = os.environ.get("JIRA_SCOPED_TOKEN")
     JIRA_INSTANCE = "https://rubinobs.atlassian.net"
-    JIRA_API = f"{JIRA_INSTANCE}/rest/api/3/"
-    ATM_API = f"https://api.zephyrscale.smartbear.com/v2/"
-    ISSUE_URL = f"{JIRA_API}/issue/{{issue}}?&expand=renderedFields"
+
+    # Use api.atlassian.com for scoped tokens, site-specific URL otherwise
+    if JIRA_CLOUD_ID:
+        JIRA_API = (
+            f"https://api.atlassian.com/ex/jira/{JIRA_CLOUD_ID}/rest/api/3/"
+        )
+    else:
+        JIRA_API = f"{JIRA_INSTANCE}/rest/api/3/"
+
+    ATM_API = "https://api.zephyrscale.smartbear.com/v2/"
+    ISSUE_URL = f"{JIRA_API}issue/{{issue}}?&expand=renderedFields"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
-    USER_URL = f"{JIRA_API}/people/{{accountId}}"
+    USER_URL = f"{JIRA_API}people/{{accountId}}"
     TESTCASE_UI_URL = f"{JIRA_INSTANCE}/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/{{testcase}}"
     TESTCASE_SEARCH_URL = f"{ATM_API}/testcase/search"
     # providing an ordered list of statuses we can control for user args
@@ -57,11 +71,11 @@ class Config:
 
     # chech thees later
     GET_ISSUE_COMPONENT = (
-        f"{JIRA_API}/issue/{{issue}}?fields=components,customfield_15001"
+        f"{JIRA_API}issue/{{issue}}?fields=components,customfield_15001"
     )
 
     VE_SEARCH_URL = (
-        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20AND%20component"
+        f"{JIRA_API}search/jql?jql=project%20%3D%20LVV%20AND%20component"
         f"%20%20%3D%20%27{{cmpnt}}"
         f"%27%20and%20issuetype%20%3D%20Verification&fields=key,summary,"
         f"customfield_13511,"
@@ -70,14 +84,14 @@ class Config:
         f"maxResults={{maxR}}"
     )
     VE_COMPONENT_URL = (
-        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component%20%3D%"
+        f"{JIRA_API}search/jql?jql=project%20%3D%20LVV%20and%20component%20%3D%"
         f"20%22{{cmpnt}}"
         f"%22%20%20and%20issuetype%20%3D%20Verification%20ORDER%20BY"
         f"%20key%20ASC&fields=key"
         f"&maxResults={{maxR}}"
     )
     VE_SUBCMP_URL = (
-        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component"
+        f"{JIRA_API}search/jql?jql=project%20%3D%20LVV%20and%20component"
         f"%20%3D%20%22{{cmpnt}}"
         f"%22%20%20and%20Sub-Component%20%20%3D%20%27{{subcmp}}%27%20and"
         f"%20issuetype%20%3D%2"
@@ -85,7 +99,7 @@ class Config:
         f"{{maxR}}"
     )
     VE_NULLSUBCMP_URL = (
-        f"{JIRA_API}/search/jql?jql=project%20%3D%20LVV%20and%20component%"
+        f"{JIRA_API}search/jql?jql=project%20%3D%20LVV%20and%20component%"
         f"20%3D%20%22{{cmpnt}}"
         f"%22%20%20AND%20Sub-Component%20is%20null%20and%20issuetype%20%3D%2"
         f"0Verification%20ORDER%20BY%20key%20ASC&fields=key&maxResults="

@@ -590,25 +590,39 @@ def get_zephyr_api() -> CloudApiWrapper:
 
 
 def get_rest_session() -> Session:
-    """Requires JIRA_USER and JIRA_PASSWORD to be in the config"""
+    """
+    Get a session for Jira REST API calls.
+
+    Supports two authentication methods:
+    1. Scoped token (Bearer auth) - when JIRA_SCOPED_TOKEN is set
+    2. Basic auth - when JIRA_USER and JIRA_PASSWORD are set via Config.AUTH
+    """
     if Config.THE_SESSION:
         return Config.THE_SESSION
 
-    # initialize connection to Jira REST API
-    if Config.AUTH and len(Config.AUTH) == 2:
+    headers: MutableMapping[str, str | bytes] = {
+        "accept": "application/json",
+        "Connection": "close",
+    }
+
+    # Use scoped token (Bearer auth) if available
+    if Config.JIRA_SCOPED_TOKEN:
+        headers["authorization"] = f"Bearer {Config.JIRA_SCOPED_TOKEN}"
+    # Fall back to Basic auth with JIRA_USER/JIRA_PASSWORD
+    elif Config.AUTH and len(Config.AUTH) == 2:
         usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+        connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+        headers["authorization"] = f"Basic {connection_str}"
     else:
         logging.log(
             logging.WARN,
-            "Did not get JIRA_USER and JIRA_PASSWORD in Config.AUTH",
+            "No authentication configured. Set JIRA_SCOPED_TOKEN or "
+            "JIRA_USER/JIRA_PASSWORD.",
         )
         usr_pwd = "NOUSER:NOPASS"
-    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
-    headers: MutableMapping[str, str | bytes] = {
-        "accept": "application/json",
-        "authorization": "Basic %s" % connection_str,
-        "Connection": "close",
-    }
+        connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+        headers["authorization"] = f"Basic {connection_str}"
+
     rs: Session = requests.Session()
     rs.headers = headers
     Config.THE_SESSION = rs
@@ -647,6 +661,22 @@ def get_via_zephyr(url: str) -> dict:
     return result
 
 
+def _rewrite_jira_url(url: str) -> str:
+    """
+    Rewrite site-specific Jira URLs to api.atlassian.com format
+    when using scoped tokens.
+
+    Converts: https://rubinobs.atlassian.net/rest/api/...
+    To: https://api.atlassian.com/ex/jira/{cloudId}/rest/api/...
+    """
+    if Config.JIRA_CLOUD_ID and url.startswith(Config.JIRA_INSTANCE):
+        # Replace site-specific URL with api.atlassian.com
+        path = url[len(Config.JIRA_INSTANCE) :]
+        base = "https://api.atlassian.com/ex/jira"
+        return f"{base}/{Config.JIRA_CLOUD_ID}{path}"
+    return url
+
+
 def get_value(pointer: dict | str, key: str = "self") -> str:
     """
     Given a dict there is a pointer in it which resolves to a name
@@ -662,7 +692,9 @@ def get_value(pointer: dict | str, key: str = "self") -> str:
     if p not in Config.CACHED_POINTERS:
         if p.startswith(Config.JIRA_INSTANCE):
             rs = get_rest_session()
-            hresult = rs.get(p)
+            # Rewrite URL for scoped tokens
+            request_url = _rewrite_jira_url(p)
+            hresult = rs.get(request_url)
             hresult.raise_for_status()
             result: dict = hresult.json()
         else:
