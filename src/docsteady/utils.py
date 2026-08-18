@@ -608,17 +608,20 @@ def get_rest_session() -> Session:
     # Use scoped token (Bearer auth) if available
     if Config.JIRA_SCOPED_TOKEN:
         headers["authorization"] = f"Bearer {Config.JIRA_SCOPED_TOKEN}"
+        print("Using JIRA_SCOPED_TOKEN (Bearer auth) for Jira API")
     # Fall back to Basic auth with JIRA_USER/JIRA_PASSWORD
     elif Config.AUTH and len(Config.AUTH) == 2:
         usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
         connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
         headers["authorization"] = f"Basic {connection_str}"
+        print("Using JIRA_USER/JIRA_PASSWORD (Basic auth) for Jira API")
     else:
         logging.log(
             logging.WARN,
             "No authentication configured. Set JIRA_SCOPED_TOKEN or "
             "JIRA_USER/JIRA_PASSWORD.",
         )
+        print("WARNING: No Jira authentication configured")
         usr_pwd = "NOUSER:NOPASS"
         connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
         headers["authorization"] = f"Basic {connection_str}"
