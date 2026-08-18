@@ -47,8 +47,10 @@ class Config:
     # Jira API configuration
     # If JIRA_CLOUD_ID is set, use api.atlassian.com (scoped tokens)
     # Otherwise, use the site-specific URL (classic tokens)
-    JIRA_CLOUD_ID: str | None = os.environ.get("JIRA_CLOUD_ID")
-    JIRA_SCOPED_TOKEN: str | None = os.environ.get("JIRA_SCOPED_TOKEN")
+    _cloud_id = os.environ.get("JIRA_CLOUD_ID", "").strip()
+    _scoped_token = os.environ.get("JIRA_SCOPED_TOKEN", "").strip()
+    JIRA_CLOUD_ID: str | None = _cloud_id if _cloud_id else None
+    JIRA_SCOPED_TOKEN: str | None = _scoped_token if _scoped_token else None
     JIRA_INSTANCE = "https://rubinobs.atlassian.net"
 
     # Use api.atlassian.com for scoped tokens, site-specific URL otherwise
