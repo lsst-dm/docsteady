@@ -62,7 +62,7 @@ class Config:
         JIRA_API = f"{JIRA_INSTANCE}/rest/api/3/"
 
     ATM_API = "https://api.zephyrscale.smartbear.com/v2/"
-    ISSUE_URL = f"{JIRA_API}issue/{{issue}}?&expand=renderedFields"
+    ISSUE_URL = f"{JIRA_API}issue/{{issue}}?expand=renderedFields"
     ISSUE_UI_URL = f"{JIRA_INSTANCE}/browse/{{issue}}"
     USER_URL = f"{JIRA_API}people/{{accountId}}"
     TESTCASE_UI_URL = f"{JIRA_INSTANCE}/projects/LVV?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCase/{{testcase}}"

@@ -200,6 +200,7 @@ def cli(
     username: Optional[str],
     password: Optional[str],
 ) -> None:
+    click.echo(f"docsteady version: {__version__}")
     Config.MODE_PREFIX = f"{namespace.lower()}-" if namespace else ""
     Config.NAMESPACE = namespace
     Config.TEMPLATE_LANGUAGE = template_format
