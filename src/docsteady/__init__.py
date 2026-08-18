@@ -181,17 +181,15 @@ def _metadata() -> dict:
 )
 @click.option(
     "--username",
-    prompt="Jira User Name for Jira API",
-    hide_input=True,
+    default=None,
     envvar="JIRA_USER",
-    help="Jira cloud user - an email address",
+    help="Jira cloud user - an email address (not needed with scoped token)",
 )
 @click.option(
     "--password",
-    prompt="Jira password (or Token)  for Jira API",
-    hide_input=True,
+    default=None,
     envvar="JIRA_PASSWORD",
-    help="Jira cloud password - usually an API token",
+    help="Jira cloud password/token (not needed with scoped token)",
 )
 @click.version_option(__version__)
 def cli(
@@ -199,15 +197,17 @@ def cli(
     template_format: str,
     load_from: str,
     token: str,
-    username: str,
-    password: str,
+    username: Optional[str],
+    password: Optional[str],
 ) -> None:
     Config.MODE_PREFIX = f"{namespace.lower()}-" if namespace else ""
     Config.NAMESPACE = namespace
     Config.TEMPLATE_LANGUAGE = template_format
     Config.TEMPLATE_DIRECTORY = load_from
     Config.ZEPHYR_TOKEN = token
-    Config.AUTH = (username, password)
+    # Only set AUTH if provided (not needed with scoped token)
+    if username and password:
+        Config.AUTH = (username, password)
 
 
 @cli.command("generate-spec")
