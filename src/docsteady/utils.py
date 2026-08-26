@@ -150,6 +150,57 @@ def as_arrow(datestring: str) -> arrow.Arrow:
     return arrow.get(datestring).to(Config.TIMEZONE)
 
 
+def bulk_fetch_users(account_ids: list[str]) -> None:
+    """
+    Fetch multiple users in a single bulk API call and cache them.
+    The Jira bulk user API accepts up to 200 accountIds per request.
+
+    :param account_ids: List of Jira account IDs to fetch
+    """
+    if not account_ids:
+        return
+
+    # Filter out already cached users and invalid IDs
+    ids_to_fetch = [
+        aid
+        for aid in account_ids
+        if aid and aid != "None" and aid not in Config.CACHED_USERS
+    ]
+
+    if not ids_to_fetch:
+        return
+
+    # Remove duplicates while preserving order
+    ids_to_fetch = list(dict.fromkeys(ids_to_fetch))
+
+    sess = get_rest_session()
+    # Jira bulk API accepts max 200 accountIds per request
+    batch_size = 200
+
+    for i in range(0, len(ids_to_fetch), batch_size):
+        batch = ids_to_fetch[i : i + batch_size]
+        # Build query string with multiple accountId params
+        query_params = "&".join(f"accountId={aid}" for aid in batch)
+        url = f"{Config.JIRA_API}user/bulk?{query_params}"
+
+        try:
+            resp = sess.get(url, auth=Config.AUTH)
+            resp.raise_for_status()
+            result = resp.json()
+            # The bulk API returns {"values": [...users...]}
+            users = result.get("values", [])
+            for user in users:
+                account_id = user.get("accountId")
+                if account_id:
+                    Config.CACHED_USERS[account_id] = user
+        except requests.exceptions.HTTPError as e:
+            logging.warning(f"Failed to bulk fetch users: {e}")
+            # Mark failed IDs so we don't retry them
+            for aid in batch:
+                if aid not in Config.CACHED_USERS:
+                    Config.CACHED_USERS[aid] = {"displayName": aid}
+
+
 def owner_for_id(owner_id: str | dict) -> str:
     if not owner_id or owner_id == "None":
         return "Undefined"
@@ -157,16 +208,15 @@ def owner_for_id(owner_id: str | dict) -> str:
         oid: str = owner_id
     if type(owner_id) is dict:
         oid = owner_id["accountId"]
-    user_resp: dict = {"displayName": oid}
-    if oid not in Config.CACHED_USERS:
-        sess = get_rest_session()
-        # https://rubinobs.atlassian.net/rest/api/2/user?accountId=
-        url = f"{Config.JIRA_API}user?accountId={oid}"
-        resp = sess.get(url, auth=Config.AUTH)
-        resp.raise_for_status()
-        user_resp = resp.json()
-        Config.CACHED_USERS[oid] = user_resp
-    return Config.CACHED_USERS[oid]["displayName"]
+
+    # Return from cache if available
+    if oid in Config.CACHED_USERS:
+        return Config.CACHED_USERS[oid]["displayName"]
+
+    # If not in cache, return the ID as fallback
+    # (bulk_fetch_users should have been called before deserialization)
+    logging.warning(f"User {oid} is missing from cache, returning ID as name")
+    return oid
 
 
 def t_case_for_key(test_case_key: str) -> dict[str, Any]:
@@ -540,25 +590,42 @@ def get_zephyr_api() -> CloudApiWrapper:
 
 
 def get_rest_session() -> Session:
-    """Requires JIRA_USER and JIRA_PASSWORD to be in the config"""
+    """
+    Get a session for Jira REST API calls.
+
+    Supports two authentication methods:
+    1. Scoped token (Bearer auth) - when JIRA_SCOPED_TOKEN is set
+    2. Basic auth - when JIRA_USER and JIRA_PASSWORD are set via Config.AUTH
+    """
     if Config.THE_SESSION:
         return Config.THE_SESSION
 
-    # initialize connection to Jira REST API
-    if Config.AUTH and len(Config.AUTH) == 2:
+    headers: MutableMapping[str, str | bytes] = {
+        "accept": "application/json",
+        "Connection": "close",
+    }
+
+    # Use scoped token (Bearer auth) if available
+    if Config.JIRA_SCOPED_TOKEN:
+        headers["authorization"] = f"Bearer {Config.JIRA_SCOPED_TOKEN}"
+        print("Using JIRA_SCOPED_TOKEN (Bearer auth) for Jira API")
+    # Fall back to Basic auth with JIRA_USER/JIRA_PASSWORD
+    elif Config.AUTH and len(Config.AUTH) == 2:
         usr_pwd = Config.AUTH[0] + ":" + Config.AUTH[1]
+        connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+        headers["authorization"] = f"Basic {connection_str}"
+        print("Using JIRA_USER/JIRA_PASSWORD (Basic auth) for Jira API")
     else:
         logging.log(
             logging.WARN,
-            "Did not get JIRA_USER and JIRA_PASSWORD in Config.AUTH",
+            "No authentication configured. Set JIRA_SCOPED_TOKEN or "
+            "JIRA_USER/JIRA_PASSWORD.",
         )
+        print("WARNING: No Jira authentication configured")
         usr_pwd = "NOUSER:NOPASS"
-    connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
-    headers: MutableMapping[str, str | bytes] = {
-        "accept": "application/json",
-        "authorization": "Basic %s" % connection_str,
-        "Connection": "close",
-    }
+        connection_str = b64encode(usr_pwd.encode("ascii")).decode("ascii")
+        headers["authorization"] = f"Basic {connection_str}"
+
     rs: Session = requests.Session()
     rs.headers = headers
     Config.THE_SESSION = rs
@@ -597,6 +664,22 @@ def get_via_zephyr(url: str) -> dict:
     return result
 
 
+def _rewrite_jira_url(url: str) -> str:
+    """
+    Rewrite site-specific Jira URLs to api.atlassian.com format
+    when using scoped tokens.
+
+    Converts: https://rubinobs.atlassian.net/rest/api/...
+    To: https://api.atlassian.com/ex/jira/{cloudId}/rest/api/...
+    """
+    if Config.JIRA_CLOUD_ID and url.startswith(Config.JIRA_INSTANCE):
+        # Replace site-specific URL with api.atlassian.com
+        path = url[len(Config.JIRA_INSTANCE) :]
+        base = "https://api.atlassian.com/ex/jira"
+        return f"{base}/{Config.JIRA_CLOUD_ID}{path}"
+    return url
+
+
 def get_value(pointer: dict | str, key: str = "self") -> str:
     """
     Given a dict there is a pointer in it which resolves to a name
@@ -612,7 +695,9 @@ def get_value(pointer: dict | str, key: str = "self") -> str:
     if p not in Config.CACHED_POINTERS:
         if p.startswith(Config.JIRA_INSTANCE):
             rs = get_rest_session()
-            hresult = rs.get(p)
+            # Rewrite URL for scoped tokens
+            request_url = _rewrite_jira_url(p)
+            hresult = rs.get(request_url)
             hresult.raise_for_status()
             result: dict = hresult.json()
         else:
