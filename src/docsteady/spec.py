@@ -181,20 +181,61 @@ class TestCase(Schema):
             # Build list of requirements
             for issue_key in data["requirement_issue_keys"]:
                 if issue_key not in Config.CACHED_VELEMENTS.keys():
-                    resp = requests.get(
-                        Config.ISSUE_URL.format(issue=issue_key),
-                        auth=Config.AUTH,
-                    )
-                    resp.raise_for_status()
-                    issue_resp = resp.json()
-                    issue = Issue(unknown=EXCLUDE).load(issue_resp)
+                    issue = self._fetch_requirement_with_retry(issue_key)
+                    if issue is None:
+                        # Skip this requirement if we couldn't fetch it
+                        continue
                     Config.CACHED_VELEMENTS[issue_key] = issue
                 Config.REQUIREMENTS_TO_TESTCASES.setdefault(
                     issue_key, []
                 ).append(data["key"])
                 i = Config.CACHED_VELEMENTS.get(issue_key)
-                issues.append(i)  # type: ignore
+                if i is not None:
+                    issues.append(i)
         return issues
+
+    def _fetch_requirement_with_retry(
+        self, issue_key: str, max_retries: int = 2, retry_delay: int = 10
+    ) -> Issue | None:
+        """Fetch a requirement issue with retry logic for transient errors."""
+        import time
+
+        url = Config.ISSUE_URL.format(issue=issue_key)
+        for attempt in range(max_retries + 1):
+            try:
+                resp = requests.get(url, auth=Config.AUTH)
+                resp.raise_for_status()
+                issue_resp = resp.json()
+                return Issue(unknown=EXCLUDE).load(issue_resp)
+            except requests.exceptions.HTTPError as e:
+                status_code = e.response.status_code if e.response else None
+                if attempt < max_retries:
+                    print(
+                        f"Warning: Failed to fetch {issue_key} "
+                        f"(HTTP {status_code}), retrying in {retry_delay}s..."
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    print(
+                        f"Error: Could not fetch requirement {issue_key} "
+                        f"after {max_retries + 1} attempts "
+                        f"(HTTP {status_code}). Skipping."
+                    )
+                    return None
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries:
+                    print(
+                        f"Warning: Request failed for {issue_key} ({e}), "
+                        f"retrying in {retry_delay}s..."
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    print(
+                        f"Error: Could not fetch requirement {issue_key} "
+                        f"after {max_retries + 1} attempts. Skipping."
+                    )
+                    return None
+        return None
 
     def process_req_links(self, links: dict) -> list | None:
         plinks = process_links(links, "issues")
